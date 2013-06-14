@@ -71,14 +71,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	Calendar m_dateCalender1;
 	Calendar m_dateCalender2;
 	
-	int m_year1;
-	int m_month1;
-	int m_day1;
-	
-	int m_year2;
-	int m_month2;
-	int m_day2;
-	
 	int m_dateMode=0;	
 	
 	
@@ -105,6 +97,12 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 				
 		m_period1.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
 		m_period2.setText(m_dateFormatter.format(m_dateCalender2.getTime()));
+		
+		
+		m_listSalesTab1= (ListView)findViewById(R.id.listviewSalesListTab1);
+		m_listSalesTab2= (ListView)findViewById(R.id.listviewSalesListTab2);
+		m_listSalesTab3= (ListView)findViewById(R.id.listviewSalesListTab3);
+		m_listSalesTab4= (ListView)findViewById(R.id.listviewSalesListTab4);
 		
 		
 		m_tabHost = (TabHost) findViewById(R.id.tabhostManageSales);
@@ -139,42 +137,13 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         m_calendar = (CalendarView)findViewById(R.id.calendarView1);
         m_calendar.setOnDateChangeListener(this);
 
-//        setTabList1();
-//        setTabList2();
-//        setTabList3();
-//        setTabList4();
         
 	}
 	
 	private void setTabList1(List<HashMap<String, String>> fillMaps)
 	{
-//		m_listSalesTab1= (ListView)findViewById(R.id.listviewSalesListTab1);
-//		
-//		 // create the grid item mapping
-//		String[] from = new String[] {"바코드", "상품명", "수량", "순매출"};
-//		int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
-//		
-//		// prepare the list of all records
-//		List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-//		for(int i = 0; i < 10; i++)
-//		{
-//			HashMap<String, String> map = new HashMap<String, String>();
-//			map.put("바코드", "0000" + i);
-//			map.put("상품명", "상품명" + i);
-//			map.put("수량", i + "000");
-//			map.put("순매출", i + "000");
-//			fillMaps.add(map);
-//		}
-//		
-//		// fill in the grid_item layout
-//		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
-//				from, to);
-//		
-//		m_listSalesTab1.setAdapter(adapter);
-//		m_listSalesTab1.setOnItemClickListener(this);
-		
-		
-		String[] from = new String[] {"Office_Code", "G_Name", "rSale", "ProFit_Pri"};
+
+		String[] from = new String[] {"Office_Code", "Office_Name", "rSale", "ProFit_Pri"};
         int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
         
 		// fill in the grid_item layout
@@ -186,25 +155,12 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		
 	}
 	
-	private void setTabList2()
+	private void setTabList2(List<HashMap<String, String>> fillMaps)
 	{
-		m_listSalesTab2= (ListView)findViewById(R.id.listviewSalesListTab2);
 		
 		 // create the grid item mapping
-		String[] from = new String[] {"바코드", "상품명", "수량", "순매출"};
-		int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
-		
-		// prepare the list of all records
-		List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		for(int i = 0; i < 10; i++)
-		{
-			HashMap<String, String> map = new HashMap<String, String>();
-			map.put("바코드", "0000" + i);
-			map.put("상품명", "상품명" + i);
-			map.put("수량", "수량"+ i);
-			map.put("순매출", i + "000");
-			fillMaps.add(map);
-		}
+		String[] from = new String[] {"Barcode", "G_Name", "Sale_Count", "rSale"};
+        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
 		
 		// fill in the grid_item layout
 		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
@@ -213,24 +169,13 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		m_listSalesTab2.setAdapter(adapter);
 	}
 	
-	private void setTabList3()
+	private void setTabList3(List<HashMap<String, String>> fillMaps)
 	{
-		m_listSalesTab3= (ListView)findViewById(R.id.listviewSalesListTab3);
 		
 		 // create the grid item mapping
-		String[] from = new String[] {"코드", "거래처명", "순매출"};
-		int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3};
+		String[] from = new String[] {"Office_Code", "Office_Name", "rSale"};
+        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
 		
-		// prepare the list of all records
-		List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		for(int i = 0; i < 10; i++)
-		{
-			HashMap<String, String> map = new HashMap<String, String>();
-			map.put("코드", "0000" + i);
-			map.put("거래처명", "거래처명" + i);
-			map.put("순매출", i + "000");
-			fillMaps.add(map);
-		}
 		
 		// fill in the grid_item layout
 		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item3, 
@@ -240,22 +185,13 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		m_listSalesTab3.setOnItemClickListener(this);
 	}
 	
-	private void setTabList4()
+	private void setTabList4(List<HashMap<String, String>> fillMaps)
 	{
-		m_listSalesTab4= (ListView)findViewById(R.id.listviewSalesListTab4);
+		
 		
 		 // create the grid item mapping
-		String[] from = new String[] {"상세항목"};
+		String[] from = new String[] {"content"};
 		int[] to = new int[] { R.id.textView1};
-		
-		// prepare the list of all records
-		List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		for(int i = 0; i < 10; i++)
-		{
-			HashMap<String, String> map = new HashMap<String, String>();
-			map.put("상세항목", "상세항목 " + i);
-			fillMaps.add(map);
-		}
 		
 		// fill in the grid_item layout
 		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_text, 
@@ -313,10 +249,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		
 		if ( m_listSalesTab1.getId() == arg0.getId() )
 		{
-			Intent intent = new Intent(this, CustomerProductDetailViewActivity.class);
-	    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
-	    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-	    	//String message = editText.getText().toString();
+			Intent intent = new Intent(this, CustomerProductDetailViewActivity.class);  	
 	    	//intent.putExtra(EXTRA_MESSAGE, message);
 	    	startActivity(intent);	
 		}
@@ -326,7 +259,13 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
 	    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
 	    	//String message = editText.getText().toString();
-	    	//intent.putExtra(EXTRA_MESSAGE, message);
+			
+			String period1 = m_period1.getText().toString();
+			String period2 = m_period2.getText().toString();
+			
+	    	intent.putExtra("PERIOD1", period1);
+	    	intent.putExtra("PERIOD2", period2);
+	    	
 	    	startActivity(intent);
 		}
 			
@@ -340,8 +279,13 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	public void onSelectedDayChange(CalendarView view, int year, int month,
 			int dayOfMonth) {
 		// TODO Auto-generated method stub
-		Toast.makeText(this, "Item Click." + m_calendar.getId() + " ,  " + view.getId(), Toast.LENGTH_SHORT).show();
-		//setTabList4();
+		//Toast.makeText(this, "Item Click." + m_calendar.getId() + " ,  " + view.getId(), Toast.LENGTH_SHORT).show();
+
+		String period1 = String.format("%04d-%02d-%02d", year, month, dayOfMonth);
+		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
+		
+		new MyAsyncTask().execute(tabIndex, period1, period1 , "", "", "", "");
+		
 	}
 	
 
@@ -368,7 +312,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	@Override
 	public void onTabChanged(String tabId) {
 		// TODO Auto-generated method stub
-		Toast.makeText(this, "Tab Click.", Toast.LENGTH_SHORT).show();
+		//Toast.makeText(this, "Tab Click.", Toast.LENGTH_SHORT).show();
 		
 		
 		String period1 = m_period1.getText().toString();
@@ -378,7 +322,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		String customerCode = m_customerCode.getText().toString();
 		String customerName = m_customerName.getText().toString();
 		
-		String tabIndex = String.format("#d", m_tabHost.getCurrentTab());
+		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
 		
 		new MyAsyncTask ().execute(tabIndex, period1, period2, barCode, productName, customerCode, customerName);
 		
@@ -419,19 +363,11 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		{
 			m_dateCalender1.set(year, monthOfYear, dayOfMonth);
 			m_period1.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
-			
-			m_year1 = year;
-			m_month1 = monthOfYear;
-			m_day1 = dayOfMonth;
 		}
 		else if ( m_dateMode == 2 )
 		{
 			m_dateCalender2.set(year, monthOfYear, dayOfMonth);
 			m_period2.setText(m_dateFormatter.format(m_dateCalender2.getTime()));
-			
-			m_year2 = year;
-			m_month2 = monthOfYear;
-			m_day2 = dayOfMonth;
 		}
 		
 		m_dateMode = 0;
@@ -492,32 +428,36 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         				
         				if ( m_tabIndex == 0 ) // 거래처별
                 		{
+        					
+        					
         					if ( barCode.equals("") != true )
         					{
-        						constraint = setConstraint(constraint, "Barcode", barCode);
+        						constraint = setConstraint(constraint, "Barcode", "=", barCode);
         					}
         					
         					if ( productName.equals("") != true )
         					{
-        						constraint = setConstraint(constraint, "G_Name", productName);
+        						constraint = setConstraint(constraint, "G_Name", "=", productName);
         					}
         					
         					if ( customerCode.equals("") != true )
         					{
-        						constraint = setConstraint(constraint, "Office_Code", customerCode);
+        						constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
         					}
         					
         					if ( customerName.equals("") != true)
         					{
-        						constraint = setConstraint(constraint, "Office_Name", customerName);
+        						constraint = setConstraint(constraint, "Office_Name", "=", customerName);
         					}
         					
-                			query = "select Office_Code, G_Name, TSell_Pri, TSell_RePri, DC_Pri, ProFit_Pri from " + tableName;
+                			query = "select Office_Code, Office_Name, TSell_Pri, TSell_RePri, DC_Pri, ProFit_Pri from " + tableName;
+                			query = query + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
                			
                 			if ( constraint.equals("") != true )
                 			{
-                				query = query + " where " + constraint;
+                				query = query + " and " + constraint;
                 			}
+                			
                 			
                 			Log.e("HTTPJSON","query: " + query );
                         	reset = stmt.executeQuery(query);
@@ -528,11 +468,12 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
             					JSONObject Obj = new JSONObject();
             				    // original part looks fine:
             				    Obj.put("Office_Code",reset.getString(1).trim());
-            				    Obj.put("G_Name",reset.getString(2).trim());
-            				    Obj.put("TSell_Pri",reset.getString(3).trim());
-            				    Obj.put("TSell_RePri",reset.getString(3).trim());
-            				    Obj.put("DC_Pri",reset.getString(3).trim());
-            				    Obj.put("ProFit_Pri",reset.getString(3).trim());
+            				    Obj.put("Office_Name",reset.getString(2).trim());
+            				    Obj.put("TSell_Pri",reset.getInt(3));
+            				    Obj.put("TSell_RePri",reset.getInt(4));
+            				    Obj.put("DC_Pri",reset.getInt(5));
+            				    Obj.put("ProFit_Pri",reset.getInt(6));
+   
             				    
             				    CommArray.add(Obj);
             				}
@@ -541,24 +482,131 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
                 		}
                 		else if ( m_tabIndex == 1 ) // 상품명
                 		{
+                			if ( barCode.equals("") != true )
+        					{
+        						constraint = setConstraint(constraint, "Barcode", "=", barCode);
+        					}
+        					
+        					if ( productName.equals("") != true )
+        					{
+        						constraint = setConstraint(constraint, "G_Name", "=", productName);
+        					}
+        					
+        					if ( customerCode.equals("") != true )
+        					{
+        						constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
+        					}
+        					
+        					if ( customerName.equals("") != true)
+        					{
+        						constraint = setConstraint(constraint, "Office_Name", "=", customerName);
+        					}
+        					
+                			query = "select Barcode, G_Name, Sale_Count, TSell_Pri, TSell_RePri, DC_Pri from " + tableName;
+                			query = query + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
+               			
+                			if ( constraint.equals("") != true )
+                			{
+                				query = query + " and " + constraint;
+                			}
                 			
                 			
+                			Log.e("HTTPJSON","query: " + query );
+                        	reset = stmt.executeQuery(query);
+            	        	    		
+                    	    while(reset.next()){
+            					Log.w("HTTPJSON:",reset.getString(1));
+            					
+            					JSONObject Obj = new JSONObject();
+            				    // original part looks fine:
+            				    Obj.put("Barcode",reset.getString(1).trim());
+            				    Obj.put("G_Name",reset.getString(2).trim());
+            				    Obj.put("Sale_Count",reset.getInt(3));
+            				    Obj.put("TSell_Pri",reset.getInt(4));
+            				    Obj.put("TSell_RePri",reset.getInt(5));
+            				    Obj.put("DC_Pri",reset.getInt(6));
+            				    
+            				    CommArray.add(Obj);
+            				}
+                    	    
                 		}
                 		else if ( m_tabIndex == 2 ) // 수수료매장
                 		{
+                			if ( barCode.equals("") != true )
+        					{
+        						constraint = setConstraint(constraint, "Barcode", "=", barCode);
+        					}
+        					
+        					if ( productName.equals("") != true )
+        					{
+        						constraint = setConstraint(constraint, "G_Name", "=", productName);
+        					}
+        					
+        					if ( customerCode.equals("") != true )
+        					{
+        						constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
+        					}
+        					
+        					if ( customerName.equals("") != true)
+        					{
+        						constraint = setConstraint(constraint, "Office_Name", "=", customerName);
+        					}
+        					
+                			query = "select Office_Code, Office_Name, TSell_Pri, TSell_RePri, DC_Pri from " + tableName;
+                			query = query + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
+               			
+                			if ( constraint.equals("") != true )
+                			{
+                				query = query + " and " + constraint;
+                			}
+                			
+                			
+                			Log.e("HTTPJSON","query: " + query );
+                        	reset = stmt.executeQuery(query);
+            	        	    		
+                    	    while(reset.next()){
+            					Log.w("HTTPJSON:",reset.getString(1));
+            					
+            					JSONObject Obj = new JSONObject();
+            				    // original part looks fine:
+            				    Obj.put("Office_Code",reset.getString(1).trim());
+            				    Obj.put("Office_Name",reset.getString(2).trim());
+            				    Obj.put("TSell_Pri",reset.getInt(3));
+            				    Obj.put("TSell_RePri",reset.getInt(4));
+            				    Obj.put("DC_Pri",reset.getInt(5));
+            				    
+            				    CommArray.add(Obj);
+            				}
                 			
                 			
                 		}
                 		else if ( m_tabIndex == 3 ) // 달력매출
                 		{
                 			
+                			tableName = String.format("DF_%04d%02d", y, m);
+                			
+                			query = "select TSell_Pri, Sale_Num, Sale_Pri, TPur_Pri from " + tableName;
+                			query = query + " where Sale_Date = '" + period1 + "'";
+               			
+                			                			
+                			Log.e("HTTPJSON","query: " + query );
+                        	reset = stmt.executeQuery(query);
+            	        	    		
+                    	    while(reset.next()){
+            					Log.w("HTTPJSON:",reset.getString(1));
+            					
+            					JSONObject Obj = new JSONObject();
+            				    // original part looks fine:
+            				    Obj.put("TSell_Pri",reset.getInt(1));
+            				    Obj.put("Sale_Num",reset.getInt(2));
+            				    Obj.put("Sale_Pri",reset.getInt(3));
+            				    Obj.put("TPur_Pri",reset.getInt(4));
+
+            				    CommArray.add(Obj);
+            				}
+                			
                 			
                 		}
-        				
-        				
-        				
-        				
-        				
         			}
         			
         		}
@@ -586,7 +634,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         	
         	if ( m_tabIndex == 0 )
         	{
-        		String[] from = new String[] {"Office_Code", "G_Name", "rSale", "ProFit_Pri"};
+        		String[] from = new String[] {"Office_Code", "Office_Name", "rSale", "ProFit_Pri"};
     	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
     	        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
     	 	        		
@@ -597,20 +645,20 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
                 	try {
                 		
         				String code = json.getString("Office_Code");
-        				String name = json.getString("G_Name");
-        				String tSell = json.getString("TSell_Pri");
-        				String tRSell = json.getString("TSell_RePri");
-        				String dcPri = json.getString("DC_Pri");
-        				String proFit = json.getString("ProFit_Pri");
+        				String name = json.getString("Office_Name");
+        				int tSell = json.getInt("TSell_Pri");
+        				int tRSell = json.getInt("TSell_RePri");
+        				int dcPri = json.getInt("DC_Pri");
+        				String sProfit = String.format("%d", json.getInt("ProFit_Pri"));
         				
-        				String rSale = String.format("%d", Integer.parseInt(tSell)-(Integer.parseInt(tRSell) + Integer.parseInt(dcPri)));
+        				String rSale = String.format("%d", tSell - (tRSell + dcPri));
         				
         				// prepare the list of all records
     		            HashMap<String, String> map = new HashMap<String, String>();
     		            map.put("Office_Code", code);
-    		            map.put("G_Name", name);
+    		            map.put("Office_Name", name);
     		            map.put("rSale", rSale);
-    		            map.put("ProFit_Pri", proFit);
+    		            map.put("ProFit_Pri", sProfit);
     		            fillMaps.add(map);
         		 
         			} catch (JSONException e) {
@@ -619,23 +667,159 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         			}
         		}
         		
-        		Toast.makeText(getApplicationContext(), "Search completed: " + CommArray.size(), Toast.LENGTH_SHORT).show();
+        		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
         		
-        		setTabList1(fillMaps);	
+        		if ( CommArray.size() > 0 )
+        		{
+        			setTabList1(fillMaps);
+        		}
+        		
         	}
-        	
-			
+        	else if ( m_tabIndex == 1 )
+        	{
+        		String[] from = new String[] {"Barcode", "G_Name", "Sale_Count", "rSale"};
+    	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
+    	        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+    	 	        		
+            	Iterator<JSONObject> iterator = CommArray.iterator();
+        		while (iterator.hasNext()) {
+                	JSONObject json = iterator.next();
+                	
+                	try {
+                		
+        				String code = json.getString("Barcode");
+        				String name = json.getString("G_Name");
+        				int tSell = json.getInt("TSell_Pri");
+        				int tRSell = json.getInt("TSell_RePri");
+        				int dcPri = json.getInt("DC_Pri");
+        				String saleCount = String.format("%d", json.getInt("Sale_Count"));
+        				
+        				String rSale = String.format("%d", tSell - (tRSell + dcPri));
+        				
+        				// prepare the list of all records
+    		            HashMap<String, String> map = new HashMap<String, String>();
+    		            map.put("Barcode", code);
+    		            map.put("G_Name", name);
+    		            map.put("Sale_Count", saleCount);
+    		            map.put("rSale", rSale);
+    		            fillMaps.add(map);
+        		 
+        			} catch (JSONException e) {
+        				// TODO Auto-generated catch block
+        				e.printStackTrace();
+        			}
+        		}
+        		
+        		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
+        		
+        		if ( CommArray.size() > 0 )
+        		{
+        			setTabList2(fillMaps);
+        		}
+        		
+        	}
+        	else if ( m_tabIndex == 2 )
+        	{
+        		String[] from = new String[] {"Office_Code", "Office_Name", "rSale"};
+    	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
+    	        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+    	 	        		
+            	Iterator<JSONObject> iterator = CommArray.iterator();
+        		while (iterator.hasNext()) {
+                	JSONObject json = iterator.next();
+                	
+                	try {
+                		
+        				String code = json.getString("Office_Code");
+        				String name = json.getString("Office_Name");
+        				int tSell = json.getInt("TSell_Pri");
+        				int tRSell = json.getInt("TSell_RePri");
+        				int dcPri = json.getInt("DC_Pri");
+        				        				
+        				String rSale = String.format("%d", tSell - (tRSell + dcPri));
+        				
+        				// prepare the list of all records
+    		            HashMap<String, String> map = new HashMap<String, String>();
+    		            map.put("Office_Code", code);
+    		            map.put("Office_Name", name);
+    		            map.put("rSale", rSale);
+    		            fillMaps.add(map);
+        		 
+        			} catch (JSONException e) {
+        				// TODO Auto-generated catch block
+        				e.printStackTrace();
+        			}
+        		}
+        		
+        		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
+        		
+        		if ( CommArray.size() > 0 )
+        		{
+        			setTabList3(fillMaps);
+        		}
+        		
+        	}
+        	else if ( m_tabIndex == 3 )
+        	{
+        		String[] from = new String[] {"content"};
+    	        int[] to = new int[] { R.id.textView1};
+    	        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+    	 	        		
+            	Iterator<JSONObject> iterator = CommArray.iterator();
+        		while (iterator.hasNext()) {
+                	JSONObject json = iterator.next();
+                	
+                	try {
+
+                		
+        				String rSale = String.format("순매출 : %d원", json.getInt("TSell_Pri"));
+        				String saleNum = String.format("객 수 : %d명", json.getInt("Sale_Num"));
+        				String salePri = String.format("객단가 : %d원", json.getInt("Sale_Pri"));
+        				String tPurPri = String.format("매입금액 : %d원", json.getInt("TPur_Pri"));
+        				
+        				// prepare the list of all records
+    		            HashMap<String, String> map1 = new HashMap<String, String>();
+    		            HashMap<String, String> map2 = new HashMap<String, String>();
+    		            HashMap<String, String> map3 = new HashMap<String, String>();
+    		            HashMap<String, String> map4 = new HashMap<String, String>();
+        				
+    		            map1.put("content", rSale);
+    		            fillMaps.add(map1);
+    		            
+    		            map2.put("content", saleNum);
+    		            fillMaps.add(map2);
+    		            
+    		            map3.put("content", salePri);
+    		            fillMaps.add(map3);
+    		            
+    		            map4.put("content", tPurPri);
+    		            fillMaps.add(map4);
+        		 
+        			} catch (JSONException e) {
+        				// TODO Auto-generated catch block
+        				e.printStackTrace();
+        			}
+        		}
+        		
+        		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
+        		
+        		if ( CommArray.size() > 0 )
+        		{
+        			setTabList4(fillMaps);
+        		}
+        		
+        	}
     		
         }
         
-        private String setConstraint(String str, String field, String value)
+        private String setConstraint(String str, String field, String op, String value)
         {
         	if ( str.equals("") != true )
         	{
-        		str = str + ", ";
+        		str = str + " and ";
         	}
         	
-        	str = str + field + " = " +  value;
+        	str = str + field + " " + op + " '" + value + "'";
         	
         	return str;
         }
