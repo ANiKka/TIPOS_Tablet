@@ -1,0 +1,86 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/intro_bg"
+    android:gravity="center_horizontal"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".MainActivity" >
+
+    <EditText
+        android:id="@+id/editTextShopCode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textViewShopIP"
+        android:layout_alignBottom="@+id/textViewShopIP"
+        android:layout_alignLeft="@+id/buttonAuthentication"
+        android:layout_alignParentRight="true"
+        android:background="@drawable/intro_text_box"
+        android:ems="20"
+        android:textColor="#000000"
+        android:inputType="number" />
+    	
+    	<requestFocus />
+
+    <TextView
+        android:id="@+id/textViewTop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="111dp"
+        android:layout_marginTop="217dp"
+        android:background="@drawable/logo"
+        android:gravity="center_horizontal"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/textViewShopIP"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textViewTop"
+        android:layout_marginTop="27dp"
+        android:layout_marginRight="10dp"
+        android:layout_toLeftOf="@+id/editTextMobilePhoneNumber"
+        android:text="매장코드"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#ffffff"
+        android:textSize="20sp" />
+
+    <EditText
+        android:id="@+id/editTextMobilePhoneNumber"
+        android:layout_width="227dp"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textViewPhone"
+        android:layout_alignBottom="@+id/textViewPhone"
+        android:layout_alignLeft="@+id/editTextShopCode"
+        android:background="@drawable/intro_text_box"
+        android:ems="20"
+        android:textColor="#000000"
+        android:inputType="phone" />
+
+    <TextView
+        android:id="@+id/textViewPhone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/textViewShopIP"
+        android:layout_below="@+id/editTextShopCode"
+        android:layout_marginTop="31dp"
+        android:text="핸드폰 번호"
+        android:textColor="#ffffff"
+        android:textSize="20sp" />
+
+    <Button
+        android:id="@+id/buttonAuthentication"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/editTextMobilePhoneNumber"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="23dp"
+        android:background="@drawable/certification_btn"
+        android:onClick="onAuthentication" />
+
+</RelativeLayout>

@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="tipsystem.tips"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="15"
+        android:targetSdkVersion="17" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@android:style/Theme.Holo" >
+        <activity
+            android:name="tipsystem.tips.MainActivity"
+            android:label="@string/app_name"
+            android:theme="@android:style/Theme.Holo.NoActionBar" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="tipsystem.tips.ConfigActivity"
+            android:icon="@drawable/back_btn"
+            android:parentActivityName="tipsystem.tips.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.MainActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.ConfigDetailActivity"
+            android:label="@string/title_activity_config_detail"
+            android:parentActivityName="tipsystem.tips.ConfigActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.ConfigActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.MainMenuActivity"
+            android:parentActivityName="tipsystem.tips.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.MainActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.InputQuestionActivity"
+            android:label="@string/title_activity_input_question"
+            android:parentActivityName="tipsystem.tips.MainMenuActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.MainMenuActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.SelectShopActivity"
+            android:parentActivityName="tipsystem.tips.ConfigActivity"
+            android:theme="@android:style/Theme.Holo.Light" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.ConfigActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.ManageCodeActivity"
+            android:icon="@drawable/home_btn"
+            android:parentActivityName="tipsystem.tips.MainMenuActivity" >
+        </activity>
+        <activity
+            android:name="tipsystem.tips.ManageCustomerActivity"
+            android:label="거래처 관리"
+            android:parentActivityName="tipsystem.tips.ManageCodeActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.ManageCodeActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.ManageProductActivity"
+            android:label="상품등록"
+            android:parentActivityName="tipsystem.tips.ManageCodeActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.ManageCodeActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.ComparePriceActivity"
+            android:parentActivityName="tipsystem.tips.ManageCodeActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.ManageCodeActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.ComparePriceDetailActivity"
+            android:parentActivityName="tipsystem.tips.ComparePriceActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.ComparePriceActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.ManagePurchaseActivity"
+            android:icon="@drawable/home_btn"
+            android:parentActivityName="tipsystem.tips.MainMenuActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.MainMenuActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.PurchaseRegistActivity"
+            android:parentActivityName="tipsystem.tips.ManagePurchaseActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.ManagePurchaseActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.PurchaseDetailActivity"
+            android:parentActivityName="tipsystem.tips.PurchaseRegistActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.PurchaseRegistActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.PurchasePaymentStatusActivity"
+            android:parentActivityName="tipsystem.tips.ManagePurchaseActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.ManagePurchaseActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.PurchaseListDetailViewActivity"
+            android:parentActivityName="tipsystem.tips.PurchasePaymentStatusActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.PurchasePaymentStatusActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.PaymentDetailViewActivity"
+            android:parentActivityName="tipsystem.tips.PurchasePaymentStatusActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.PurchasePaymentStatusActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.CustomerPurchasePaymentDetailActivity"
+            android:parentActivityName="tipsystem.tips.PurchasePaymentStatusActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.PurchasePaymentStatusActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.ManageSalesActivity"
+            android:parentActivityName="tipsystem.tips.MainMenuActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.MainMenuActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.CustomerProductDetailViewActivity"
+            android:parentActivityName="tipsystem.tips.ManageSalesActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.ManageSalesActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.ManageEventActivity"
+            android:parentActivityName="tipsystem.tips.MainMenuActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.MainMenuActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.EventDetailViewActivity"
+            android:parentActivityName="tipsystem.tips.ManageEventActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.ManageEventActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.SalesNewsActivity"
+            android:parentActivityName="tipsystem.tips.MainMenuActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.MainMenuActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.CustomerProductDetailInNewsActivity"
+            android:parentActivityName="tipsystem.tips.SalesNewsActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.SalesNewsActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.ManageStockActivity"
+            android:parentActivityName="tipsystem.tips.MainMenuActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.MainMenuActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.ChargeCustomerDetailActivity"
+            android:parentActivityName="tipsystem.tips.ManageSalesActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.ManageSalesActivity" />
+        </activity>
+    </application>
+
+</manifest>

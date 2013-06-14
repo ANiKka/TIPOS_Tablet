@@ -1,0 +1,298 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="@drawable/bg_img"
+    tools:context=".PaymentDetailViewActivity" >
+
+	<LinearLayout
+	    android:id="@+id/linearLayoutTitle"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentLeft="true"
+	    android:orientation="horizontal" >
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.3"
+            android:textColor="#ffffff"
+            android:textSize="14sp"
+            android:text="거래처명 : "
+            android:textAppearance="?android:attr/textAppearanceSmall"/>
+        
+         <TextView
+             android:id="@+id/textView3"
+             android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="#ffffff"
+            android:textSize="14sp"
+             android:text="xxxxxx "
+             android:layout_marginLeft="5dip"
+             android:textAppearance="?android:attr/textAppearanceSmall" />
+     </LinearLayout>
+     
+     <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_below="@id/linearLayoutTitle"
+        android:orientation="horizontal" >
+         
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.45"
+            android:textColor="#ffffff"
+            android:textSize="14sp"
+            android:text="기간"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <EditText
+            android:id="@+id/editTextPeriod1"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="#000000"
+            android:background="@drawable/white_text_box_small"
+            android:textSize="14sp"
+            android:inputType="date" />
+
+        <requestFocus />
+
+        <TextView
+            android:id="@+id/textView4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:textColor="#ffffff"
+            android:textSize="14sp"
+            android:text="~"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            />
+
+        <EditText
+            android:id="@+id/editTextPeriod2"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="#000000"
+            android:background="@drawable/white_text_box_small"
+            android:textSize="14sp"
+            android:inputType="date" />
+	        
+	</LinearLayout>
+
+	<HorizontalScrollView
+		android:id="@+id/horizontalScrollView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/linearLayout2"
+         >
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+  
+		    <!-- Header -->
+	    	<LinearLayout android:id="@+id/header"        
+	        android:layout_height="wrap_content"
+	        android:layout_width="fill_parent"
+	        android:layout_marginTop="10dip"
+	        android:orientation="horizontal"
+	        >
+		        <TextView android:id="@+id/item1"
+		            android:layout_height="fill_parent"
+					android:layout_width="wrap_content"
+					android:textColor="#d7d7d7"
+					android:textStyle="bold"
+					android:textSize="14sp"
+					android:gravity="center"
+					android:width="75dip"
+					android:height="20dip"
+					android:background="@drawable/gray_bar_bg"
+		            android:text="순번"
+		        />
+		        <TextView android:id="@+id/item2"
+		            android:layout_height="fill_parent"
+					android:layout_width="wrap_content"
+					android:textColor="#d7d7d7"
+					android:textStyle="bold"
+					android:textSize="14sp"
+					android:gravity="center"
+					android:width="75dip"
+					android:height="20dip"
+					android:background="@drawable/gray_bar_bg"
+		            android:text="처리년월"
+		        />
+		        <TextView android:id="@+id/item3"
+		            android:layout_height="fill_parent"
+					android:layout_width="wrap_content"
+					android:textColor="#d7d7d7"
+					android:textStyle="bold"
+					android:textSize="14sp"
+					android:gravity="center"
+					android:width="75dip"
+					android:height="20dip"
+					android:background="@drawable/gray_bar_bg"
+		            android:text="전표번호"
+		        />
+		        <TextView android:id="@+id/item4"
+		            android:layout_height="fill_parent"
+					android:layout_width="wrap_content"
+					android:textColor="#d7d7d7"
+					android:textStyle="bold"
+					android:textSize="14sp"
+					android:gravity="center"
+					android:width="75dip"
+					android:height="20dip"
+					android:background="@drawable/gray_bar_bg"
+		            android:text="구분"
+		        />
+		        <TextView android:id="@+id/item5"
+		            android:layout_height="fill_parent"
+					android:layout_width="wrap_content"
+					android:textColor="#d7d7d7"
+					android:textStyle="bold"
+					android:textSize="14sp"
+					android:gravity="center"
+					android:width="75dip"
+					android:height="20dip"
+					android:background="@drawable/gray_bar_bg"
+		            android:text="이월"
+		        />
+		        
+		        <TextView android:id="@+id/item6"
+		            android:layout_height="fill_parent"
+					android:layout_width="wrap_content"
+					android:textColor="#d7d7d7"
+					android:textStyle="bold"
+					android:textSize="14sp"
+					android:gravity="center"
+					android:width="75dip"
+					android:height="20dip"
+					android:background="@drawable/gray_bar_bg"
+		            android:text="매입금액"
+		        />
+		        <TextView android:id="@+id/item7"
+		            android:layout_height="fill_parent"
+					android:layout_width="wrap_content"
+					android:textColor="#d7d7d7"
+					android:textStyle="bold"
+					android:textSize="14sp"
+					android:gravity="center"
+					android:width="75dip"
+					android:height="20dip"
+					android:background="@drawable/gray_bar_bg"
+		            android:text="반품금액"
+		        />
+		        <TextView android:id="@+id/item8"
+		            android:layout_height="fill_parent"
+					android:layout_width="wrap_content"
+					android:textColor="#d7d7d7"
+					android:textStyle="bold"
+					android:textSize="14sp"
+					android:gravity="center"
+					android:width="75dip"
+					android:height="20dip"
+					android:background="@drawable/gray_bar_bg"
+		            android:text="할인금액"
+		        />
+		        <TextView android:id="@+id/item9"
+		            android:layout_height="fill_parent"
+					android:layout_width="wrap_content"
+					android:textColor="#d7d7d7"
+					android:textStyle="bold"
+					android:textSize="14sp"
+					android:gravity="center"
+					android:width="75dip"
+					android:height="20dip"
+					android:background="@drawable/gray_bar_bg"
+		            android:text="장려금"
+		        />
+		        <TextView android:id="@+id/item10"
+		            android:layout_height="fill_parent"
+					android:layout_width="wrap_content"
+					android:textColor="#d7d7d7"
+					android:textStyle="bold"
+					android:textSize="14sp"
+					android:gravity="center"
+					android:width="75dip"
+					android:height="20dip"
+					android:background="@drawable/gray_bar_bg"
+		            android:text="지급금액"
+		        />
+		        <TextView android:id="@+id/item11"
+		            android:layout_height="fill_parent"
+					android:layout_width="wrap_content"
+					android:textColor="#d7d7d7"
+					android:textStyle="bold"
+					android:textSize="14sp"
+					android:gravity="center"
+					android:width="75dip"
+					android:height="20dip"
+					android:background="@drawable/gray_bar_bg"
+		            android:text="입금금액"
+		        />
+		        <TextView android:id="@+id/item12"
+		            android:layout_height="fill_parent"
+					android:layout_width="wrap_content"
+					android:textColor="#d7d7d7"
+					android:textStyle="bold"
+					android:textSize="14sp"
+					android:gravity="center"
+					android:width="75dip"
+					android:height="20dip"
+					android:background="@drawable/gray_bar_bg"
+		            android:text="미지급금액"
+		        />
+		        <TextView android:id="@+id/item13"
+		            android:layout_height="fill_parent"
+					android:layout_width="wrap_content"
+					android:textColor="#d7d7d7"
+					android:textStyle="bold"
+					android:textSize="14sp"
+					android:gravity="center"
+					android:width="75dip"
+					android:height="20dip"
+					android:background="@drawable/gray_bar_bg"
+		            android:text="비고"
+		        />
+    	</LinearLayout>
+
+	    <!-- List Divider -->
+	    <View android:layout_width="fill_parent"
+	        android:layout_height="1dip"
+	        android:background="?android:attr/listDivider" />
+	 
+	    <!-- ListView (grid_items) -->
+	    <LinearLayout android:id="@+id/layout"
+	        android:layout_width="match_parent"
+	        android:layout_height="fill_parent"
+	        android:layout_below="@+id/header"
+	        >
+	        <ListView android:id="@+id/listviewPaymentDetailViewList"
+	            android:layout_height="wrap_content"
+	            android:layout_width="fill_parent"
+	            android:focusable = "false" 
+	            android:clickable="false"
+	            >
+	        </ListView>
+	    </LinearLayout>
+    </LinearLayout>
+    </HorizontalScrollView>
+    
+
+
+	
+</RelativeLayout>

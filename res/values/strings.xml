@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">TIPS</string>
+    <string name="action_settings">Settings</string>
+    <string name="purchase_management">매입 관리</string>
+    <string name="purchase_registration">매입 등록</string>
+    <string name="purchase_payment_status">매입 \ 대금 결제 현황</string>
+    <string name="system_title">TIPS</string>
+    <string name="authentication">인증</string>
+    <string name="mobile_phone_number">핸드폰 번호</string>
+    <string name="shop_code">매장코드</string>
+    <string name="title_activity_config">ConfigActivity</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="shop_name">매장명: xxx 마트</string>
+    <string name="ip_address">IP: 192.168.xxx.xxx</string>
+    <string name="config">설정</string>
+    <string name="ID">ID</string>
+    <string name="PW">PW</string>
+    <string name="login">로그인</string>
+    <string name="cancel">취소</string>
+    <string name="title_activity_config_detail">ConfigDetailActivity</string>
+    <string name="ConfigDetailTitle">XXX 마트 환경설정</string>
+    <string name="port">Port</string>
+    <string name="PosID">Pos ID</string>
+    <string name="auto_login">자동 로그인</string>
+    <string name="IP">IP</string>
+    <string name="sample_number">010-XXX-XXXX</string>
+    <string name="save">저장</string>
+    <string name="title_activity_main_menu">MainMenuActivity</string>
+    <string name="manage_default">기본관리</string>
+    <string name="manage_purchase">매입관리</string>
+    <string name="sales_news">매출속보</string>
+    <string name="manage_sales">매출관리</string>
+    <string name="manage_event">행사관리</string>
+    <string name="board">게시판</string>
+    <string name="question">문의하기</string>
+    <string name="man_name">담당자명</string>
+    <string name="req_phone">연락처</string>
+    <string name="question_type">문의유형</string>
+    <string name="content">내용</string>
+    <string name="manage_code">코드롼리</string>
+    <string name="manage_customer">거래처 관리</string>
+    <string name="manage_product">상품관리</string>
+    <string name="compare_price">가격비교</string>
+    <string name="title_activity_input_question">InputQuestionActivity</string>
+    <string name="title_activity_select_shop">SelectShopActivity</string>
+
+    <string-array name="question_type">
+        <item>카드결재 관련</item>
+        <item>프로그램 관련</item>
+        <item>POS장비 관련</item>
+        <item>A/S 신청</item>
+    </string-array>
+
+    <string name="choose_question">질문을 선택하세요.</string>
+    <string name="title_activity_manage_code">ManageCodeActivity</string>
+    <string name="title_activity_manage_customer">ManageCustomerActivity</string>
+
+    <string-array name="customer_code_type">
+        <item>매입거래처</item>
+        <item>매출거래처</item>
+        <item>수수료거래처</item>
+    </string-array>
+
+    <string name="choose_customer_code_type">거래처구분</string>
+    <string name="title_activity_manage_product">ManageProductActivity</string>
+
+    <string-array name="taxation_type">
+        <item>과세</item>
+        <item>면세</item>
+    </string-array>
+
+    <string name="choose_taxation_type">과세구분 선택</string>
+
+    <string-array name="group_type">
+        <item>A</item>
+        <item>B</item>
+        <item>C</item>
+        <item>D</item>
+        <item>E</item>
+        <item>F</item>
+        <item>G</item>
+        <item>H</item>
+        <item>I</item>
+        <item>J</item>
+        <item>K</item>
+        <item>L</item>
+        <item>M</item>
+        <item>N</item>
+        <item>O</item>
+        <item>P</item>
+        <item>Q</item>
+        <item>R</item>
+        <item>S</item>
+        <item>T</item>
+        <item>U</item>
+        <item>V</item>
+        <item>W</item>
+        <item>X</item>
+        <item>Y</item>
+        <item>Z</item>
+    </string-array>
+    <string-array name="event_type">
+        <item>기간행사</item>
+        <item>XX행사</item>
+        <item>YY행사</item>
+    </string-array>
+
+    <string name="choose_event_type">행사구분 선택</string>
+    <string name="choose_group_type">그룹 선택</string>
+    <string name="title_activity_compare_price">ComparePriceActivity</string>
+    <string name="title_activity_compare_price_detail">ComparePriceDetailActivity</string>
+    <string name="title_activity_manage_purchase">ManagePurchaseActivity</string>
+    <string name="title_activity_purchase_regist">PurchaseRegistActivity</string>
+    <string name="title_activity_purchase_detail">PurchaseDetailActivity</string>
+    <string name="title_activity_purchase_payment_status">PurchasePaymentStatusActivity</string>
+    <string name="title_activity_purchase_list_detail_view">PurchaseListDetailViewActivity</string>
+    <string name="title_activity_payment_detail_view">PaymentDetailViewActivity</string>
+    <string name="title_activity_customer_purchase_payment_detail_view">CustomerPurchasePaymentDetailViewActivity</string>
+    <string name="title_activity_manage_payment">ManagePaymentActivity</string>
+    <string name="title_activity_customer_product_detail_view">CustomerProductDetailViewActivity</string>
+    <string name="title_activity_manage_event">ManageEventActivity</string>
+    <string name="title_activity_event_detail_view">EventDetailViewActivity</string>
+    <string name="title_activity_sales_news">SalesNewsActivity</string>
+
+    <string-array name="classification_type">
+        <item>대분류</item>
+        <item>중분류</item>
+        <item>소분류</item>
+    </string-array>
+
+    <string name="choose_classification_type">분류 선택</string>
+    <string name="title_activity_customer_product_detail_in_news">CustomerProductDetailInNewsActivity</string>
+    <string name="title_activity_manage_stock">ManageStockActivity</string>
+    <string name="title_activity_charge_customer_detail">ChargeCustomerDetailActivity</string>
+
+</resources>
