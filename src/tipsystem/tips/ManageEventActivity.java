@@ -1,16 +1,24 @@
 package tipsystem.tips;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import org.json.JSONObject;
 
 import tipsystem.tips.ManageCustomerActivity.MyAsyncTask;
 
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -48,31 +56,38 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		final EditText sPrice = (EditText)findViewById(R.id.editTextSalePrice);
 		final EditText Amount = (EditText)findViewById(R.id.editTextAmount);
 		final EditText profitRatio = (EditText)findViewById(R.id.editTextProfitRatio);
+		
+		
 				
+		final String Name = eventName.getText().toString();
+		final String period1 = period01.getText().toString();
+		final String period2 = period02.getText().toString();
+		final String code =  barcode.getText().toString();
+		final String Pname = pName.getText().toString();
+		final String PPrice =  pPrice.getText().toString();
+		final String SPrice = sPrice.getText().toString();
+		final String amount = Amount.getText().toString();
+		final String ratio = profitRatio.getText().toString();
+		
+		
+		
+		
 		btn_Register.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
 				
-				String Name = eventName.getText().toString();
-				String period1 = period01.getText().toString();
-				String period2 = period02.getText().toString();
-				String code =  barcode.getText().toString();
-				String Pname = pName.getText().toString();
-				String PPrice = pPrice.getText().toString();
-				String SPrice = sPrice.getText().toString();
-				String amount = Amount.getText().toString();
-				String ratio = profitRatio.getText().toString();
+				String section = m_spinEvent.getSelectedItem().toString();
+				
 				
 				 if(Name == "" || period1 == "" || period2  == "" || code == "" || Pname == "" ||
 						 PPrice == "" || SPrice == "" || amount == "" || ratio == "")
 		    	    	return;
 		    	    
-		         //   new MyAsyncTask().execute("2", Name, period1, period2, code, Pname, PPrice, SPrice, amount, ratio);
+		        // new MyAsyncTask().execute("2", Name, section ,period1, period2, code, Pname, PPrice, SPrice, amount, ratio);
 				
 			}			
 		});
 		
-		
-		
+				
 		
 		m_spinEvent = (Spinner)findViewById(R.id.spinnerEventType);
 		m_spinEvent.setOnItemSelectedListener(this);
@@ -86,10 +101,10 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
         List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
         for(int i = 0; i < 10; i++){
             HashMap<String, String> map = new HashMap<String, String>();
-            map.put("행사명", "행사명" + i);
-            map.put("구분", "구분_" + i);
-            map.put("기간", "2013-05-01 ~ 2013-05-0" + i);
-            fillMaps.add(map);
+            map.put("행사명", Name);
+            map.put("구분", m_spinEvent.getSelectedItem().toString());
+            map.put("기간", period01 + " ~ " + period02  );
+            fillMaps.add(map);            
         }
  
         // fill in the grid_item layout
