@@ -28,6 +28,7 @@ public class MainActivity extends Activity {
         
         textView = (TextView) findViewById(R.id.textViewShopIP);
         textView.setTypeface(typeface);
+        
     }
 
 

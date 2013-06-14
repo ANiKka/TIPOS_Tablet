@@ -277,7 +277,8 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
         	    String query = "";
         	    
 
-        	    //query = "insert into Goods(In_Date, G_Name, Bus_Code, Bus_Name, Tax_YN, Std_Size, Obtain, Pur_Pri, Pur_Cost, Sell_Pri, Profit_Rate) values('" + barcode + "', '" + productName + "', '"+ customerCode + "', '" + customerName + "', '" + taxation + "', '" + standard + "', '" + acquire + "', '" + purchasePrice + "', '" + purchasePriceOriginal + "', '" + salesPrice + "', '" + ratio + "'); select BarCode, G_Name, Pur_Pri, Sell_Pri from Goods where BarCode = '" + barcode + "'and G_Name = '" + productName + "'and Bus_Name = '" + customerName + "';";
+        	    //query = "insert into InD_201209(In_Date, BarCode, Office_Code, Office_Name, Pur_Pri, Sell_Pri, In_Count, Add_Tax) values('" 
+        	    //+ purchaseDate + "', '" + barcode + "', '"+ customerCode + "', '" + customerName + "', '" + taxation + "', '" + standard + "', '" + acquire + "', '" + purchasePrice + "', '" + purchasePriceOriginal + "', '" + salesPrice + "', '" + ratio + "'); select BarCode, G_Name, Pur_Pri, Sell_Pri from Goods where BarCode = '" + barcode + "'and G_Name = '" + productName + "'and Bus_Name = '" + customerName + "';";
 
         	    
                 Log.e("HTTPJSON","query: " + query );
