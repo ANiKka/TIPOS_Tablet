@@ -66,8 +66,8 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 						 PPrice == "" || SPrice == "" || amount == "" || ratio == "")
 		    	    	return;
 		    	    
-		            new MyAsyncTask().execute("2", Name, period1, period2, code, Pname, PPrice, SPrice, amount, ratio);
-				
+		         //   new MyAsyncTask().execute("2", Name, period1, period2, code, Pname, PPrice, SPrice, amount, ratio);
+
 			}			
 		});
 		
@@ -79,16 +79,16 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		m_listEvent= (ListView)findViewById(R.id.listviewReadyToSendEventList);
 		
 		 // create the grid item mapping
-        String[] from = new String[] {"행사명", "구분", "기간"};
+        String[] from = new String[] {"���������", "������", "������"};
         int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
  
         // prepare the list of all records
         List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
         for(int i = 0; i < 10; i++){
             HashMap<String, String> map = new HashMap<String, String>();
-            map.put("행사명", "행사명" + i);
-            map.put("구분", "구분_" + i);
-            map.put("기간", "2013-05-01 ~ 2013-05-0" + i);
+            map.put("���������", "���������" + i);
+            map.put("������", "������_" + i);
+            map.put("������", "2013-05-01 ~ 2013-05-0" + i);
             fillMaps.add(map);
         }
  
@@ -112,7 +112,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		actionbar.setDisplayShowHomeEnabled(false);
 		actionbar.setDisplayShowTitleEnabled(true);
 		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("행사관리");
+		actionbar.setTitle("������������");
 		
 		getActionBar().setDisplayHomeAsUpEnabled(false);
 
