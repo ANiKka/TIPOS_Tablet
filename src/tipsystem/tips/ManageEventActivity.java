@@ -66,7 +66,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 						 PPrice == "" || SPrice == "" || amount == "" || ratio == "")
 		    	    	return;
 		    	    
-		            new MyAsyncTask().execute("2", Name, period1, period2, code, Pname, PPrice, SPrice, amount, ratio);
+		         //   new MyAsyncTask().execute("2", Name, period1, period2, code, Pname, PPrice, SPrice, amount, ratio);
 				
 			}			
 		});
