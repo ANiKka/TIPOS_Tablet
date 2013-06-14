@@ -55,6 +55,10 @@ public class MainMenuActivity extends Activity {
 		Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
         TextView textView = (TextView) findViewById(R.id.textViewShopTitle);
         textView.setTypeface(typeface);
+        
+    
+        
+        
 	}
 
 	/**
