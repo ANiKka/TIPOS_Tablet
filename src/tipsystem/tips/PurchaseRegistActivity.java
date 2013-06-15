@@ -12,8 +12,6 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import tipsystem.tips.ManageCustomerActivity.MyAsyncTask;
-
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;
@@ -66,8 +64,6 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
     		String amount = m_amount.getText().toString();
     		String profitRatio = m_profitRatio.getText().toString();
     		 
-
-    	    
     	    if(code == "" || name == "" || purchaseDate == "" || barcode == "" || productName == "" || purchasePrice == ""
     	    		|| salePrice == "" || amount == "" || profitRatio == "")
     	    {

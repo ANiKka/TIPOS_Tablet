@@ -7,6 +7,7 @@ import java.sql.Statement;
 
 import org.json.JSONArray;
 
+import android.database.SQLException;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -31,7 +32,7 @@ public class MSSQL extends AsyncTask<String, Integer, JSONArray> {
     protected JSONArray doInBackground(String... params) {
     	Log.i("MSSQL"," MSSQL Connect Example.");
     	Connection conn = null;
-    	JSONArray json = null;
+    	JSONArray json = new JSONArray();
     	String ip = params[0];
     	String dbname = params[1];
     	String dbid = params[2];
@@ -52,7 +53,9 @@ public class MSSQL extends AsyncTask<String, Integer, JSONArray> {
         	json = ResultSetConverter.convert(rs);
     	   
     	    conn.close();
-    	
+
+   	 	 } catch (SQLException e) {
+    	    Log.w("Error connection","" + e.getMessage());	
     	 } catch (Exception e) {
     	    Log.w("Error connection","" + e.getMessage());		   
     	 }

@@ -12,18 +12,18 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-//import tipsystem.tips.ManageCustomerActivity.MyAsyncTask;
-
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
@@ -35,7 +35,7 @@ import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.support.v4.app.NavUtils;
 
-public class ManageProductActivity extends Activity implements OnItemSelectedListener{
+public class ManageProductActivity extends Activity{
 
 	TextView m_textBarcode;
 	TextView m_textProductName;
@@ -54,10 +54,13 @@ public class ManageProductActivity extends Activity implements OnItemSelectedLis
 	TextView m_textSalesPrice;
 	TextView m_textDifferentRatio;
 	ListView m_listProduct;
+    
+	private ProgressDialog dialog; 
+    List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+	int m_type;
 	
 	private OnClickListener m_click_modify_listener = new OnClickListener() {
         public void onClick(View v) { 
-        	
         	String barcode = m_textBarcode.getText().toString();
     	    String productName = m_textProductName.getText().toString();
     	    String customerCode = m_textCustomerCode.getText().toString();
@@ -105,6 +108,11 @@ public class ManageProductActivity extends Activity implements OnItemSelectedLis
 	
 	private OnClickListener m_click_search_listener = new OnClickListener() {
         public void onClick(View v) { 
+        	dialog = new ProgressDialog(ManageProductActivity.this);
+            dialog.setMessage("Loading....");
+            dialog.setCancelable(false);
+            dialog.show();
+            
         	String barcode = m_textBarcode.getText().toString();
     	    String productName = m_textProductName.getText().toString();
     	    String customerName = m_textCustomerName.getText().toString();
@@ -116,6 +124,11 @@ public class ManageProductActivity extends Activity implements OnItemSelectedLis
 	private OnClickListener m_click_regist_listener = new OnClickListener() {
         public void onClick(View v) { 
         	
+        	dialog = new ProgressDialog(ManageProductActivity.this);
+            dialog.setMessage("Loading....");
+            dialog.setCancelable(false);
+            dialog.show();
+            
         	String barcode = m_textBarcode.getText().toString();
     	    String productName = m_textProductName.getText().toString();
     	    String customerCode = m_textCustomerCode.getText().toString();
@@ -131,12 +144,18 @@ public class ManageProductActivity extends Activity implements OnItemSelectedLis
     		String purchasePriceOriginal = m_textPurchasePriceOriginal.getText().toString();
     		String salesPrice = m_textSalesPrice.getText().toString();
     		String ratio = m_textDifferentRatio.getText().toString();
+    		String surtax = null;
+    		if(m_checkSurtax.isChecked())
+    			surtax = "1";
+    		else
+    			surtax = "0";
+    		 
     		
 	    	if(barcode == "" || productName == "" || customerName == "" || customerCode == "" || customerClass1 == "" || customerClass2 == "" || customerClass3 == "" || taxation == "" || group == "" || standard == "" || acquire == "" || purchasePrice == "" || purchasePriceOriginal == "" || salesPrice == "" || ratio == ""){
 	    		Toast.makeText(getApplicationContext(), "값을 모두 입력해주세요.", 0).show();
 	    		return;
 	    	}
-            new MyAsyncTask ().execute("2", barcode, productName, customerName, customerCode, customerClass1, customerClass2, customerClass3, taxation, group, standard, acquire, purchasePrice, purchasePriceOriginal, salesPrice, ratio);
+            new MyAsyncTask ().execute("2", barcode, productName, customerName, customerCode, customerClass1, customerClass2, customerClass3, taxation, group, standard, acquire, purchasePrice, purchasePriceOriginal, salesPrice, ratio, surtax);
 
         }
 	};
@@ -165,20 +184,25 @@ public class ManageProductActivity extends Activity implements OnItemSelectedLis
 		m_textSalesPrice = (TextView)findViewById(R.id.editTextSalesPrice);
 		m_textDifferentRatio = (TextView)findViewById(R.id.editTextDifferentRatio);
 		m_listProduct = (ListView)findViewById(R.id.listviewProductList);
+		m_listProduct.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position,
+                    long id) {
+                fillCustomerFormFromList(position);
+            }
+        });
 		
 		Button searchButton = (Button) findViewById(R.id.buttonProductSearch);
 		Button registButton = (Button) findViewById(R.id.buttonProductRegist);
 		Button renewButton = (Button) findViewById(R.id.buttonProductRenew);
 		Button modifyButton = (Button) findViewById(R.id.buttonProductModify);
 		
-		
-	        
+
 	    searchButton.setOnClickListener(m_click_search_listener);
 	    registButton.setOnClickListener(m_click_regist_listener);
 		renewButton.setOnClickListener(m_click_renew_listener);
 	    modifyButton.setOnClickListener(m_click_modify_listener);
 		//m_spinTaxation.setOnItemSelectedListener(this);
-		
 	}
 
 	/**
@@ -224,19 +248,49 @@ public class ManageProductActivity extends Activity implements OnItemSelectedLis
 		return super.onOptionsItemSelected(item);
 	}
 
-	
-	
-	public void onItemSelected(AdapterView<?> parent, View v, int position, long id)
-	{
-		//TextView text1 = (TextView)m_spin.getSelectedView();
-		//m_text.setText(text1.getText());
+	private void fillCustomerFormFromList(int position) {
+
+		String barcode = fillMaps.get(position).get("barcode");
+		String gName = fillMaps.get(position).get("gName");
+		String busCode = fillMaps.get(position).get("busCode");
+		String busName = fillMaps.get(position).get("busName");
+		String purPri = fillMaps.get(position).get("purPri");
+		String sellPri = fillMaps.get(position).get("sellPri");
+		String taxYN = fillMaps.get(position).get("taxYN");
+		String stdSize = fillMaps.get(position).get("stdSize");
+		String obtain = fillMaps.get(position).get("obtain");
+		String purCost = fillMaps.get(position).get("purCost");
+		String profitRate = fillMaps.get(position).get("profitRate");
+		String L_Code = fillMaps.get(position).get("L_Code");
+		String M_Code = fillMaps.get(position).get("M_Code");
+		String S_Code = fillMaps.get(position).get("S_Code");
+		String surtax = fillMaps.get(position).get("surtax");
 		
+		m_textBarcode.setText(barcode);
+		m_textProductName.setText(gName);
+		m_textCustomerCode.setText(busCode);
+		m_textCustomerName.setText(busName);
+		m_textStandard.setText(stdSize);
+		m_textAcquire.setText(obtain);
+		m_textPurchasePrice.setText(purPri); // 매입가
+		m_textSalesPrice.setText(sellPri); //판매가
+		m_textPurchasePriceOriginal.setText(purCost); //매입원가
+		m_textDifferentRatio.setText(profitRate); // 이의율
+		m_textCustomerClassification1.setText(L_Code);
+		m_textCustomerClassification2.setText(M_Code);
+		m_textCustomerClassification3.setText(S_Code); 
+		if(taxYN.equals("0"))
+			m_spinTaxation.setSelection(0);
+		else
+			m_spinTaxation.setSelection(1);
+		if(surtax.equals("0")){
+			m_checkSurtax.setChecked(false);
+		}else{
+			
+			m_checkSurtax.setChecked(true);
+		}
 	}
-	
-	public void onNothingSelected(AdapterView<?> parent)
-	{
-		//m_text.setText("");
-	}
+
 
 	// MSSQL
 	
@@ -250,6 +304,11 @@ public class ManageProductActivity extends Activity implements OnItemSelectedLis
 	        	ResultSet reset =null;
 	        	String type = urls[0];
 	        	int i = 0;
+	        	
+	        	if(type.equals("1"))
+	        		m_type = 1;
+	        	else
+	        		m_type = 2;
 	        	
 	        	try {
 	        		
@@ -277,6 +336,7 @@ public class ManageProductActivity extends Activity implements OnItemSelectedLis
 	        		String purchasePriceOriginal = null;
 	        		String salesPrice = null;
 	        		String ratio = null;
+	        		String surtax = null;
 	        	    if(type == "2"){
 		        	    customerCode = urls[4];
 		        	    customerClass1 = urls[5];
@@ -295,6 +355,7 @@ public class ManageProductActivity extends Activity implements OnItemSelectedLis
 		        		purchasePriceOriginal = urls[13];
 		        		salesPrice = urls[14];
 		        		ratio = urls[15];
+		        		surtax = urls[16];
 	        	   }
 	        	    String showPurchasePrice;
 	        	    String showSellPrice;
@@ -304,7 +365,7 @@ public class ManageProductActivity extends Activity implements OnItemSelectedLis
 	        	    if(type == "1"){
 	            	
 	        	    	if(!barcode.equals("")){
-	        	    		query += "Barcode = '" + barcode + "' ";
+	        	    		query = "Barcode = '" + barcode + "' ";
 	        	    		i++;
 	        	    	}
 	        	    	if(!productName.equals("")){
@@ -312,7 +373,7 @@ public class ManageProductActivity extends Activity implements OnItemSelectedLis
 	        	    			query += "and G_Name = '" + productName + "' ";
 	        	    			i++;
 	        	    		} else {
-	        	    			query += "G_Name = '" + productName + "' ";
+	        	    			query = "G_Name = '" + productName + "' ";
 	        	    			i++;
 	        	    		}
 	        	    	}
@@ -320,22 +381,25 @@ public class ManageProductActivity extends Activity implements OnItemSelectedLis
 	        	    		if(i > 0){
 	        	    			query += "and Bus_Name = '" + customerName + "'";
 	        	    		} else {
-	        	    			query += "Bus_Name = '" + customerName + "'";	
+	        	    			query = "Bus_Name = '" + customerName + "'";	
 	        	    		}
 	        	    	}
 	        	    	
 	        	    	if(barcode.equals("") && productName.equals("") && customerName.equals(""))
 	        	    	{
-	        	    		query = "select BarCode, G_Name, Bus_Name, Pur_Pri, Sell_Pri from Goods";
+	        	    		query = "select BarCode, G_Name, Pur_Pri, Sell_Pri,  Bus_Code, Bus_Name, Tax_YN, Std_Size, Obtain, Pur_Cost, Profit_Rate, L_Code, M_Code, S_Code, Add_Tax from Goods";
+	        	    		
+	        	    		//query = "select * from Goods";
 	        	    	}
 	        	    	else
 	        	    	{
-	        	    		query = "select BarCode, G_Name, Pur_Pri, Sell_Pri from Goods where " + query;
+	        	    		query = "select BarCode, G_Name, Pur_Pri, Sell_Pri, Bus_Code, Bus_Name, Tax_YN, Std_Size, Obtain, Pur_Cost, Profit_Rate, L_Code, M_Code, S_Code, Add_Tax from Goods where " + query;
+	        	    		//query = "select * from Goods where " + query;
 	        	    	}
 	        	    } 
 	        	    else if (type == "2") 
 	        	    {
-	        	    	query = "insert into Goods(BarCode, G_Name, Bus_Code, Bus_Name, Tax_YN, Std_Size, Obtain, Pur_Pri, Pur_Cost, Sell_Pri, Profit_Rate) values('" + barcode + "', '" + productName + "', '"+ customerCode + "', '" + customerName + "', '" + taxation + "', '" + standard + "', '" + acquire + "', '" + purchasePrice + "', '" + purchasePriceOriginal + "', '" + salesPrice + "', '" + ratio + "'); select BarCode, G_Name, Pur_Pri, Sell_Pri from Goods where BarCode = '" + barcode + "'and G_Name = '" + productName + "'and Bus_Name = '" + customerName + "';";
+	        	    	query = "insert into Goods(BarCode, G_Name, Bus_Code, Bus_Name, Tax_YN, Std_Size, Obtain, Pur_Pri, Pur_Cost, Sell_Pri, Profit_Rate, L_Code, M_Code, S_Code, Add_Tax) values('" + barcode + "', '" + productName + "', '"+ customerCode + "', '" + customerName + "', '" + taxation + "', '" + standard + "', '" + acquire + "', '" + purchasePrice + "', '" + purchasePriceOriginal + "', '" + salesPrice + "', '" + ratio + "', '" + customerClass1 + "', '" + customerClass2 + "', '" + customerClass3 + "', '" + surtax + "'); select BarCode, G_Name, Pur_Pri, Sell_Pri from Goods where BarCode = '" + barcode + "' and G_Name = '" + productName + "' and Bus_Name = '" + customerName + "';";
 	        	    }
 	        	    else if (type == "3")
 	        	    {
@@ -345,14 +409,24 @@ public class ManageProductActivity extends Activity implements OnItemSelectedLis
 	        	    
 	                Log.e("HTTPJSON","query: " + query );
 	    	    	reset = stmt.executeQuery(query);    
-	        	    while(reset.next()){
-						
+	        	    while(reset.next()){	        	    	
 						JSONObject Obj = new JSONObject();
 					    // original part looks fine:
 					    Obj.put("barcode",reset.getString(1).trim());
-					    Obj.put("productName",reset.getString(2).trim());
-					    Obj.put("showPurchasePrice",reset.getString(3).trim());
-					    Obj.put("showSellPrice",reset.getString(4).trim());
+					    Obj.put("gName",reset.getString(2).trim());
+					    Obj.put("purPri",reset.getString(3).trim());
+					    Obj.put("sellPri",reset.getString(4).trim());
+					    Obj.put("busCode",reset.getString(5).trim());
+					    Obj.put("busName",reset.getString(6).trim());
+					    Obj.put("taxYN",reset.getString(7).trim());
+					    Obj.put("stdSize",reset.getString(8).trim());
+					    Obj.put("obtain",reset.getString(9).trim());
+					    Obj.put("purCost",reset.getString(10).trim());
+					    Obj.put("profitRate",reset.getString(11).trim());
+					    Obj.put("L_Code",reset.getString(12).trim());
+					    Obj.put("M_Code",reset.getString(13).trim());
+					    Obj.put("S_Code",reset.getString(14).trim());
+					    Obj.put("surtax",reset.getString(15).trim());
 					    CommArray.add(Obj);
 					}
 	        	    
@@ -374,27 +448,59 @@ public class ManageProductActivity extends Activity implements OnItemSelectedLis
 
 	        protected void onPostExecute(String result) {
 	        	super.onPostExecute(result);
-	        	
-				String[] from = new String[] {"barcode", "productName", "showPurchasePrice", "showSellPrice"};
+	           	
+	        	dialog.dismiss();
+	            dialog.cancel();
+	
+			    		
+				//String[] from = new String[] {"barcode", "gName", "purPri", "sellPri",
+	    		//"busCode", "busName", "taxYN", "stdSize", "obtain", "purcost", "profitRate"};
+			    String[] from = new String[] {"barcode", "gName", "purPri", "sellPri"};
+				
 		        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-		        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		 	        		
+		        //List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+		 	    
+		        if (!fillMaps.isEmpty()) fillMaps.clear();
+		        
 	        	Iterator<JSONObject> iterator = CommArray.iterator();
 	    		while (iterator.hasNext()) {
 	            	JSONObject json = iterator.next();
 	            	
 	            	try {
+	            		
 	    				String barcode = json.getString("barcode");
-	    				String productName = json.getString("productName");
-	    				String showPurchasePrice = json.getString("showPurchasePrice");
-	    				String showSellPrice = json.getString("showSellPrice");
+	    				String gName = json.getString("gName");
+	    				String purPri = json.getString("purPri");
+	    				String sellPri = json.getString("sellPri");
+	    				String busCode = json.getString("busCode");
+	    				String busName = json.getString("busName");
+	    				String taxYN = json.getString("taxYN");
+	    				String stdSize = json.getString("stdSize");
+	    				String obtain = json.getString("obtain");
+	    				String purCost = json.getString("purCost");
+	    				String profitRate = json.getString("profitRate");
+	    				String L_Code = json.getString("L_Code");
+	    				String M_Code = json.getString("M_Code");
+	    				String S_Code = json.getString("S_Code");
+	    				String surtax = json.getString("surtax");
 	    				
 	    				// prepare the list of all records
 			            HashMap<String, String> map = new HashMap<String, String>();
 			            map.put("barcode", barcode);
-			            map.put("productName", productName);
-			            map.put("showPurchasePrice", showPurchasePrice);
-			            map.put("showSellPrice", showSellPrice);
+			            map.put("gName", gName);
+			            map.put("purPri", purPri);
+			            map.put("sellPri", sellPri);
+			            map.put("busCode", busCode);
+			            map.put("busName", busName);
+			            map.put("taxYN", taxYN);
+			            map.put("stdSize", stdSize);
+			            map.put("obtain", obtain);
+			            map.put("purCost", purCost);
+			            map.put("profitRate", profitRate);
+			            map.put("L_Code", L_Code);
+			            map.put("M_Code", M_Code);
+			            map.put("S_Code", S_Code);
+			            map.put("surtax", surtax);
 			            fillMaps.add(map);
 	    		 
 	    			} catch (JSONException e) {
@@ -407,7 +513,11 @@ public class ManageProductActivity extends Activity implements OnItemSelectedLis
 		        SimpleAdapter adapter = new SimpleAdapter(ManageProductActivity.this, fillMaps, R.layout. activity_listview_product_list, from, to);
 		        m_listProduct.setAdapter(adapter);
 		        
-	            Toast.makeText(getApplicationContext(), "조회 완료", 0).show();
+		        if(m_type == 1)
+		        	Toast.makeText(getApplicationContext(), "조회 완료", 0).show();
+		        else
+		        	Toast.makeText(getApplicationContext(), "등록 완료", 0).show();
 	        }
-	    };
+	    }
+
 }

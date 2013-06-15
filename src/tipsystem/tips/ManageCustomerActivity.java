@@ -1,21 +1,19 @@
 package tipsystem.tips;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.os.AsyncTask;
+import tipsystem.utils.MSSQL;
+
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.graphics.Typeface;
 import android.util.Log;
 import android.view.Menu;
@@ -23,17 +21,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 
-public class ManageCustomerActivity extends Activity implements OnItemSelectedListener{
+public class ManageCustomerActivity extends Activity{
 
 	Spinner m_spin;
 	ListView m_cusList;
@@ -42,27 +40,10 @@ public class ManageCustomerActivity extends Activity implements OnItemSelectedLi
 	TextView m_customerName;
 	Spinner m_customerSection;
 	
-	private OnClickListener m_click_search_listener = new OnClickListener() {
-        public void onClick(View v) { 
-        	String code = m_customerCode.getText().toString();
-    	    String name = m_customerName.getText().toString();
-    	    String section = m_customerSection.getSelectedItem().toString();
-            new MyAsyncTask ().execute("1", code, name, section);
-        }
-	};
+	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
 	
-	private OnClickListener m_click_regist_listener = new OnClickListener() {
-        public void onClick(View v) { 
-        	String code = m_customerCode.getText().toString();
-    	    String name = m_customerName.getText().toString();
-    	    String section = m_customerSection.getSelectedItem().toString();
-    	    
-    	    if(code == "" || name == "" || section == "")
-    	    	return;
-    	    
-            new MyAsyncTask ().execute("2", code, name, section);
-        }
-	};
+    // loading bar
+    public ProgressDialog dialog; 
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -71,9 +52,16 @@ public class ManageCustomerActivity extends Activity implements OnItemSelectedLi
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
-		m_spin = (Spinner)findViewById(R.id.spinnerCustomerCodeType);
-		m_spin.setOnItemSelectedListener(this);
+		//m_spin = (Spinner)findViewById(R.id.spinnerCustomerCodeType);
+		//m_spin.setOnItemSelectedListener(this);
 		m_cusList= (ListView)findViewById(R.id.listviewCustomerList);
+		m_cusList.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position,
+                    long id) {
+                fillCustomerFormFromList(position);
+            }
+        });
 		
 		m_customerCode = (TextView)findViewById(R.id.editTextCustomerCode);
 		m_customerName = (TextView)findViewById(R.id.editTextCustomerName);
@@ -82,30 +70,16 @@ public class ManageCustomerActivity extends Activity implements OnItemSelectedLi
 		Button searchButton = (Button) findViewById(R.id.buttonCustomerSearch);
 		Button registButton = (Button) findViewById(R.id.buttonCustomerRegist);
 		
-		searchButton.setOnClickListener(m_click_search_listener);
-        registButton.setOnClickListener(m_click_regist_listener);
-		
-        /*
-		 // create the grid item mapping
-        String[] from = new String[] {"코드", "거래처명", "구분"};
-        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
- 
-        // prepare the list of all records
-        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-        for(int i = 0; i < 10; i++){
-            HashMap<String, String> map = new HashMap<String, String>();
-            map.put("코드", "0000" + i);
-            map.put("거래처명", "거래처명" + i);
-            map.put("구분", "구분" + i);
-            fillMaps.add(map);
-        }
- 
-        // fill in the grid_item layout
-        SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_customer_list, 
-        		from, to);
-        m_cusList.setAdapter(adapter);
-        */
-        
+		searchButton.setOnClickListener(new OnClickListener() {
+	        public void onClick(View v) { 
+	        	doSearch();
+	        }
+		});
+        registButton.setOnClickListener(new OnClickListener() {
+	        public void onClick(View v) { 
+	        	doRegister();
+	        }
+		});
         
         Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
         TextView textView = (TextView) findViewById(R.id.textView2);
@@ -131,8 +105,6 @@ public class ManageCustomerActivity extends Activity implements OnItemSelectedLi
         
         textView = (TextView) findViewById(R.id.item3);
         textView.setTypeface(typeface);
-        
-        
 	}
 
 	/**
@@ -149,7 +121,6 @@ public class ManageCustomerActivity extends Activity implements OnItemSelectedLi
 		actionbar.setDisplayShowCustomEnabled(true);
 		
 		getActionBar().setDisplayHomeAsUpEnabled(false);
-
 	}
 
 	@Override
@@ -162,7 +133,7 @@ public class ManageCustomerActivity extends Activity implements OnItemSelectedLi
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case android.R.id.home:
+			case android.R.id.home:
 			// This ID represents the Home or Up button. In the case of this
 			// activity, the Up button is shown. Use NavUtils to allow users
 			// to navigate up one level in the application structure. For
@@ -176,143 +147,166 @@ public class ManageCustomerActivity extends Activity implements OnItemSelectedLi
 		return super.onOptionsItemSelected(item);
 	}
 	
+	
 	public void onItemSelected(AdapterView<?> parent, View v, int position, long id)
 	{
 		//TextView text1 = (TextView)m_spin.getSelectedView();
 		//m_text.setText(text1.getText());
-		
 	}
 	
 	public void onNothingSelected(AdapterView<?> parent)
 	{
 		//m_text.setText("");
 	}
+	
+	// private methods
+	private void fillCustomerFormFromList(int position) {		
+		String code = mfillMaps.get(position).get("Office_Code");
+		String name = mfillMaps.get(position).get("Office_Name");
+		String StringSection = mfillMaps.get(position).get("Office_Sec");
+		int section;
+		Log.w("Log", "section : " + StringSection);
+		m_customerCode.setText(code);
+		m_customerName.setText(name);
+		if(StringSection.equals("매입거래처")) section = 0;
+		else if(StringSection.equals("매출거래처")) section = 1;
+		else section = 2;
+			
+		m_customerSection.setSelection(section);
+	}
+	
+	// 조회 실행 함수 
+    public void doSearch() {
 
-	// MSSQL
+    	// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+ 		// 입력된 코드 가져오기
+    	String code = m_customerCode.getText().toString();
+	    String name = m_customerName.getText().toString();
+	    String section = String.valueOf(m_customerSection.getSelectedItemPosition()+1);
+	    
+    	// 쿼리 작성하기
+	    String query =  "";
+    	query += "select * from Office_Manage ";
+	    
+	    if (!code.equals("") || !name.equals("") || !section.equals("")){
+	    	query += " WHERE";
+	    }
+	    
+	    boolean added =false;
+	    if (!code.equals("")){
+	    	query += " Office_Code = '" + code + "'";
+	    	added = true;
+	    }
+	    
+	    if (!name.equals("")){
+	    	if (added) query += " AND ";
+	    	
+	    	query += " Office_Name = '" + name  + "'";
+	    	added = true;
+	    }
+	    
+	    if (!section.equals("")){
+	    	if (added) query += " AND ";
+	    	
+	    	query += " Office_Sec = '" + section  + "'";
+	    	added = true;
+	    }
+	    query += ";";
+	    
+	    // 콜백함수와 함께 실행
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				updateListView(results);
+		    	Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
+			}
+	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+    }
+
+	// 등록 실행 함수 
+    public void doRegister() {
+ 		
+ 		// 입력된 코드 가져오기
+    	String code = m_customerCode.getText().toString();
+	    String name = m_customerName.getText().toString();
+	    String section = String.valueOf(m_customerSection.getSelectedItemPosition()+1);
+	    
+	    if (code.equals("") || name.equals("")) {
+	    	Toast.makeText(getApplicationContext(), "비어있는 필드가 있습니다", Toast.LENGTH_SHORT).show();
+	    	return;
+	    }
+
+    	// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+    	// 쿼리 작성하기
+	    String query =  "";
+	    query += "insert into Office_Manage(Office_Code, Office_Name, Office_Sec) values('" + code + "', '" + name + "', '" + section + "');";
+	    query += "select * from Office_Manage";
+	    query += ";";
+	    
+	    // 콜백함수와 함께 실행
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				if (results.length() > 0) {
+					updateListView(results);
+		            Toast.makeText(getApplicationContext(), "등록 완료", Toast.LENGTH_SHORT).show();
+				}
+				else {
+		            Toast.makeText(getApplicationContext(), "등록 실패", Toast.LENGTH_SHORT).show();					
+				}
+			}
+	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+    }
     
-	   class MyAsyncTask extends AsyncTask<String, Integer, String>{
+    public void updateListView(JSONArray results) {
 
-	        ArrayList<JSONObject> CommArray=new ArrayList<JSONObject>();
-	        
-	        protected String doInBackground(String... urls) {
-	        	Log.i("Android"," MSSQL Connect Example.");
-	        	Connection conn = null;
-	        	ResultSet reset =null;
-	        	String type = urls[0];
-	        	
-	        	try {
-	        	    Class.forName("net.sourceforge.jtds.jdbc.Driver").newInstance();
-	        	    Log.i("Connection","MSSQL driver load");
+		String[] from = new String[] {"Office_Code", "Office_Name", "Office_Sec"};
+        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
 
-	        	    conn = DriverManager.getConnection("jdbc:jtds:sqlserver://122.49.118.102:18971/TIPS","sa","tips");
-	        	   // conn = DriverManager.getConnection("jdbc:jtds:sqlserver://172.30.1.18:1433/TIPS","sa","tips");
-	        	    Log.i("Connection","MSSQL open");
-	        	    Statement stmt = conn.createStatement();
-	        	    
-	        	    String code = urls[1];
-	        	    String name = urls[2];
-	        	    String section = urls[3];
-	        	    
-	        	    Log.w("Connection:", section);
-	        	    if(section.equals("매입거래처")){
-	        	    	section = "1";
-	        	    } else if(section.equals("수수료거래처")) {
-	        	    	section = "2";
-	        	    } else {
-	        	    	section = "3";
-	        	    }
-	        	    
-	        	    Log.w("Connection:", section); 	
-	        	    String query = "";
-	        	    
-	        	    if(type == "2"){
-	        	    	query += "insert into Office_Manage(Office_Code, Office_Name, Office_Sec) values('" + code + "', '" + name + "', '" + section + "'); select * from Office_Manage";
-	        	    	Log.e("HTTPJSON","query: " + query );
-	        	    	reset = stmt.executeQuery(query);
-	        	    }
-	        	    else {
-		        	    query = "";
-		        	    int i=0;
-		        	    if (!code.equals("")){
-		        	    	query += "Office_Code = '" + code + "' ";
-		        	    	i++;
-		        	    }
-		        	    if (!name.equals("")){
-		        	    	if(i==1)
-		        	    		query += "and Office_Name = '" + name + "'";
-		        	    	else
-		        	    		query += "Office_Name = '" + name + "'";
-		        	    }
-		                Log.e("HTTPJSON","query: " + query );
-		
-		        	    if (query.equals("")){
-		        	    	reset = stmt.executeQuery("select * from Office_Manage");
-		        	    } else {
-		        	    	reset = stmt.executeQuery( "select * from Office_Manage WHERE " + query);
-		        	    }
-	        	    }
-	        	    while(reset.next()){
-						Log.w("Connection:",reset.getString(2));
-						
-						JSONObject Obj = new JSONObject();
-					    // original part looks fine:
-					    Obj.put("code",reset.getString(1).trim());
-					    Obj.put("name",reset.getString(2).trim());
-					    Obj.put("section",reset.getString(3).trim());
-					    CommArray.add(Obj);
-					}
-	        	    
-	        	    conn.close();
-	        	
-	        	 } catch (Exception e)
-	        	 {
-	        	    Log.w("Error connection","" + e.getMessage());		   
-	        	 }
-	        	 
-	        	 // onProgressUpdate에서 0이라는 값을 받아서 처리
-	        	 publishProgress(0);
-	        	 return type;        	 
-	        }
-
-	        protected void onProgressUpdate(Integer[] values) {
-	            Log.e("HTTPJSON", "onProgressUpdate" );
-	        }
-
-	        protected void onPostExecute(String result) {
-	        	super.onPostExecute(result);
-	        	
-				String[] from = new String[] {"code", "name", "section"};
-		        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
-		        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		 	        		
-	        	Iterator<JSONObject> iterator = CommArray.iterator();
-	    		while (iterator.hasNext()) {
-	            	JSONObject json = iterator.next();
-	            	
-	            	try {
-	    				String code = json.getString("code");
-	    				String name = json.getString("name");
-	    				String section = json.getString("section");
-	    				
-	    				// prepare the list of all records
-			            HashMap<String, String> map = new HashMap<String, String>();
-			            map.put("code", code);
-			            map.put("name", name);
-			            map.put("section", section);
-			            fillMaps.add(map);
-	    		 
-	    			} catch (JSONException e) {
-	    				// TODO Auto-generated catch block
-	    				e.printStackTrace();
-	    			}
-	    		}
-
-		        // fill in the grid_item layout
-		        SimpleAdapter adapter = new SimpleAdapter(ManageCustomerActivity.this, fillMaps, R.layout. activity_listview_customer_list, from, to);
-		        m_cusList.setAdapter(adapter);
-		        
-	            Toast.makeText(getApplicationContext(), "조회 완료", 0).show();
-	        }
-	    };
-
+        if (!mfillMaps.isEmpty()) mfillMaps.clear();
+        
+        for (int i = 0; i < results.length(); i++) {
+        	
+        	try {
+            	JSONObject json = results.getJSONObject(i);
+				String code = json.getString("Office_Code");
+				String name = json.getString("Office_Name");
+				String section = json.getString("Office_Sec");
+				
+				// prepare the list of all records
+	            HashMap<String, String> map = new HashMap<String, String>();
+	            map.put("Office_Code", code);
+	            map.put("Office_Name", name);
+	            
+	            if(section.equals("1")) section = "매입거래처";
+	            else if(section.equals("2")) section = "매출거래처";
+	            else section = "수수료거래처";
+	            
+	            map.put("Office_Sec", section);
+	            mfillMaps.add(map);
+		 
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+        // fill in the grid_item layout
+        SimpleAdapter adapter = new SimpleAdapter(ManageCustomerActivity.this, mfillMaps, R.layout. activity_listview_customer_list, from, to);
+        m_cusList.setAdapter(adapter);
+    }
 }

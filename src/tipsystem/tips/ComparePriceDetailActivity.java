@@ -7,7 +7,9 @@ import java.util.List;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
@@ -18,56 +20,49 @@ import android.support.v4.app.NavUtils;
 public class ComparePriceDetailActivity extends Activity {
 
 	ListView m_listPriceDetail;
+	TextView m_barcodeTxt;
+	TextView m_gNameTxt;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Log.e("HashMapTest", "1");
 		setContentView(R.layout.activity_compare_price_detail);
+		Log.e("HashMapTest", "2");
 		// Show the Up button in the action bar.
 		setupActionBar();
-		
-		m_listPriceDetail= (ListView)findViewById(R.id.listviewPriceDetailList);
-		
-		 // create the grid item mapping
-        String[] from = new String[] {"바코드", "상품명", "매입가", "판매가"};
-        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
- 
-        // prepare the list of all records
-        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-        for(int i = 0; i < 10; i++){
-            HashMap<String, String> map = new HashMap<String, String>();
-            map.put("바코드", "0000" + i);
-            map.put("상품명", "상품명_" + i);
-            map.put("매입가", i + "000");
-            map.put("판매가", i + "000");
-            fillMaps.add(map);
-        }
 
-       // fill in the grid_item layout
-       SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_price_detail_list, 
-       		from, to);
-       
-       m_listPriceDetail.setAdapter(adapter);
-       
-       
+		Intent intent = getIntent();
+		Log.e("HashMapTest", "3");
+	    //HashMap<String, String> hashMap = (HashMap<String, String>)intent.getSerializableExtra("fillMaps");
+		ArrayList<String> fillMaps = intent.getStringArrayListExtra("fillMaps");
+	    Log.e("HashMapTest", "data : " + fillMaps.get(0));
+	    Log.e("HashMapTest", "5");
+	    //Log.e("HashMapTest", "11111111111111111111111111111111111111111111111111111111111111");
+	    
+		m_listPriceDetail= (ListView)findViewById(R.id.listviewPriceDetailList);
+
+
        Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
        TextView textView = (TextView) findViewById(R.id.textView1);
        textView.setTypeface(typeface);
        
-       textView = (TextView) findViewById(R.id.textView2);
-       textView.setTypeface(typeface);
+       m_barcodeTxt = (TextView) findViewById(R.id.textView2);
+       m_barcodeTxt.setTypeface(typeface);
+       m_barcodeTxt.setText(fillMaps.get(0));
        
        textView = (TextView) findViewById(R.id.textView3);
        textView.setTypeface(typeface);
        
-       textView = (TextView) findViewById(R.id.textView4);
-       textView.setTypeface(typeface);
-      
+       m_gNameTxt = (TextView) findViewById(R.id.textView4);
+       m_gNameTxt.setTypeface(typeface);
+       m_gNameTxt.setText(fillMaps.get(1));
 	}
 
 	/**
 	 * Set up the {@link android.app.ActionBar}.
 	 */
+	
 	private void setupActionBar() {
 
 		ActionBar actionbar = getActionBar();         

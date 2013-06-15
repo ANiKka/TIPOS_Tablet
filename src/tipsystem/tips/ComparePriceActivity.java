@@ -16,6 +16,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.util.Log;
@@ -32,7 +33,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 
-public class ComparePriceActivity extends Activity implements OnItemClickListener{
+public class ComparePriceActivity extends Activity{
 
 	TextView m_customer;
 	TextView m_customer2;
@@ -41,10 +42,17 @@ public class ComparePriceActivity extends Activity implements OnItemClickListene
 	TextView m_local;	
 	
 	ListView m_listPriceSearch;
+	private ProgressDialog dialog;
+	
+	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
 	
 	private OnClickListener m_click_search_listener = new OnClickListener() {
         public void onClick(View v) {
-        	
+        	dialog = new ProgressDialog(ComparePriceActivity.this);
+            dialog.setMessage("Loading....");
+            dialog.setCancelable(false);
+            dialog.show();
+            
         	String customer = m_customer.getText().toString();
     	    String customer2 = m_customer2.getText().toString();
     	    String barcode = m_barcode.getText().toString();
@@ -62,31 +70,7 @@ public class ComparePriceActivity extends Activity implements OnItemClickListene
 		setContentView(R.layout.activity_compare_price);
 		// Show the Up button in the action bar.
 		setupActionBar();
-		
-		m_listPriceSearch= (ListView)findViewById(R.id.listviewPriceSearchList);
-		
-		 // create the grid item mapping
-//        String[] from = new String[] {"바코드", "상품명", "매입가", "판매가"};
-//        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-// 
-//        // prepare the list of all records
-//        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-//        for(int i = 0; i < 10; i++){
-//            HashMap<String, String> map = new HashMap<String, String>();
-//            map.put("바코드", "0000" + i);
-//            map.put("상품명", "상품명_" + i);
-//            map.put("매입가", i + "000");
-//            map.put("판매가", i + "000");
-//            fillMaps.add(map);
-//        }
-// 
-//        // fill in the grid_item layout
-//        SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_price_search_list, 
-//        		from, to);
-//        
-//      m_listPriceSearch.setAdapter(adapter);
-        m_listPriceSearch.setOnItemClickListener(this);
-        
+
         Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
         TextView textView = (TextView) findViewById(R.id.textView2);
         textView.setTypeface(typeface);
@@ -107,9 +91,15 @@ public class ComparePriceActivity extends Activity implements OnItemClickListene
 		m_barcode = (TextView)findViewById(R.id.editTextBarcord);
 		m_productionName = (TextView)findViewById(R.id.editTextProductionName);
 		m_local = (TextView)findViewById(R.id.editTextLocal);
-		m_listPriceSearch = (ListView)findViewById(R.id.listviewPriceSearchList);
 		Button searchButton = (Button) findViewById(R.id.buttonPriceSearch);
-		
+		m_listPriceSearch = (ListView)findViewById(R.id.listviewPriceSearchList);
+		m_listPriceSearch.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position,
+                    long id) {
+                sendDataFromList(position);
+            }
+        });
         searchButton.setOnClickListener(m_click_search_listener);
         
 	}
@@ -155,21 +145,20 @@ public class ComparePriceActivity extends Activity implements OnItemClickListene
 		}
 		return super.onOptionsItemSelected(item);
 	}
-
-	@Override
-	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) 
-	{
-		// TODO Auto-generated method stub
+	
+	private void sendDataFromList(int position){
+		String Barcode = mfillMaps.get(position).get("Barcode");
+		String G_Name = mfillMaps.get(position).get("G_Name");
 		
-		//Toast.makeText(this, "Item Click.", Toast.LENGTH_SHORT).show();
+		ArrayList<String> sendArr = new ArrayList<String>();
+		sendArr.add(Barcode);
+		sendArr.add(G_Name);
+		
 		Intent intent = new Intent(this, ComparePriceDetailActivity.class);
-    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
-    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-    	//String message = editText.getText().toString();
-    	//intent.putExtra(EXTRA_MESSAGE, message);
+		intent.putExtra("fillMaps", sendArr);
     	startActivity(intent);
-		
 	}
+
 
 	class MyAsyncTask extends AsyncTask<String, Integer, String>{
 
@@ -179,7 +168,7 @@ public class ComparePriceActivity extends Activity implements OnItemClickListene
         	Log.i("Android"," MSSQL Connect Example.");
         	Connection conn = null;
         	ResultSet reset = null;
-        	
+        	int i = 0;
         	try {
         	    Class.forName("net.sourceforge.jtds.jdbc.Driver").newInstance();
         	    Log.i("Connection","MSSQL driver load");
@@ -202,8 +191,38 @@ public class ComparePriceActivity extends Activity implements OnItemClickListene
         	    }
         	    else
         	    {
-        	    	//query += "select BarCode, G_Name, Pur_Pri, Sell_Pri from Goods where Bus_Code = '" + customer + "' and Bus_Name = '" + customer2 + "' and Barcode = '" + barcode + "' and G_Name = '" + productionName + "'";  
-        	    	query += "select BarCode, G_Name, Pur_Pri, Sell_Pri from Goods where Barcode = '" + barcode + "'";
+        	    	if(!customer.equals("")){
+        	    			query = "Bus_Code = '" + customer + "' ";
+        	    			i++;
+        	    	}
+        	    	if(!customer2.equals("")){
+        	    		if(i>0){
+        	    			query += "and Bus_Name = '" + customer2 + "' ";
+        	    		} else {
+        	    			query = "Bus_Name = '" + customer2 + "' ";
+        	    			i++;
+        	    		}
+        	    	}
+        	    	if(!barcode.equals("")){
+        	    		if(i>0){
+        	    			query += "and Barcode = '" + barcode + "' ";
+        	    		} else {
+        	    			query = "Barcode = '" + barcode + "' ";
+        	    			i++;
+        	    		}
+        	    	}
+        	    	
+        	    	if(!productionName.equals("")){
+        	    		if(i>0){
+        	    			query += "and G_Name = '" + productionName + "' ";
+        	    		} else {
+        	    			query = "G_Name = '" + productionName + "' ";
+        	    			i++;
+        	    		}
+        	    	}
+        	    	query = "select BarCode, G_Name, Pur_Pri, Sell_Pri from Goods where " + query ;
+        	    	Log.w("MSSQL", "Query : " + query);
+
         	    }
         	    reset = stmt.executeQuery(query);
         	    
@@ -234,9 +253,12 @@ public class ComparePriceActivity extends Activity implements OnItemClickListene
         protected void onPostExecute(String result) {
         	super.onPostExecute(result);
         	
+        	dialog.dismiss();
+            dialog.cancel();
+            
 			String[] from = new String[] {"Barcode", "G_Name", "Pur_Pri", "Sell_Pri"};
 	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-	        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+	        
 	 	        		
         	Iterator<JSONObject> iterator = CommArray.iterator();
     		while (iterator.hasNext()) {
@@ -254,7 +276,7 @@ public class ComparePriceActivity extends Activity implements OnItemClickListene
 		            map.put("G_Name", G_Name);
 		            map.put("Pur_Pri", Pur_Pri);
 		            map.put("Sell_Pri", Sell_Pri);
-		            fillMaps.add(map);
+		            mfillMaps.add(map);
     		 
     			} catch (JSONException e) {
     				// TODO Auto-generated catch block
@@ -263,8 +285,8 @@ public class ComparePriceActivity extends Activity implements OnItemClickListene
     		}
 
 	        // fill in the grid_item layout
-	        SimpleAdapter adapter = new SimpleAdapter(ComparePriceActivity.this, fillMaps, R.layout.activity_compare_price, from, to);
-	        m_listPriceSearch.setAdapter(adapter);
+	   //     SimpleAdapter adapter = new SimpleAdapter(ComparePriceActivity.this, mfillMaps, R.layout.activity_listview_compare_list, from, to);
+	   //     m_listPriceSearch.setAdapter(adapter);
 	        
             Toast.makeText(getApplicationContext(), "조회 완료", 0).show();
         }
