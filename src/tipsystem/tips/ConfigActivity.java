@@ -112,7 +112,6 @@ public class ConfigActivity extends Activity {
 	    String query =  "";
 	    query =  "select * " 
 	    		+ "from APP_USER " 
-	    		+ "where ID = " + id
 	    		+ ";";
 	    
 	    // 콜백함수와 함께 실행
