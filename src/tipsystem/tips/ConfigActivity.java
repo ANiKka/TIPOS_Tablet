@@ -30,7 +30,6 @@ import android.os.Build;
 
 public class ConfigActivity extends Activity implements OnClickListener {
 
-	public final static String EXTRA_MESSAGE = "unikys.todo.MESSAGE";
 	public ListView m_list;
 	AlertDialog m_alert;
 	public RadioGroup m_rgShop;

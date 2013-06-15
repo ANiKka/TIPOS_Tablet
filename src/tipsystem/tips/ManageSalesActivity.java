@@ -23,6 +23,7 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,6 +41,7 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TabHost;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.support.v4.app.NavUtils;
@@ -249,22 +251,35 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		
 		if ( m_listSalesTab1.getId() == arg0.getId() )
 		{
-			Intent intent = new Intent(this, CustomerProductDetailViewActivity.class);  	
-	    	//intent.putExtra(EXTRA_MESSAGE, message);
-	    	startActivity(intent);	
-		}
-		else if ( m_listSalesTab3.getId() == arg0.getId() )
-		{
-			Intent intent = new Intent(this, ChargeCustomerDetailActivity.class);
-	    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
-	    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-	    	//String message = editText.getText().toString();
+			String code = ((TextView) arg1.findViewById(R.id.item1)).getText().toString();
+			String name = ((TextView) arg1.findViewById(R.id.item2)).getText().toString();
 			
+			//Toast.makeText(this, "Item Click." + name , Toast.LENGTH_SHORT).show();
+			
+			Intent intent = new Intent(this, CustomerProductDetailViewActivity.class);  	
 			String period1 = m_period1.getText().toString();
 			String period2 = m_period2.getText().toString();
 			
 	    	intent.putExtra("PERIOD1", period1);
 	    	intent.putExtra("PERIOD2", period2);
+	    	intent.putExtra("OFFICE_CODE", code);
+	    	intent.putExtra("OFFICE_NAME", name);
+	    	
+	    	startActivity(intent);	
+		}
+		else if ( m_listSalesTab3.getId() == arg0.getId() )
+		{
+			String code = ((TextView) arg1.findViewById(R.id.item1)).getText().toString();
+			String name = ((TextView) arg1.findViewById(R.id.item2)).getText().toString();
+			
+			Intent intent = new Intent(this, ChargeCustomerDetailActivity.class);
+			String period1 = m_period1.getText().toString();
+			String period2 = m_period2.getText().toString();
+			
+	    	intent.putExtra("PERIOD1", period1);
+	    	intent.putExtra("PERIOD2", period2);
+	    	intent.putExtra("OFFICE_CODE", code);
+	    	intent.putExtra("OFFICE_NAME", name);
 	    	
 	    	startActivity(intent);
 		}
@@ -603,9 +618,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
             				    Obj.put("TPur_Pri",reset.getInt(4));
 
             				    CommArray.add(Obj);
-            				}
-                			
-                			
+            				}	
                 		}
         			}
         			
