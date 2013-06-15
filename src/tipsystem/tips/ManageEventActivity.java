@@ -1,24 +1,14 @@
 package tipsystem.tips;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.json.JSONObject;
-
-import tipsystem.tips.ManageCustomerActivity.MyAsyncTask;
-
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,6 +28,8 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	
 	ListView m_listEvent;
 	
+	SimpleAdapter adapter; 
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -46,74 +38,51 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		setupActionBar();
 		
 		Button btn_Register = (Button)findViewById(R.id.buttonRegist);
-		
-		final EditText eventName = (EditText)findViewById(R.id.editTextEventName);
-		final EditText period01 = (EditText)findViewById(R.id.editTextPeriod1);
-		final EditText period02 = (EditText)findViewById(R.id.editTextPeriod2);
-		final EditText barcode = (EditText)findViewById(R.id.editTextBarcode);
-		final EditText pName = (EditText)findViewById(R.id.editTextProductName);
-		final EditText pPrice = (EditText)findViewById(R.id.editTextPurchasePrice);
-		final EditText sPrice = (EditText)findViewById(R.id.editTextSalePrice);
-		final EditText Amount = (EditText)findViewById(R.id.editTextAmount);
-		final EditText profitRatio = (EditText)findViewById(R.id.editTextProfitRatio);
-		
-		
 				
-		final String Name = eventName.getText().toString();
-		final String period1 = period01.getText().toString();
-		final String period2 = period02.getText().toString();
-		final String code =  barcode.getText().toString();
-		final String Pname = pName.getText().toString();
-		final String PPrice =  pPrice.getText().toString();
-		final String SPrice = sPrice.getText().toString();
-		final String amount = Amount.getText().toString();
-		final String ratio = profitRatio.getText().toString();
-		
-		
+		m_spinEvent = (Spinner)findViewById(R.id.spinnerEventType);
+		m_spinEvent.setOnItemSelectedListener(this);
+		m_listEvent = (ListView)findViewById(R.id.listviewReadyToSendEventList); 
 		
 		
 		btn_Register.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
 				
-				String section = m_spinEvent.getSelectedItem().toString();
-				
-				
-				 if(Name == "" || period1 == "" || period2  == "" || code == "" || Pname == "" ||
-						 PPrice == "" || SPrice == "" || amount == "" || ratio == "")
-		    	    	return;
-		    	    
-		        // new MyAsyncTask().execute("2", Name, section ,period1, period2, code, Pname, PPrice, SPrice, amount, ratio);
-				
-			}			
+				setDataIntoList();				
+			 }			
 		});
 		
-				
+	}
+		String[] from = new String[] {"행사명", "구분", "기간"};
+	    int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
+          
+	    public void setDataIntoList(){
+	    	
+	    	EditText eventName = (EditText)findViewById(R.id.editTextEventName);
+			EditText period01 = (EditText)findViewById(R.id.editTextPeriod1);
+			EditText period02 = (EditText)findViewById(R.id.editTextPeriod2);
+			   	
+	    	
+			String Name = eventName.getText().toString();
+			String period1 = period01.getText().toString();
+			String period2 = period02.getText().toString();    
+			String section = m_spinEvent.getSelectedItem().toString();
+			
+	    		
+	    		
+	    List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
 		
-		m_spinEvent = (Spinner)findViewById(R.id.spinnerEventType);
-		m_spinEvent.setOnItemSelectedListener(this);
-		m_listEvent= (ListView)findViewById(R.id.listviewReadyToSendEventList);
-		
-		 // create the grid item mapping
-        String[] from = new String[] {"행사명", "구분", "기간"};
-        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
- 
-        // prepare the list of all records
-        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-        for(int i = 0; i < 10; i++){
             HashMap<String, String> map = new HashMap<String, String>();
             map.put("행사명", Name);
-            map.put("구분", m_spinEvent.getSelectedItem().toString());
-            map.put("기간", period01 + " ~ " + period02  );
+            map.put("구분", section);
+            map.put("기간", period1 + " ~ " + period2  );
             fillMaps.add(map);            
-        }
- 
-        // fill in the grid_item layout
-        SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item3, 
-        		from, to);
-        m_listEvent.setAdapter(adapter);
-        m_listEvent.setOnItemClickListener(this);
-        
-	}
+      			  
+	        adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item3,	from, to);
+	        m_listEvent.setAdapter(adapter);
+	        adapter.notifyDataSetChanged();
+		
+		}
+	
 
 	/**
 	 * Set up the {@link android.app.ActionBar}.
