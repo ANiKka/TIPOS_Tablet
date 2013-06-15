@@ -25,7 +25,6 @@ public class ConfigActivity extends Activity {
 
 	// loading bar
 	private ProgressDialog dialog; 
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

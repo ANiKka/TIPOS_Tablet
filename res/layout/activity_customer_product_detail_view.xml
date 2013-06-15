@@ -6,13 +6,15 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="@drawable/bg_img"
     tools:context=".CustomerProductDetailViewActivity" >
 
      <LinearLayout
          android:id="@+id/linearLayoutTitle"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:orientation="horizontal" >
+         android:orientation="horizontal"
+         android:gravity="center" >
          
         <TextView
             android:id="@+id/textView2"
@@ -24,7 +26,7 @@
             android:text="날짜"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
-        <EditText
+        <TextView
             android:id="@+id/editTextPeriod1"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
@@ -32,7 +34,7 @@
             android:textColor="#000000"
             android:background="@drawable/white_text_box_small"
             android:textSize="14sp"
-            android:inputType="date" />
+            />
 
         <requestFocus />
 
@@ -48,7 +50,7 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             />
 
-        <EditText
+        <TextView
             android:id="@+id/editTextPeriod2"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
@@ -56,7 +58,7 @@
             android:textColor="#000000"
             android:background="@drawable/white_text_box_small"
             android:textSize="14sp"
-            android:inputType="date" />
+             />
 	        
 	</LinearLayout>
          
@@ -73,14 +75,25 @@
             android:id="@+id/textView1"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
-            android:layout_weight="0.3"
+            android:layout_weight="0.6"
             android:textColor="#ffffff"
             android:textSize="14sp"
             android:text="거래처명 : "
             android:textAppearance="?android:attr/textAppearanceSmall"/>
         
          <TextView
-             android:id="@+id/textView3"
+             android:id="@+id/textViewCustomerCode"
+             android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="#ffffff"
+            android:textSize="14sp"
+             android:text="xxxxxx "
+             android:layout_marginLeft="5dip"
+             android:textAppearance="?android:attr/textAppearanceSmall" />
+         
+         <TextView
+             android:id="@+id/textViewCustomerName"
              android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1"
