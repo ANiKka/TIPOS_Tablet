@@ -1,3 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/intro_bg"
+    android:orientation="vertical" >
+
+    <LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="0dp"
+	    android:layout_weight="3"
+	    android:orientation="vertical" >
+	</LinearLayout>
+	    
+    <TextView
+        android:id="@+id/textViewTop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/logo"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal|center" />
+    
+    <LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="0dp"
+	    android:layout_weight="1"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal|center" 
+	    android:orientation="horizontal" >
+
+	    <TextView
+	        android:id="@+id/textViewShopCode"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="매장 코드"
+	        android:textColor="#ffffff"
+        	android:textSize="20sp" />
+    
+        <EditText
+	        android:id="@+id/editTextShopCode"
+	        android:layout_width="227dp"
+	        android:layout_height="wrap_content"
+	        android:background="@drawable/intro_text_box"
+	        android:paddingLeft="10dp"
+	        android:paddingRight="10dp"
+	        android:ems="20"
+	        android:textColor="#000000"
+	        android:inputType="phone" />
+	</LinearLayout>
+	    
+    <LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="0dp"
+	    android:layout_weight="1"
+	    android:orientation="vertical" >
+        
+	    <Button
+	        android:id="@+id/buttonAuthentication"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_gravity="center"
+	        android:gravity="center_horizontal|center" 
+	        android:background="@drawable/certification_btn"
+	        android:onClick="onAuthentication" />
+	</LinearLayout>
+	
+    <LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="0dp"
+	    android:layout_weight="2"
+	    android:orientation="vertical" >
+	</LinearLayout>
+</LinearLayout>
+
+
+<!-- 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -21,7 +97,8 @@
         android:background="@drawable/intro_text_box"
         android:ems="20"
         android:textColor="#000000"
-        android:inputType="number" />
+        android:inputType="number"
+        android:paddingLeft="10dp" />
     	
     	<requestFocus />
 
@@ -84,3 +161,4 @@
         android:onClick="onAuthentication" />
 
 </RelativeLayout>
+ -->
