@@ -36,6 +36,7 @@ public class MainActivity extends Activity {
 	public ListView m_list;
 	AlertDialog m_alert;
 	public RadioGroup m_rgShop;
+	
 	// loading bar
 	private ProgressDialog dialog; 
 	

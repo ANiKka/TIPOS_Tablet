@@ -1,11 +1,17 @@
 package tipsystem.tips;
 
+import org.json.JSONArray;
+
+import tipsystem.utils.LocalStorage;
+import tipsystem.utils.MSSQL;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,7 +23,8 @@ import android.os.Build;
 
 public class ConfigActivity extends Activity {
 
-	public final static String EXTRA_MESSAGE = "unikys.todo.MESSAGE";
+	// loading bar
+	private ProgressDialog dialog; 
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -84,10 +91,52 @@ public class ConfigActivity extends Activity {
 		Toast.makeText(this, "Login", Toast.LENGTH_SHORT).show();
 		
 		Intent intent = new Intent(this, MainMenuActivity.class);
-    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-    	//String message = editText.getText().toString();
-    	//intent.putExtra(EXTRA_MESSAGE, message);
     	startActivity(intent);
 	}
 	
+	// 인증관련 실행 함수 
+    public void onAuthentication(View view) {
+
+    	// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+ 		// 입력된 코드 가져오기
+    	String id = (String)((EditText) findViewById(R.id.editTextShopCode)).getText().toString();
+    	String pw = (String)((EditText) findViewById(R.id.editTextLoginPW)).getText().toString();
+    	if (id.equals("") || pw.equals("") ) return;
+
+    	// 쿼리 작성하기
+	    String query =  "";
+	    query =  "select * " 
+	    		+ "from APP_USER " 
+	    		+ "where ID = " + id
+	    		+ ";";
+	    
+	    // 콜백함수와 함께 실행
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				didLogin(results);
+			}
+	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+    }
+
+    // DB에 접속후 호출되는 함수
+    public void didLogin(JSONArray results) {
+    	if (results.length() > 0) {
+    		// 저장소에 저장
+    		LocalStorage.setJSONArray(this, "loginResult", results);
+    		
+    		Toast.makeText(getApplicationContext(), "인증 완료", Toast.LENGTH_SHORT).show(); 
+    	}
+    	else {
+    		Toast.makeText(getApplicationContext(), "인증 실패", Toast.LENGTH_SHORT).show();
+    	}
+    }
 }
