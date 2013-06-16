@@ -79,7 +79,7 @@
         android:orientation="horizontal" >
 
         <TextView
-            android:id="@+id/textView3"
+            android:id="@+id/textViewEventTypeTitle"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="0.55"
@@ -88,19 +88,20 @@
             android:text="행사기간"
             android:textAppearance="?android:attr/textAppearanceSmall"/>
         
-        <EditText
-            android:id="@+id/editTextPeriod1"
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="#000000"
-            android:background="@drawable/white_text_box_small"
-            android:inputType="date"
-            android:ems="10"
-            android:textSize="14sp" />
+        <Button
+             android:id="@+id/buttonSetDate1"
+             style="?android:attr/buttonStyleSmall"
+             android:layout_width="0dip"
+             android:layout_height="wrap_content"
+             android:layout_weight="1"
+             android:textSize="14sp"
+             android:text="2013-05-19"
+             android:onClick="onClickSetDate1" />
+
+        <requestFocus />
 
         <TextView
-            android:id="@+id/textView4"
+            android:id="@+id/textView3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
@@ -108,17 +109,18 @@
             android:textColor="#ffffff"
             android:textSize="14sp"
             android:text="~"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
-
-        <EditText
-            android:id="@+id/editTextPeriod2"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            />
+        
+        <Button
+            android:id="@+id/buttonSetDate2"
+            style="?android:attr/buttonStyleSmall"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="#000000"
-            android:background="@drawable/white_text_box_small"
             android:textSize="14sp"
-            android:inputType="date" />
+            android:text="2013-05-19"
+            android:onClick="onClickSetDate2" />
         
     </LinearLayout>
     
@@ -201,7 +203,7 @@
             android:layout_weight="1"
             android:textColor="#000000"
             android:background="@drawable/white_text_box_small"
-            android:inputType="text"
+            android:inputType="number"
             android:ems="10"
             android:textSize="14sp"  />
         
@@ -223,7 +225,7 @@
             android:layout_weight="1"
             android:textColor="#000000"
             android:background="@drawable/white_text_box_small"
-            android:inputType="text"
+            android:inputType="number"
             android:ems="10"
             android:textSize="14sp"  
 	     />       
@@ -307,7 +309,8 @@
 	        android:layout_height="wrap_content"
 	        android:layout_marginLeft="10dip"
 	        android:scaleY="0.75"
-	        android:background="@drawable/change_btn" />
+	        android:background="@drawable/change_btn"
+	        android:onClick="OnClickModify" />
        
        <Button
 	        android:id="@+id/buttonRenew"

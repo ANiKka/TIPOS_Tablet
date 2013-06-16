@@ -31,11 +31,14 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.TabHost.OnTabChangeListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,6 +46,7 @@ import android.support.v4.app.NavUtils;
 
 public class SalesNewsActivity extends Activity implements OnItemClickListener, 
 														OnItemSelectedListener, 
+														OnTabChangeListener,
 														DatePickerDialog.OnDateSetListener{
 
 	TextView m_realSales;
@@ -60,9 +64,10 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	ListView m_listNewsTab1;
 	ListView m_listNewsTab2;
 	ListView m_listNewsTab3;
-	ListView m_listNewsTab4;
 	
-	Spinner m_spinClassification;
+	Spinner m_spinClassification1;
+	Spinner m_spinClassification2;
+	Spinner m_spinClassification3;
 	
 	DatePicker m_datePicker;
 	Button m_buttonSetDate;
@@ -70,6 +75,8 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	SimpleDateFormat m_dateFormatter;
 	Calendar m_dateCalender1;
 	Calendar m_dateCalender2;
+	
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -103,12 +110,17 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		m_listNewsTab1= (ListView)findViewById(R.id.listviewSalesNewsListTab1);
 		m_listNewsTab2= (ListView)findViewById(R.id.listviewSalesNewsListTab2);
 		m_listNewsTab3= (ListView)findViewById(R.id.listviewSalesNewsListTab3);
-		//m_listNewsTab4= (ListView)findViewById(R.id.listviewSalesNewsListTab4);
 		
 		m_listNewsTab2.setOnItemClickListener(this);
 		
-		m_spinClassification = (Spinner)findViewById(R.id.spinnerClassificationType);
-		m_spinClassification.setOnItemSelectedListener(this);
+		m_spinClassification1 = (Spinner)findViewById(R.id.spinnerClassificationType1);
+		m_spinClassification1.setOnItemSelectedListener(this);
+		
+		m_spinClassification2 = (Spinner)findViewById(R.id.spinnerClassificationType2);
+		m_spinClassification2.setOnItemSelectedListener(this);
+		
+		m_spinClassification3 = (Spinner)findViewById(R.id.spinnerClassificationType3);
+		m_spinClassification3.setOnItemSelectedListener(this);
 		
 		// 탭 부분
 		m_tabHost = (TabHost) findViewById(R.id.tabhostSalesNews);
@@ -131,6 +143,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         m_tabHost.addTab(spec);
      
         m_tabHost.setCurrentTab(0);
+        m_tabHost.setOnTabChangedListener(this);
         
         
         m_dateCalender2.add(Calendar.DAY_OF_MONTH, -1);
@@ -174,8 +187,8 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	{
 		
 		 // create the grid item mapping
-		String[] from = new String[] {"순번", "분류명", "순매출", "수량", "점유율"};
-		int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5};
+		String[] from = new String[] {"Count", "S_Name", "rSale", "Sale_Count", "ProFit_Pri"};
+        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5 };
 		
 		// prepare the list of all records
 				
@@ -235,10 +248,16 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		if ( m_listNewsTab2.getId() == arg0.getId() )
 		{
 			Intent intent = new Intent(this, CustomerProductDetailInNewsActivity.class);
-	    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
-	    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-	    	//String message = editText.getText().toString();
-	    	//intent.putExtra(EXTRA_MESSAGE, message);
+			
+			String code = ((TextView) arg1.findViewById(R.id.item1)).getText().toString();
+			String name = ((TextView) arg1.findViewById(R.id.item2)).getText().toString();
+			
+			String period1 = m_buttonSetDate.getText().toString();
+			
+	    	intent.putExtra("PERIOD1", period1);
+	    	intent.putExtra("OFFICE_CODE", code);
+	    	intent.putExtra("OFFICE_NAME", name);
+
 	    	startActivity(intent);	
 		}
 		
@@ -247,7 +266,33 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	@Override
 	public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 		// TODO Auto-generated method stub
+		//Toast.makeText(getApplicationContext(), "selected", Toast.LENGTH_SHORT).show();
 		
+		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
+		
+		String period1 = m_buttonSetDate.getText().toString();
+		String period2 = m_dateFormatter.format(m_dateCalender2.getTime());
+		
+		if ( arg0.getId() == m_spinClassification1.getId() )
+		{
+			String typeL = m_spinClassification1.getItemAtPosition(arg2).toString();
+			new MyAsyncTask ().execute("13", period1, period2, typeL, "", "" );
+		}
+		else if ( arg0.getId() == m_spinClassification2.getId() )
+		{
+			String typeL = m_spinClassification1.getItemAtPosition(m_spinClassification1.getSelectedItemPosition()).toString();
+			String typeM = m_spinClassification2.getItemAtPosition(arg2).toString();
+			
+			new MyAsyncTask ().execute("14", period1, period2, typeL, typeM, "" );
+		}
+		else if ( arg0.getId() == m_spinClassification3.getId() )
+		{
+			String typeL = m_spinClassification1.getItemAtPosition(m_spinClassification1.getSelectedItemPosition()).toString();
+			String typeM = m_spinClassification2.getItemAtPosition(m_spinClassification2.getSelectedItemPosition()).toString();
+			String typeS = m_spinClassification3.getItemAtPosition(arg2).toString();
+			
+			new MyAsyncTask ().execute(tabIndex, period1, period2, typeL, typeM, typeS );
+		}
 	}
 
 	@Override
@@ -266,6 +311,25 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	}
 
 	@Override
+	public void onTabChanged(String tabId) {
+		// TODO Auto-generated method stub
+		
+		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
+		
+		String period1 = m_buttonSetDate.getText().toString();
+		String period2 = m_dateFormatter.format(m_dateCalender2.getTime());
+		
+		if ( m_tabHost.getCurrentTab() == 2 )
+		{
+			new MyAsyncTask ().execute("12", period1, period2, "", "", "");
+		}
+		else
+		{
+			new MyAsyncTask ().execute(tabIndex, period1, period2, "", "", "");
+		}
+	};
+	
+	@Override
 	public void onDateSet(DatePicker view, int year, int monthOfYear,
 			int dayOfMonth) {
 		// TODO Auto-generated method stub
@@ -281,12 +345,19 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		String period1 = m_buttonSetDate.getText().toString();
 		String period2 = m_dateFormatter.format(m_dateCalender2.getTime());
 		
-		Toast.makeText(getApplicationContext(), period1 + " , " + period2, Toast.LENGTH_SHORT).show();
+		//Toast.makeText(getApplicationContext(), period1 + " , " + period2, Toast.LENGTH_SHORT).show();
 		
-		new MyAsyncTask ().execute("10", period1, period2);
-		new MyAsyncTask ().execute("11", period1, period2);
-		new MyAsyncTask ().execute(tabIndex, period1, period2);
+		new MyAsyncTask ().execute("10", period1, period2, "", "", "");
+		new MyAsyncTask ().execute("11", period1, period2, "", "", "");
 		
+		if ( m_tabHost.getCurrentTab() == 2 )
+		{
+			new MyAsyncTask ().execute("12", period1, period2, "", "", "");
+		}
+		else
+		{
+			new MyAsyncTask ().execute(tabIndex, period1, period2, "", "", "");
+		}
 	}
 	
 	class MyAsyncTask extends AsyncTask<String, Integer, String>{
@@ -314,6 +385,9 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         	    String tabIndex = urls[0];
         	    String period1 = urls[1];
         	    String period2 = urls[2];
+        	    String typeL = urls[3];
+        	    String typeM = urls[4];
+        	    String typeS = urls[5];
         	    
         		String query = "";
         	    
@@ -378,6 +452,97 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
             		}
             	    
         		}
+        		else if ( m_tabIndex == 12 ) // 대분류
+        		{
+        			tableName = String.format("SaD_%04d%02d", year1, month1);
+					
+        			query = "select L_Name from " + tableName;
+        			query = query + " where Sale_Date = '" + period1 + "'";
+        			
+        			Log.e("HTTPJSON","query: " + query );
+                	reset = stmt.executeQuery(query);
+    	        	    		
+            	    while(reset.next())
+            	    {
+    					Log.w("HTTPJSON:",reset.getString(1));
+    					
+    					JSONObject Obj = new JSONObject();
+    				    // original part looks fine:
+    				    Obj.put("L_Name",reset.getString(1).trim());
+   	    
+    				    CommArray.add(Obj);
+            		}
+            	    
+        		}
+        		else if ( m_tabIndex == 13 ) // 중분류
+        		{
+        			tableName = String.format("SaD_%04d%02d", year1, month1);
+					
+        			if ( typeL.equals("") != true )
+					{
+						constraint = setConstraint(constraint, "L_Name", "=", typeL);
+					}
+        			
+        			query = "select M_Name from " + tableName;
+        			query = query + " where Sale_Date = '" + period1 + "'";
+        			
+        			if ( constraint.equals("") != true )
+        			{
+        				query = query + " and " + constraint;
+        			}
+        			
+        			Log.e("HTTPJSON","query: " + query );
+                	reset = stmt.executeQuery(query);
+    	        	    		
+            	    while(reset.next())
+            	    {
+    					Log.w("HTTPJSON:",reset.getString(1));
+    					
+    					JSONObject Obj = new JSONObject();
+    				    // original part looks fine:
+    				    Obj.put("M_Name",reset.getString(1).trim());
+   	    
+    				    CommArray.add(Obj);
+            		}
+            	    
+        		}
+        		else if ( m_tabIndex == 14 ) // 소분류
+        		{
+        			tableName = String.format("SaD_%04d%02d", year1, month1);
+					
+        			if ( typeL.equals("") != true )
+					{
+						constraint = setConstraint(constraint, "L_Name", "=", typeL);
+					}
+        			
+        			if ( typeM.equals("") != true )
+					{
+						constraint = setConstraint(constraint, "M_Name", "=", typeM);
+					}
+        			
+        			query = "select S_Name from " + tableName;
+        			query = query + " where Sale_Date = '" + period1 + "'";
+        			
+        			if ( constraint.equals("") != true )
+        			{
+        				query = query + " and " + constraint;
+        			}
+        			
+        			Log.e("HTTPJSON","query: " + query );
+                	reset = stmt.executeQuery(query);
+    	        	    		
+            	    while(reset.next())
+            	    {
+    					Log.w("HTTPJSON:",reset.getString(1));
+    					
+    					JSONObject Obj = new JSONObject();
+    				    // original part looks fine:
+    				    Obj.put("S_Name",reset.getString(1).trim());
+   	    
+    				    CommArray.add(Obj);
+            		}
+            	    
+        		}
         		else if ( m_tabIndex == 0 ) // 수수료매장
         		{
         			tableName = String.format("SaT_%04d%02d", year1, month1);
@@ -422,7 +587,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
     				}
             	    
         		}
-        		else if ( m_tabIndex == 1 ) // 달력매출
+        		else if ( m_tabIndex == 1 ) // 
         		{
         			
         			tableName = String.format("SaD_%04d%02d", year1, month1);
@@ -449,8 +614,54 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
     				}
             	    
         		}
-
-        		
+        		else if ( m_tabIndex == 2 ) // 
+        		{
+        			tableName = String.format("SaD_%04d%02d", year1, month1);
+					
+        			if ( typeL.equals("") != true )
+					{
+						constraint = setConstraint(constraint, "L_Name", "=", typeL);
+					}
+        			
+        			if ( typeM.equals("") != true )
+					{
+						constraint = setConstraint(constraint, "M_Name", "=", typeM);
+					}
+        			
+        			if ( typeS.equals("") != true )
+					{
+						constraint = setConstraint(constraint, "S_Name", "=", typeS);
+					}
+        			
+        			query = "select TSell_Pri, TSell_RePri, DC_Pri, Sale_Count, ProFit_Pri from " + tableName;
+        			query = query + " where Sale_Date = '" + period1 + "'";
+        			
+        			if ( constraint.equals("") != true )
+        			{
+        				query = query + " and " + constraint;
+        			}
+        			
+        			Log.e("HTTPJSON","query: " + query );
+                	reset = stmt.executeQuery(query);
+    	        	    		
+            	    while(reset.next())
+            	    {
+    					Log.w("HTTPJSON:",reset.getString(1));
+    					
+    					JSONObject Obj = new JSONObject();
+    				    // original part looks fine:
+    				    Obj.put("S_Name", typeS); 				    
+    				    Obj.put("TSell_Pri",reset.getInt(1));
+    				    Obj.put("TSell_RePri",reset.getInt(2));
+    				    Obj.put("DC_Pri",reset.getInt(3));
+    				    Obj.put("Sale_Count",reset.getInt(4));
+    				    Obj.put("ProFit_Pri",reset.getInt(5));
+    				    
+    				    CommArray.add(Obj);
+            		}
+            	    
+        		}
+				
         	    conn.close();
         	
         	 } catch (Exception e)
@@ -515,7 +726,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         			
         		}
         		
-        		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
+        		//Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
         		
         	}
         	else if ( m_tabIndex == 11 )
@@ -541,7 +752,139 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         			m_viewRealSalesYesterday.setText(String.format("%d", tSellPri));
         		}
         		
-        		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
+        		//Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
+        		
+        	}
+        	else if ( m_tabIndex == 12 ) // 대분류
+        	{
+        		ArrayList<String> lSpList = new ArrayList<String>();        		   	        
+        		String lName = null;
+        		
+            	Iterator<JSONObject> iterator = CommArray.iterator();
+        		while (iterator.hasNext()) {
+        			JSONObject json = iterator.next();
+                	
+                	try {
+                		
+                		lName = json.getString("L_Name");
+                		boolean isExist = false;
+                		
+                		for ( int i = 0; i < lSpList.size(); i++ )
+                		{
+                			if ( lSpList.get(i).toString().equals(lName) == true )
+                			{
+                				isExist = true;
+                				break;
+                			}
+                		}
+                		
+                		if ( isExist == true )
+                		{
+                			continue;
+                		}
+                		
+                		// prepare the list of all records
+    		            lSpList.add(lName);
+
+        			} catch (JSONException e) {
+        				// TODO Auto-generated catch block
+        				e.printStackTrace();
+        			}
+        		}
+        		
+        		ArrayAdapter<String> adapter = new ArrayAdapter<String>(SalesNewsActivity.this, android.R.layout.simple_spinner_item, lSpList);
+        		m_spinClassification1.setAdapter(adapter);
+        	
+        		
+        		//Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
+        		
+        	}
+        	else if ( m_tabIndex == 13 ) // 중분류
+        	{
+        		ArrayList<String> lSpList = new ArrayList<String>();        		   	        
+        		String lName = null;
+        		
+            	Iterator<JSONObject> iterator = CommArray.iterator();
+        		while (iterator.hasNext()) {
+        			JSONObject json = iterator.next();
+                	
+                	try {
+                		
+                		lName = json.getString("M_Name");
+                		boolean isExist = false;
+                		
+                		for ( int i = 0; i < lSpList.size(); i++ )
+                		{
+                			if ( lSpList.get(i).toString().equals(lName) == true )
+                			{
+                				isExist = true;
+                				break;
+                			}
+                		}
+                		
+                		if ( isExist == true )
+                		{
+                			continue;
+                		}
+                		
+                		// prepare the list of all records
+    		            lSpList.add(lName);
+
+        			} catch (JSONException e) {
+        				// TODO Auto-generated catch block
+        				e.printStackTrace();
+        			}
+        		}
+        		
+        		ArrayAdapter<String> adapter = new ArrayAdapter<String>(SalesNewsActivity.this, android.R.layout.simple_spinner_item, lSpList);
+        		m_spinClassification2.setAdapter(adapter);
+        	
+        		
+        		//Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
+        		
+        	}
+        	else if ( m_tabIndex == 14 ) // 소분류
+        	{
+        		ArrayList<String> lSpList = new ArrayList<String>();        		   	        
+        		String lName = null;
+        		
+            	Iterator<JSONObject> iterator = CommArray.iterator();
+        		while (iterator.hasNext()) {
+        			JSONObject json = iterator.next();
+                	
+                	try {
+                		
+                		lName = json.getString("S_Name");
+                		boolean isExist = false;
+                		
+                		for ( int i = 0; i < lSpList.size(); i++ )
+                		{
+                			if ( lSpList.get(i).toString().equals(lName) == true )
+                			{
+                				isExist = true;
+                				break;
+                			}
+                		}
+                		
+                		if ( isExist == true )
+                		{
+                			continue;
+                		}
+                		
+                		// prepare the list of all records
+    		            lSpList.add(lName);
+
+        			} catch (JSONException e) {
+        				// TODO Auto-generated catch block
+        				e.printStackTrace();
+        			}
+        		}
+        		
+        		ArrayAdapter<String> adapter = new ArrayAdapter<String>(SalesNewsActivity.this, android.R.layout.simple_spinner_item, lSpList);
+        		m_spinClassification3.setAdapter(adapter);
+        	
+        		
+        		//Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
         		
         	}
         	else if ( m_tabIndex == 0 )
@@ -556,7 +899,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
     	        
     	        for ( int i = 0; i < 24; i++ )
     	        {
-    	        	rSale[i] = 0;	
+    	        	rSale[i] = 0;
     	        	rSale1[i] = 0;
     	        	rDSale[i] = 0;
     	        
@@ -678,7 +1021,50 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         			setTabList2(fillMaps);
         		}
         	}
-    		
+        	else if ( m_tabIndex == 2 )
+        	{
+        		String[] from = new String[] {"Count", "S_Name", "rSale", "Sale_Count", "ProFit_Pri"};
+    	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5 };
+    	        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+    	 	    
+    	        int cnt = 0;
+            	Iterator<JSONObject> iterator = CommArray.iterator();
+        		while (iterator.hasNext()) {
+                	JSONObject json = iterator.next();
+                	
+                	try {
+                	    
+        				String sName = json.getString("S_Name");
+        				
+        				int tSell = json.getInt("TSell_Pri");
+        				int tRSell = json.getInt("TSell_RePri");
+        				int dcPri = json.getInt("DC_Pri");
+        				String sProfit = String.format("%d", json.getInt("ProFit_Pri"));
+        				String rSale = String.format("%d", tSell - (tRSell + dcPri));
+        				String saleCount = String.format("%d", json.getInt("Sale_Count"));
+        				
+        				// prepare the list of all records
+    		            HashMap<String, String> map = new HashMap<String, String>();
+    		            map.put("Count", String.format("%d", ++cnt));
+    		            map.put("S_Name", sName);
+    		            map.put("rSale", rSale);
+    		            map.put("Sale_Count", saleCount);
+    		            map.put("ProFit_Pri", sProfit);
+    		            fillMaps.add(map);
+        		 
+        			} catch (JSONException e) {
+        				// TODO Auto-generated catch block
+        				e.printStackTrace();
+        			}
+        		}
+        		
+        		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
+        		
+        		if ( CommArray.size() > 0 )
+        		{
+        			setTabList3(fillMaps);
+        		}
+        	}
         }
         
         private String setConstraint(String str, String field, String op, String value)
@@ -692,6 +1078,8 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         	
         	return str;
         }
-    };
+    }
+
+
     
 }
