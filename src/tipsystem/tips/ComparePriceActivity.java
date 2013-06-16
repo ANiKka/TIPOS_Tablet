@@ -1,18 +1,15 @@
 package tipsystem.tips;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.os.AsyncTask;
+import tipsystem.utils.MSSQL;
+
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -44,25 +41,7 @@ public class ComparePriceActivity extends Activity{
 	ListView m_listPriceSearch;
 	private ProgressDialog dialog;
 	
-	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
-	
-	private OnClickListener m_click_search_listener = new OnClickListener() {
-        public void onClick(View v) {
-        	dialog = new ProgressDialog(ComparePriceActivity.this);
-            dialog.setMessage("Loading....");
-            dialog.setCancelable(false);
-            dialog.show();
-            
-        	String customer = m_customer.getText().toString();
-    	    String customer2 = m_customer2.getText().toString();
-    	    String barcode = m_barcode.getText().toString();
-    	    String productionName = m_productionName.getText().toString();
-    	    String local = m_local.getText().toString();
-    	    
-    	    new MyAsyncTask ().execute(customer, customer2, barcode, productionName, local);
-        }
-	};
-	
+	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -100,7 +79,12 @@ public class ComparePriceActivity extends Activity{
                 sendDataFromList(position);
             }
         });
-        searchButton.setOnClickListener(m_click_search_listener);
+		searchButton.setOnClickListener(new OnClickListener() {
+	        public void onClick(View v) { 
+	        	doSearch();
+	        }
+		});
+		
         
 	}
 
@@ -147,8 +131,8 @@ public class ComparePriceActivity extends Activity{
 	}
 	
 	private void sendDataFromList(int position){
-		String Barcode = mfillMaps.get(position).get("Barcode");
-		String G_Name = mfillMaps.get(position).get("G_Name");
+		String Barcode = mfillMaps.get(position).get("barcode");
+		String G_Name = mfillMaps.get(position).get("gName");
 		
 		ArrayList<String> sendArr = new ArrayList<String>();
 		sendArr.add(Barcode);
@@ -159,7 +143,127 @@ public class ComparePriceActivity extends Activity{
     	startActivity(intent);
 	}
 
+	public void doSearch(){
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+    	String customer = m_customer.getText().toString();
+	    String customer2 = m_customer2.getText().toString();
+	    String barcode = m_barcode.getText().toString();
+	    String productionName = m_productionName.getText().toString();
+	    String local = m_local.getText().toString();
+	    
+	    String query =  "";
+	    
+	    query += "SELECT * FROM Goods";
+	    
+	    if (!customer.equals("") || !customer2.equals("") || !barcode.equals("") || !productionName.equals("") || !local.equals("")){
+	    	query += " WHERE";
+	    	
+	    	 boolean added = false; 
+	 	    if(!customer.equals("")){
+	 	    	query += " Bus_Code = '" + customer + "'";
+	 	    	added = true;  
+	 		}
+	 		if(!customer2.equals("")){
+	 			if(added)	query += " AND ";
+	 			query += " Bus_Name = '" + customer2 + "'";
+	 			added = true;
+	 		}
+	 		if(!barcode.equals("")){
+	 			if(added)	query += " AND ";
+	 			query += " BarCode = '" + barcode + "'";
+	 			added = true;
+	 		}
+	 		if(!productionName.equals("")){
+	 			if(added)	query += " AND ";
+	 			query += " G_Name = '" + productionName + "'";
+	 			added = true;
+	 		}
+	 		query += ";";
+	    } else {
+	    	query = "SELECT TOP 2000 * FROM Goods WHERE BarCode NOT IN(SELECT TOP 1 BarCode FROM Goods);";
+	    }
+	    
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				if (results.length() > 0) {
+					updateListView(results);
+		            Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
+				}
+				else {
+		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();					
+				}
+			}
+	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+		
+	}
+	
+	public void updateListView(JSONArray results) {
+		
+		String[] from = new String[] {"barcode", "gName", "purPri", "sellPri"};
+        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
+        
+        if (!mfillMaps.isEmpty()) mfillMaps.clear();
+        
+        for (int i = 0; i < results.length(); i++) {
+        	Log.w("test", "4");	
+        	try {
+            	JSONObject json = results.getJSONObject(i);
+				String barcode = json.getString("BarCode");
+				String gName = json.getString("G_Name");
+				String purPri = json.getString("Pur_Pri");
+				String sellPri = json.getString("Sell_Pri");
+				/*
+				String busCode = json.getString("Bus_Code");
+				String busName = json.getString("Bus_Name");
+				String taxYN = json.getString("Tax_YN");
+				String stdSize = json.getString("Std_Size");
+				String obtain = json.getString("Obtain");
+				String purCost = json.getString("Pur_Cost");
+				String profitRate = json.getString("Profit_Rate");
+				String L_Code = json.getString("L_Code");
+				String M_Code = json.getString("M_Code");
+				String S_Code = json.getString("S_Code");
+				String surtax = json.getString("Add_Tax");*/
+
+				// prepare the list of all records
+	            HashMap<String, String> map = new HashMap<String, String>();
+	            map.put("barcode", barcode);
+	            map.put("gName", gName);
+	            map.put("purPri", purPri);
+	            map.put("sellPri", sellPri);
+	            /*map.put("busCode", busCode);
+	            map.put("busName", busName);
+	            map.put("taxYN", taxYN);
+	            map.put("stdSize", stdSize);
+	            map.put("obtain", obtain);
+	            map.put("purCost", purCost);
+	            map.put("profitRate", profitRate);
+	            map.put("L_Code", L_Code);
+	            map.put("M_Code", M_Code);
+	            map.put("S_Code", S_Code);
+	            map.put("surtax", surtax);	      */    
+	            Log.w("test", "6");
+	            mfillMaps.add(map);
+		 
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+        // fill in the grid_item layout
+        SimpleAdapter adapter = new SimpleAdapter(ComparePriceActivity.this, mfillMaps, R.layout. activity_listview_compare_list, from, to);
+        m_listPriceSearch.setAdapter(adapter);
+    }
+/*
 	class MyAsyncTask extends AsyncTask<String, Integer, String>{
 
         ArrayList<JSONObject> CommArray=new ArrayList<JSONObject>();
@@ -184,6 +288,7 @@ public class ComparePriceActivity extends Activity{
         	    String productionName = urls[3];
         	    String local = urls[4];
         	    String query = "";
+        	    
         	    
         	    if(customer.equals("") && customer2.equals("") && barcode.equals("") && productionName.equals("") && local.equals(""))
         	    {
@@ -285,12 +390,12 @@ public class ComparePriceActivity extends Activity{
     		}
 
 	        // fill in the grid_item layout
-	   //     SimpleAdapter adapter = new SimpleAdapter(ComparePriceActivity.this, mfillMaps, R.layout.activity_listview_compare_list, from, to);
-	   //     m_listPriceSearch.setAdapter(adapter);
+	        SimpleAdapter adapter = new SimpleAdapter(ComparePriceActivity.this, mfillMaps, R.layout.activity_listview_compare_list, from, to);
+	        m_listPriceSearch.setAdapter(adapter);
 	        
             Toast.makeText(getApplicationContext(), "조회 완료", 0).show();
         }
     }
-
+*/
 
 }

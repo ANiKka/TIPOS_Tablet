@@ -4,9 +4,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import tipsystem.utils.MSSQL;
+
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.util.Log;
@@ -15,6 +22,7 @@ import android.view.MenuItem;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 
 public class ComparePriceDetailActivity extends Activity {
@@ -23,42 +31,43 @@ public class ComparePriceDetailActivity extends Activity {
 	TextView m_barcodeTxt;
 	TextView m_gNameTxt;
 	
+	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();	
+	
+	private ProgressDialog dialog;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.e("HashMapTest", "1");
+		
 		setContentView(R.layout.activity_compare_price_detail);
-		Log.e("HashMapTest", "2");
+		
 		// Show the Up button in the action bar.
 		setupActionBar();
 
 		Intent intent = getIntent();
-		Log.e("HashMapTest", "3");
-	    //HashMap<String, String> hashMap = (HashMap<String, String>)intent.getSerializableExtra("fillMaps");
 		ArrayList<String> fillMaps = intent.getStringArrayListExtra("fillMaps");
-	    Log.e("HashMapTest", "data : " + fillMaps.get(0));
-	    Log.e("HashMapTest", "5");
-	    //Log.e("HashMapTest", "11111111111111111111111111111111111111111111111111111111111111");
-	    
+		String BarCode = fillMaps.get(0);
+		String G_Name = fillMaps.get(1);
+		
 		m_listPriceDetail= (ListView)findViewById(R.id.listviewPriceDetailList);
 
-
-       Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
-       TextView textView = (TextView) findViewById(R.id.textView1);
-       textView.setTypeface(typeface);
+		Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
+		TextView textView = (TextView) findViewById(R.id.textView1);
+		textView.setTypeface(typeface);
        
-       m_barcodeTxt = (TextView) findViewById(R.id.textView2);
-       m_barcodeTxt.setTypeface(typeface);
-       m_barcodeTxt.setText(fillMaps.get(0));
+		m_barcodeTxt = (TextView) findViewById(R.id.textView2);
+		m_barcodeTxt.setTypeface(typeface);
+		m_barcodeTxt.setText(BarCode);
        
-       textView = (TextView) findViewById(R.id.textView3);
-       textView.setTypeface(typeface);
+		textView = (TextView) findViewById(R.id.textView3);
+		textView.setTypeface(typeface);
        
-       m_gNameTxt = (TextView) findViewById(R.id.textView4);
-       m_gNameTxt.setTypeface(typeface);
-       m_gNameTxt.setText(fillMaps.get(1));
+		m_gNameTxt = (TextView) findViewById(R.id.textView4);
+		m_gNameTxt.setTypeface(typeface);
+		m_gNameTxt.setText(G_Name);
+		
+		comparePrice(BarCode, G_Name);
 	}
-
+	
 	/**
 	 * Set up the {@link android.app.ActionBar}.
 	 */
@@ -101,5 +110,70 @@ public class ComparePriceDetailActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
+
+	private void comparePrice(String BarCode, String G_Name) {
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+ 		String query = "";
+ 		query = "SELECT * FROM Goods WHERE Barcode = '" + BarCode + "' and G_Name = '" + G_Name + "';";
+ 		Log.w("MSSQL", "Query : " + query);
+ 		
+ 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				if (results.length() > 0) {
+					updateListView(results);
+		            Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
+				}
+				else {
+		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();					
+				}
+			}
+	    }).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query);
+ 		
+	}
+	
+public void updateListView(JSONArray results) {
+		
+		String[] from = new String[] {"barcode", "gName", "purPri", "sellPri"};
+        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
+        
+        if (!mfillMaps.isEmpty()) mfillMaps.clear();
+        
+        for (int i = 0; i < results.length(); i++) {
+        	try {
+            	JSONObject json = results.getJSONObject(i);
+				String barcode = json.getString("Barcode");
+				String gName = json.getString("G_Name");
+				String purPri = json.getString("Pur_Pri");
+				String sellPri = json.getString("Sell_Pri");
+	
+
+				// prepare the list of all records
+	            HashMap<String, String> map = new HashMap<String, String>();
+	            map.put("barcode", barcode);
+	            map.put("gName", gName);
+	            map.put("purPri", purPri);
+	            map.put("sellPri", sellPri);
+
+	            Log.w("test", "6");
+	            mfillMaps.add(map);
+		 
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+        // fill in the grid_item layout
+        SimpleAdapter adapter = new SimpleAdapter(ComparePriceDetailActivity.this, mfillMaps, R.layout. activity_listview_compare_detail_list, from, to);
+        m_listPriceDetail.setAdapter(adapter);
+    }
 
 }
