@@ -103,7 +103,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		m_listNewsTab1= (ListView)findViewById(R.id.listviewSalesNewsListTab1);
 		m_listNewsTab2= (ListView)findViewById(R.id.listviewSalesNewsListTab2);
 		m_listNewsTab3= (ListView)findViewById(R.id.listviewSalesNewsListTab3);
-		m_listNewsTab4= (ListView)findViewById(R.id.listviewSalesNewsListTab4);
+		//m_listNewsTab4= (ListView)findViewById(R.id.listviewSalesNewsListTab4);
 		
 		m_listNewsTab2.setOnItemClickListener(this);
 		
