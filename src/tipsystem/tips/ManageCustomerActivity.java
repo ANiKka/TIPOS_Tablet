@@ -1,4 +1,4 @@
-package tipsystem.tips;
+package  tipsystem.tips;
 
 import java.util.ArrayList;
 import java.util.HashMap;
