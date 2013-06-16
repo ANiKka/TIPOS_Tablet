@@ -35,8 +35,9 @@ public class ChargeCustomerDetailActivity extends Activity {
 	
 	TextView m_contents[];
 	
-	
-	
+	int m_qIndex = 0;
+	int m_isTax = 0;
+	int m_isCashR = 0;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -90,15 +91,21 @@ public class ChargeCustomerDetailActivity extends Activity {
 		
 		m_customerCode.setText(intent.getExtras().getString("OFFICE_CODE"));
 		m_customerName.setText(intent.getExtras().getString("OFFICE_NAME"));
-		
-		
+				
 		String period1 = m_period1.getText().toString();
 		String period2 = m_period2.getText().toString();
 		String customerCode = m_customerCode.getText().toString();
 		String customerName = m_customerName.getText().toString();
 		
 	
-		//new MyAsyncTask().execute(period1, period2, customerCode, customerName);
+		new MyAsyncTask().execute("0", period1, period2, customerCode, customerName, "", ""); // SaD
+		new MyAsyncTask().execute("1", period1, period2, customerCode, customerName, "", ""); // SaT
+		new MyAsyncTask().execute("2", period1, period2, customerCode, customerName, "", ""); // 현영매출
+		new MyAsyncTask().execute("3", period1, period2, customerCode, customerName, "1", "0"); // 과세매출
+		new MyAsyncTask().execute("3", period1, period2, customerCode, customerName, "0", "0"); // 면세매출
+		
+		new MyAsyncTask().execute("3", period1, period2, customerCode, customerName, "1", "1"); // 과세매출
+		new MyAsyncTask().execute("3", period1, period2, customerCode, customerName, "0", "1"); // 면세매출
 		
 	}
 
@@ -165,11 +172,14 @@ public class ChargeCustomerDetailActivity extends Activity {
         	    Log.i("Connection","MSSQL open");
         	    Statement stmt = conn.createStatement();
         	    
+        	    String tabIndex = urls[0];
         	    
-        	    String period1 = urls[0];
-        		String period2 = urls[1];
-        		String customerCode = urls[2];
-        		String customerName = urls[3];
+        	    String period1 = urls[1];
+        		String period2 = urls[2];
+        		String customerCode = urls[3];
+        		String customerName = urls[4];
+        		String isTax = urls[5];
+        		String isCashR = urls[6];
         		
         		String query = "";
         	    
@@ -183,57 +193,229 @@ public class ChargeCustomerDetailActivity extends Activity {
         		String tableName2 = null;
         		String constraint = "";
         		
+        		m_qIndex = Integer.parseInt(tabIndex);
+        		m_isTax = Integer.parseInt(isTax);
+        		m_isCashR = Integer.parseInt(isCashR);
         		
-        		for ( int y = year1; y <= year2; y++ )
+        		
+        		if ( m_qIndex == 0)
         		{
-        			for ( int m = month1; m <= month2; m++ )
-        			{
-        				
-        				tableName1 = String.format("SaD_%04d%02d", y, m);
-        				tableName2 = String.format("SaT_%04d%02d", y, m);
-    					
-    					if ( customerCode.equals("") != true )
-    					{
-    						constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
-    					}
-    					
-    					if ( customerName.equals("") != true)
-    					{
-    						constraint = setConstraint(constraint, "Office_Name", "=", customerName);
-    					}
-    					
-            			query = "select TSell_Pri, TSell_RePri, DC_Pri, Cash_Pri, Card_Pri, SU_Card_Pri, Fee, " + 
-            					"Card_Fee, Cus_Point, CashBack_Point,     from " + tableName1;
-            			query = query + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
-           			
-            			if ( constraint.equals("") != true )
+        			for ( int y = year1; y <= year2; y++ )
+            		{
+            			for ( int m = month1; m <= month2; m++ )
             			{
-            				query = query + " and " + constraint;
+            				
+            				tableName1 = String.format("SaT_%04d%02d", y, m);
+            				tableName2 = String.format("SaD_%04d%02d", y, m);
+            				
+        					
+        					if ( customerCode.equals("") != true )
+        					{
+        						constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
+        					}
+        					
+        					if ( customerName.equals("") != true)
+        					{
+        						constraint = setConstraint(constraint, "Office_Name", "=", customerName);
+        					}
+        					
+        					// 현금매출, 수카드금액, 매장수수료, 카드수수료, 포인트, 캐쉬백
+                			query = "select Cash_Pri, Card_Pri, SU_CardPri, Cus_Point, CashBack_Point from " + tableName1;
+                			query = query + " where Sale_Num in (select Sale_Num from " + tableName2 + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
+               			
+                			if ( constraint.equals("") != true )
+                			{
+                				query = query + " and " + constraint;
+                			}
+                			
+                			query = query + ")";
+                			
+                			Log.e("HTTPJSON","query: " + query );
+                        	reset = stmt.executeQuery(query);
+            	        	    		
+                    	    while(reset.next())
+                    	    {
+            					Log.w("HTTPJSON:",reset.getString(1));
+            					
+            					JSONObject Obj = new JSONObject();
+            				    // original part looks fine:
+
+            				    Obj.put("Cash_Pri",reset.getInt(1));
+            				    Obj.put("Card_Pri",reset.getInt(2));
+            				    Obj.put("SU_CardPri",reset.getInt(3));
+            				    Obj.put("Cus_Point",reset.getInt(4));
+            				    Obj.put("CashBack_Point",reset.getInt(5));
+            				    
+            				    CommArray.add(Obj);
+            				}
             			}
             			
-            			
-            			Log.e("HTTPJSON","query: " + query );
-                    	reset = stmt.executeQuery(query);
-        	        	    		
-                	    while(reset.next())
-                	    {
-        					Log.w("HTTPJSON:",reset.getString(1));
-        					
-        					JSONObject Obj = new JSONObject();
-        				    // original part looks fine:
-        				    Obj.put("Barcode",reset.getString(1).trim());
-        				    Obj.put("G_Name",reset.getString(2).trim());
-        				    Obj.put("Sale_Count",reset.getInt(3));
-        				    Obj.put("TSell_Pri",reset.getInt(4));
-        				    Obj.put("TSell_RePri",reset.getInt(5));
-        				    Obj.put("DC_Pri",reset.getInt(6));
-        				    
-        				    CommArray.add(Obj);
-        				}
-        			}
-        			
+            		}        			
         		}
+    			else if ( m_qIndex == 1 )
+    			{
+    				for ( int y = year1; y <= year2; y++ )
+            		{
+            			for ( int m = month1; m <= month2; m++ )
+            			{
+            				
+            				tableName1 = String.format("SaD_%04d%02d", y, m);
+            				
+        					
+        					if ( customerCode.equals("") != true )
+        					{
+        						constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
+        					}
+        					
+        					if ( customerName.equals("") != true)
+        					{
+        						constraint = setConstraint(constraint, "Office_Name", "=", customerName);
+        					}
+        					
+        					// 판매, 반품, 할인, 순매출, 현금매출, 카드매출, 수카드금액, 매장수수료, 카드수수료, 포인트, 캐쉬백
+                			query = "select TSell_Pri, TSell_RePri, DC_Pri, Fee, Card_Fee from " + tableName1;
+                			query = query + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
+               			
+                			if ( constraint.equals("") != true )
+                			{
+                				query = query + " and " + constraint;
+                			}
+                			
+                			Log.e("HTTPJSON","query: " + query );
+                        	reset = stmt.executeQuery(query);
+            	        	    		
+                    	    while(reset.next())
+                    	    {
+            					Log.w("HTTPJSON:",reset.getString(1));
+            					
+            					JSONObject Obj = new JSONObject();
+            				    // original part looks fine:
+            				    Obj.put("TSell_Pri",reset.getInt(1));
+            				    Obj.put("TSell_RePri",reset.getInt(2));
+            				    Obj.put("DC_Pri",reset.getInt(3));
+            				    Obj.put("Fee",reset.getInt(4));
+            				    Obj.put("Card_Fee",reset.getInt(5));
+            				    CommArray.add(Obj);
+            				}
+            			}
+            			
+            		}        			
+    				
+    			}
+    			else if ( m_qIndex == 2 )
+    			{
+    				for ( int y = year1; y <= year2; y++ )
+            		{
+            			for ( int m = month1; m <= month2; m++ )
+            			{
+            				
+            				tableName1 = String.format("SaT_%04d%02d", y, m);
+            				tableName2 = String.format("SaD_%04d%02d", y, m);
+            				
+        					
+        					if ( customerCode.equals("") != true )
+        					{
+        						constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
+        					}
+        					
+        					if ( customerName.equals("") != true)
+        					{
+        						constraint = setConstraint(constraint, "Office_Name", "=", customerName);
+        					}
+        					
+        					// 현영매출
+                			query = "select TSell_Pri from " + tableName1;
+                			query = query + " where Cash_No is not NULL and Sale_Num in (select Sale_Num from " + tableName2 + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
+               			
+                			if ( constraint.equals("") != true )
+                			{
+                				query = query + " and " + constraint;
+                			}
+                			
+                			query = query + ")";
+                			
+                			Log.e("HTTPJSON","query: " + query );
+                        	reset = stmt.executeQuery(query);
+            	        	    		
+                    	    while(reset.next())
+                    	    {
+            					Log.w("HTTPJSON:",reset.getString(1));
+            					
+            					JSONObject Obj = new JSONObject();
+            				    // original part looks fine:
+
+            				    Obj.put("TSell_Pri", reset.getInt(1));
+            				    
+            				    CommArray.add(Obj);
+            				}
+            			}
+            			
+            		}        			
+    				
+    			}
+    			else if ( m_qIndex == 3 )
+    			{
+    				for ( int y = year1; y <= year2; y++ )
+            		{
+            			for ( int m = month1; m <= month2; m++ )
+            			{
+            				
+            				tableName1 = String.format("SaT_%04d%02d", y, m);
+            				tableName2 = String.format("SaD_%04d%02d", y, m);
+            				
+        					
+        					if ( customerCode.equals("") != true )
+        					{
+        						constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
+        					}
+        					
+        					if ( customerName.equals("") != true)
+        					{
+        						constraint = setConstraint(constraint, "Office_Name", "=", customerName);
+        					}
+        					
+        					// 현영매출
+                			query = "select TSell_Pri, Cash_Pri, Card_Pri from " + tableName1;
+                			query = query + " where ";
+                			
+                			if ( isCashR.equals("1") == true )
+                			{
+                				query = query + "Cash_No is not NULL and ";
+                			}
+                			
+                			query = query + "Sale_Num in (select Sale_Num from " + tableName2 + " where Tax_YN = '" +
+                					isTax + "' and Sale_Date between '" + period1 + "' and '" + period2 + "'";
+               			
+                			if ( constraint.equals("") != true )
+                			{
+                				query = query + " and " + constraint;
+                			}
+                			
+                			query = query + ")";
+                			
+                			Log.e("HTTPJSON","query: " + query );
+                        	reset = stmt.executeQuery(query);
+            	        	    		
+                    	    while(reset.next())
+                    	    {
+            					Log.w("HTTPJSON:",reset.getString(1));
+            					
+            					JSONObject Obj = new JSONObject();
+            				    // original part looks fine:
+
+            				    Obj.put("TSell_Pri", reset.getInt(1));
+            				    Obj.put("Cash_Pri", reset.getInt(2));
+            				    Obj.put("Card_Pri", reset.getInt(3));
+            				    
+            				    CommArray.add(Obj);
+            				}
+            			}
+            			
+            		}        			
+    				
+    			}
         		
+        		        		
         	    conn.close();
         	
         	 } catch (Exception e)
@@ -253,46 +435,152 @@ public class ChargeCustomerDetailActivity extends Activity {
         protected void onPostExecute(String result) {
         	super.onPostExecute(result);
         	
-    		String[] from = new String[] {"Barcode", "G_Name", "Sale_Count", "rSale"};
-	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-	        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-	 	        		
-        	Iterator<JSONObject> iterator = CommArray.iterator();
-    		while (iterator.hasNext()) {
-            	JSONObject json = iterator.next();
-            	
-            	try {
-            		
-    				String code = json.getString("Barcode");
-    				String name = json.getString("G_Name");
-    				int tSell = json.getInt("TSell_Pri");
-    				int tRSell = json.getInt("TSell_RePri");
-    				int dcPri = json.getInt("DC_Pri");
-    				String saleCount = String.format("%d", json.getInt("Sale_Count"));
-    				
-    				String rSale = String.format("%d", tSell - (tRSell + dcPri));
-    				
-    				// prepare the list of all records
-		            HashMap<String, String> map = new HashMap<String, String>();
-		            map.put("Barcode", code);
-		            map.put("G_Name", name);
-		            map.put("Sale_Count", saleCount);
-		            map.put("rSale", rSale);
-		            fillMaps.add(map);
-    		 
-    			} catch (JSONException e) {
-    				// TODO Auto-generated catch block
-    				e.printStackTrace();
-    			}
-    		}
-    		
-    		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
-    		
-    		if ( CommArray.size() > 0 )
-    		{
-    			//setListDetail(fillMaps);
-    		}
-    		   		
+        	if ( m_qIndex == 0 )
+        	{
+   
+				int cashPri = 0;
+				int cardPri = 0;
+				int suCardPri = 0;
+				int cusPoint = 0;
+				int cashBackPoint = 0;
+				
+        		
+            	Iterator<JSONObject> iterator = CommArray.iterator();
+        		while (iterator.hasNext()) {
+                	JSONObject json = iterator.next();
+                	
+                	try {
+                		
+                		
+        				cashPri = cashPri + json.getInt("Cash_Pri");
+        				cardPri = cardPri + json.getInt("Card_Pri");
+        				suCardPri = suCardPri + json.getInt("SU_CardPri");
+        				
+        				cusPoint = cusPoint + json.getInt("Cus_Point");
+        				cashBackPoint = cashBackPoint + json.getInt("CashBack_Point");
+        				
+        			} catch (JSONException e) {
+        				// TODO Auto-generated catch block
+        				e.printStackTrace();
+        			}
+        		}
+        		
+        		m_contents[6].setText(String.format("%d", cashPri));
+        		
+        		m_contents[9].setText(String.format("%d", cardPri));
+        		
+        		m_contents[15].setText(String.format("%d", suCardPri));
+        		m_contents[18].setText(String.format("%d", cusPoint));
+        		m_contents[19].setText(String.format("%d", cashBackPoint));
+        		
+        		
+        		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
+        		
+        	}
+        	else if ( m_qIndex == 1 )
+        	{
+        		int tSellPri = 0;
+				int tSellRePri = 0;
+				int dcPri = 0;
+				int fee = 0;
+				int cardFee = 0;
+				int rSale = 0;
+				       		
+            	Iterator<JSONObject> iterator = CommArray.iterator();
+        		while (iterator.hasNext()) {
+                	JSONObject json = iterator.next();
+                	
+                	try {
+                		
+                		tSellPri = tSellPri + json.getInt("TSell_Pri");
+        				tSellRePri =  tSellRePri + json.getInt("TSell_RePri");
+        				dcPri = dcPri + json.getInt("DC_Pri");
+        				fee = fee + json.getInt("Fee");
+        				cardFee = cardFee + json.getInt("Card_Fee");
+        				
+        			} catch (JSONException e) {
+        				// TODO Auto-generated catch block
+        				e.printStackTrace();
+        			}
+        		}
+        		
+        		rSale = tSellPri - (tSellRePri + dcPri);
+        		
+        		
+        		m_contents[0].setText(String.format("%d", tSellPri));
+        		m_contents[1].setText(String.format("%d", tSellRePri));
+        		m_contents[2].setText(String.format("%d", dcPri));
+        		m_contents[3].setText(String.format("%d", rSale));
+        		
+        		m_contents[16].setText(String.format("%d", fee));
+        		m_contents[17].setText(String.format("%d", cardFee));
+        		        		
+        	}
+        	else if ( m_qIndex == 2 )
+        	{
+        		int tSellPri = 0;
+								       		
+            	Iterator<JSONObject> iterator = CommArray.iterator();
+        		while (iterator.hasNext()) {
+                	JSONObject json = iterator.next();
+                	
+                	try {
+                		
+                		tSellPri = tSellPri + json.getInt("TSell_Pri");
+        				
+        			} catch (JSONException e) {
+        				// TODO Auto-generated catch block
+        				e.printStackTrace();
+        			}
+        		}
+
+        		m_contents[12].setText(String.format("%d", tSellPri));
+      		
+        	}
+        	else if ( m_qIndex == 3 )
+        	{
+        		int tSellPri = 0;
+        		int cashPri = 0;
+        		int cardPri = 0;
+								       		
+            	Iterator<JSONObject> iterator = CommArray.iterator();
+        		while (iterator.hasNext()) {
+                	JSONObject json = iterator.next();
+                	
+                	try {
+                		
+                		tSellPri = tSellPri + json.getInt("TSell_Pri");
+                		cashPri = cashPri + json.getInt("Cash_Pri");
+                		cardPri = cardPri + json.getInt("Card_Pri");
+        				
+        			} catch (JSONException e) {
+        				// TODO Auto-generated catch block
+        				e.printStackTrace();
+        			}
+        		}
+        		
+        		if ( m_isCashR == 0 && m_isTax == 1 )
+        		{
+        			m_contents[4].setText(String.format("%d", tSellPri));
+        			m_contents[7].setText(String.format("%d", cashPri));
+        			m_contents[10].setText(String.format("%d", cardPri));
+        		}
+        		else if ( m_isCashR == 0 && m_isTax == 0 )
+        		{
+        			m_contents[5].setText(String.format("%d", tSellPri));
+        			m_contents[8].setText(String.format("%d", cashPri));
+        			m_contents[11].setText(String.format("%d", cardPri));
+        		}
+        		else if ( m_isCashR == 1 && m_isTax == 1 )
+        		{
+        			m_contents[13].setText(String.format("%d", tSellPri));
+        		}
+        		else if ( m_isCashR == 1 && m_isTax == 0 )
+        		{
+        			m_contents[14].setText(String.format("%d", tSellPri));
+        		}      		
+        	}
+        		   		
         }
         
         private String setConstraint(String str, String field, String op, String value)
