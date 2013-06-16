@@ -27,7 +27,7 @@
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <TextView
-            android:id="@+id/editTextPeriod1"
+            android:id="@+id/textViewPeriod1"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -51,7 +51,7 @@
             />
 
         <TextView
-            android:id="@+id/editTextPeriod2"
+            android:id="@+id/textViewPeriod2"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1"
