@@ -4,7 +4,10 @@ package tipsystem.tips;
 import java.util.ArrayList;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
 import android.os.Bundle;
@@ -15,12 +18,16 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -34,6 +41,7 @@ public class MainActivity extends Activity {
 	public final static String EXTRA_MESSAGE = "unikys.todo.MESSAGE";
 
 	public ListView m_list;
+	int mSelectedPosition = 0;
 	AlertDialog m_alert;
 	public RadioGroup m_rgShop;
 	
@@ -50,10 +58,12 @@ public class MainActivity extends Activity {
         textView.setTypeface(typeface);
 
         m_rgShop = new RadioGroup(this);
+        
+        savePhoneNumber(MainActivity.this);
+        
         // test
         updateTestData();
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -77,8 +87,17 @@ public class MainActivity extends Activity {
 				
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-
+					
+					JSONArray shopsData = LocalStorage.getJSONArray(MainActivity.this, "shopsData");		
+					try {
+						JSONObject shop = shopsData.getJSONObject(mSelectedPosition);
+			    		LocalStorage.setJSONObject(MainActivity.this, "selectedShopData", shop);
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
 		        	Intent intent = new Intent(MainActivity.this, ConfigActivity.class);
+			    	intent.putExtra("selectedShopIndex", mSelectedPosition);
 		        	startActivity(intent);
 				}
 			})
@@ -96,16 +115,20 @@ public class MainActivity extends Activity {
 		ShopListAdapter listAdapter;
 			
 		shopList = new ArrayList<ShopSelectItem>();
+    	JSONArray shopsData = LocalStorage.getJSONArray(MainActivity.this, "shopsData");
 		
-		shopList.add(new ShopSelectItem("그린마트","192.168.123.100", true));
-		shopList.add(new ShopSelectItem("사러가마트","192.168.123.101", false));
-		shopList.add(new ShopSelectItem("고향마트","192.168.123.102", false));
-		shopList.add(new ShopSelectItem("갈현마트","192.168.123.103", false));
-		shopList.add(new ShopSelectItem("마트1","192.168.123.104", false));
-		shopList.add(new ShopSelectItem("2","192.168.123.104", false));
-		shopList.add(new ShopSelectItem("3","192.168.123.105", false));
-		shopList.add(new ShopSelectItem("4","192.168.123.106", false));
-		shopList.add(new ShopSelectItem("5","192.168.123.107", false));
+		for( int i=0; i < shopsData.length(); i++) {
+			try {
+				JSONObject shop = shopsData.getJSONObject(i);
+				String Office_Name = shop.getString("Office_Name");
+				String SHOP_IP = shop.getString("SHOP_IP");
+				//String SHOP_PORT = shop.getString("SHOP_PORT");
+				
+				shopList.add(new ShopSelectItem(Office_Name, SHOP_IP, false));
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
 		
 		listAdapter = new ShopListAdapter(this, R.layout.activity_select_shop_list, shopList);
 		
@@ -115,6 +138,31 @@ public class MainActivity extends Activity {
 		linearLayoutView.addView(m_list);
 		return linearLayoutView;
 	}
+	
+	private void savePhoneNumber(Context ctx)
+    {
+		//check phone number
+    	TelephonyManager phoneManager = (TelephonyManager) 
+    	getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
+    	String phoneNumber = phoneManager.getLine1Number();
+    	
+    	if (phoneNumber == null || phoneNumber.isEmpty()) {
+        	AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+            builder.setTitle("알림");
+            builder.setMessage("기기에 등록된 전화번호가 없습니다. 어플이용이 불가능합니다!");
+            builder.setNeutralButton("확인", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    finish();
+                }
+            });
+            builder.show();
+            return ;
+        }
+    	else {
+    		LocalStorage.setString(ctx, "phoneNumber", phoneNumber);
+    	}
+    }
 	
     // 인증관련 실행 함수 
     public void onAuthentication(View view) {
@@ -129,15 +177,18 @@ public class MainActivity extends Activity {
     	EditText textView = (EditText) findViewById(R.id.editTextShopCode);
     	String code = textView.getText().toString();
     	if (code.equals("")) return;
+    	
+    	String phoneNumber = LocalStorage.getString(MainActivity.this, "phoneNumber");
 
     	// 쿼리 작성하기
 	    String query =  "";
 	    //query = "select * from V_OFFICE_USER where Sto_CD =" + code + ";";
-	    query =  "select * " 
-	    		+ "from V_OFFICE_USER, APP_SETTLEMENT " 
-	    		+ "where Sto_CD = " + code
-	    		+ ";";
-	    
+	    query = "select * " 
+	    		+"  from APP_USER inner join V_OFFICE_USER " 
+	    		+ " on APP_USER.OFFICE_CODE = V_OFFICE_USER.Sto_CD " 
+	    		+ " JOIN APP_SETTLEMENT on APP_USER.OFFICE_CODE = APP_SETTLEMENT.OFFICE_CODE " 
+	    		+ " where APP_HP =" + phoneNumber + ";"; 
+
 	    // 콜백함수와 함께 실행
 	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
@@ -153,14 +204,16 @@ public class MainActivity extends Activity {
     // DB에 접속후 호출되는 함수
     public void didAuthentication(JSONArray results) {
     	if (results.length() > 0) {
-    		Toast.makeText(getApplicationContext(), "인증 완료", Toast.LENGTH_SHORT).show();        	
+    		Toast.makeText(getApplicationContext(), "인증 완료", Toast.LENGTH_SHORT).show();
+
+    		LocalStorage.setJSONArray(MainActivity.this, "shopsData", results);
         	showSelectShop();
     	}
     	else {
     		Toast.makeText(getApplicationContext(), "인증 실패", Toast.LENGTH_SHORT).show();
     	}
     }
-    
+
 	class ShopListAdapter extends BaseAdapter 
 	{
 		Context ctx;
@@ -199,10 +252,30 @@ public class MainActivity extends Activity {
 				holder.txtIP = (TextView) convertView.findViewById(R.id.textViewShopIP);
 				holder.buttonConfig = (Button) convertView.findViewById(R.id.buttonShopConfig);
 				holder.txtShopName = (TextView) convertView.findViewById(R.id.textViewShopName);
-				holder.buttonConfig.setOnClickListener(holder);
-				holder.radioShop.setOnClickListener(holder);
+				holder.buttonConfig.setTag(position);
+				holder.buttonConfig.setOnClickListener(new OnClickListener() {
+
+					@Override
+					public void onClick(View v) {
+						int idx = (Integer) v.getTag();
+						Intent intent = new Intent(MainActivity.this, ConfigDetailActivity.class);
+				    	intent.putExtra("selectedShopIndex", idx);
+				    	startActivity(intent);
+					}
+				});
+
+				holder.radioShop.setTag(position);
+				holder.radioShop.setOnClickListener(new OnClickListener() {
+
+					@Override
+					public void onClick(View v) {
+						mSelectedPosition = (Integer) v.getTag();
+			            notifyDataSetChanged();
+					}
+				});
 				
 				holder.m_position = position;
+				
 				convertView.setTag(holder);
 			}
 			else {
@@ -211,21 +284,17 @@ public class MainActivity extends Activity {
 			
 			String name = object.get(position).getName();
 			String strIP = object.get(position).getIP();
-			boolean isSelect = object.get(position).getIsSelect();
 			
 			holder.object = object.get(position);
-			
 			holder.txtShopName.setText(name);
-			holder.radioShop.setChecked(isSelect);
+			holder.radioShop.setChecked(position == mSelectedPosition);
 			holder.txtIP.setText(strIP);
-			
-			//((ConfigActivity) ctx).m_rgShop.addView(holder.radioShop);
 			
 			return convertView;
 		}
 	}
 	
-	static class ViewHolder extends Activity implements View.OnClickListener 
+	static class ViewHolder extends Activity 
 	{
 		public Context ctx;
 		public RadioButton radioShop;
@@ -237,27 +306,6 @@ public class MainActivity extends Activity {
 		
 		public ViewHolder(Context ctx) {
 			this.ctx = ctx;
-		}
-		
-		@Override
-		public void onClick(View v) 
-		{
-			if ( v.equals(radioShop) == true ) {
-				Toast.makeText(ctx, "라디오클릭", Toast.LENGTH_SHORT).show();
-				
-				((RadioButton)v).setChecked(true);
-				//((ConfigActivity) ctx).m_rgShop.check(radioShop.getId());
-			}
-			else {
-				Toast.makeText(ctx, "버튼클릭" + m_position, Toast.LENGTH_SHORT).show();
-				
-				Intent intent = new Intent(this, ConfigDetailActivity.class);
-		    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
-		    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-		    	//String message = editText.getText().toString();
-		    	//intent.putExtra(EXTRA_MESSAGE, message);
-		    	startActivity(intent);
-			}
-		}
+		}		
 	};
 }

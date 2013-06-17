@@ -1,6 +1,8 @@
 package tipsystem.tips;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
@@ -8,6 +10,7 @@ import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,8 +34,6 @@ public class ConfigActivity extends Activity {
 		setContentView(R.layout.activity_config);
 		// Show the Up button in the action bar.
 		setupActionBar();
-		
-		//Intent intent = getIntent();
 		
         Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
         TextView textView = (TextView) findViewById(R.id.textViewID);
@@ -87,26 +88,48 @@ public class ConfigActivity extends Activity {
 
 	public void onClickLogin(View view)
 	{
-		Toast.makeText(this, "Login", Toast.LENGTH_SHORT).show();
+		EditText editTextLoginID = (EditText) findViewById(R.id.editTextLoginID);
+		EditText editTextLoginPW = (EditText) findViewById(R.id.editTextLoginPW);
+		
+		String id = editTextLoginID.getText().toString();
+		String pw = editTextLoginPW.getText().toString();
+		
+		editTextLoginID.setText("");		
+		editTextLoginPW.setText("");
+		
+		String ip="", port ="";  //"122.49.118.102:18971"
+		JSONArray shopsData = LocalStorage.getJSONArray(ConfigActivity.this, "shopsData");			
+		try {
+			int idx = getIntent().getIntExtra("selectedShopIndex", 0);
+			
+			JSONObject shop = shopsData.getJSONObject(idx);
+			ip = shop.getString("SHOP_IP");
+			port = shop.getString("SHOP_PORT");
+			Log.i("ConfigDetailActivity", shop.toString());
+		} catch (JSONException e) {
+			e.printStackTrace();
+			finish();
+		}
+
+		Toast.makeText(this, "Login:" +id + ":"+ pw + ":" +ip, Toast.LENGTH_SHORT).show();
 		
 		Intent intent = new Intent(this, MainMenuActivity.class);
     	startActivity(intent);
 	}
 	
-	// 인증관련 실행 함수 
-    public void onAuthentication(View view) {
+	// 로그인관련 실행 함수 
+    public void doLogin(String ip, String port, String id, String pw) {
 
+    	if (id.equals("") || pw.equals("") ) return;
+    	
     	// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
  		dialog.setCancelable(false);
  		dialog.show();
  		
- 		// 입력된 코드 가져오기
-    	String id = (String)((EditText) findViewById(R.id.editTextShopCode)).getText().toString();
-    	String pw = (String)((EditText) findViewById(R.id.editTextLoginPW)).getText().toString();
-    	if (id.equals("") || pw.equals("") ) return;
-
+    	String ipport = ip + ":" + port; 
+    	
     	// 쿼리 작성하기
 	    String query =  "";
 	    query =  "select * " 
@@ -122,7 +145,7 @@ public class ConfigActivity extends Activity {
 				dialog.cancel();
 				didLogin(results);
 			}
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+	    }).execute(ipport, "TIPS", "sa", "tips", query);
     }
 
     // DB에 접속후 호출되는 함수
@@ -131,10 +154,10 @@ public class ConfigActivity extends Activity {
     		// 저장소에 저장
     		LocalStorage.setJSONArray(this, "loginResult", results);
     		
-    		Toast.makeText(getApplicationContext(), "인증 완료", Toast.LENGTH_SHORT).show(); 
+    		Toast.makeText(getApplicationContext(), "로그인 완료", Toast.LENGTH_SHORT).show(); 
     	}
     	else {
-    		Toast.makeText(getApplicationContext(), "인증 실패", Toast.LENGTH_SHORT).show();
+    		Toast.makeText(getApplicationContext(), "로그인 실패", Toast.LENGTH_SHORT).show();
     	}
     }
 }

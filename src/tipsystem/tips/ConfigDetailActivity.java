@@ -1,15 +1,28 @@
 package tipsystem.tips;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import tipsystem.utils.LocalStorage;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Build;
 
@@ -22,33 +35,58 @@ public class ConfigDetailActivity extends Activity {
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
+		JSONArray shopsData = LocalStorage.getJSONArray(ConfigDetailActivity.this, "shopsData");
+		String Office_Name= null, SHOP_IP = null, SHOP_PORT= null, APP_HP= null;				
+		try {
+			int idx = getIntent().getIntExtra("selectedShopIndex", 0);
+			
+			JSONObject shop = shopsData.getJSONObject(idx);
+			Office_Name = shop.getString("Office_Name");
+			SHOP_IP = shop.getString("SHOP_IP");
+			SHOP_PORT = shop.getString("SHOP_PORT");
+			APP_HP = shop.getString("APP_HP");
+			Log.i("ConfigDetailActivity", shop.toString());
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
 		Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
-        TextView textView = (TextView) findViewById(R.id.textViewShopIP);
+        TextView textView = (TextView) findViewById(R.id.textViewShopTitle);
         textView.setTypeface(typeface);
+        textView.setText(Office_Name + " 환경설정");
         
-        textView = (TextView) findViewById(R.id.textView3);
+        textView = (TextView) findViewById(R.id.textViewPhoneNumber);
         textView.setTypeface(typeface);
+        textView.setText(APP_HP);
+
+        EditText editText = (EditText) findViewById(R.id.editTextShopIP);
+        editText.setText(SHOP_IP);
+
+        editText = (EditText) findViewById(R.id.editTextShopPort);
+        editText.setText(SHOP_PORT);
         
-        textView = (TextView) findViewById(R.id.textView8);
-        textView.setTypeface(typeface);
+        editText = (EditText) findViewById(R.id.editTextPosID);
+        editText = (EditText) findViewById(R.id.editTextID);
+        editText = (EditText) findViewById(R.id.editTextPW);
         
-        textView = (TextView) findViewById(R.id.textView4);
-        textView.setTypeface(typeface);
+
+        Button cancelButton = (Button) findViewById(R.id.buttonCancel);
+        cancelButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				finish();
+			}
+		});
+        Button saveButton = (Button) findViewById(R.id.buttonSave);
+        saveButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				save();
+			}
+		});
         
-        textView = (TextView) findViewById(R.id.textView5);
-        textView.setTypeface(typeface);
-        
-        textView = (TextView) findViewById(R.id.textViewShopTitle);
-        textView.setTypeface(typeface);
-        
-        textView = (TextView) findViewById(R.id.textView6);
-        textView.setTypeface(typeface);
-        
-        textView = (TextView) findViewById(R.id.textView7);
-        textView.setTypeface(typeface);
-        
-        textView = (TextView) findViewById(R.id.textView1);
-        textView.setTypeface(typeface);
 	}
 
 	/**
@@ -95,4 +133,26 @@ public class ConfigDetailActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 
+	// private methos
+	
+	private void save() {
+
+		EditText editTextPosID = (EditText) findViewById(R.id.editTextPosID);
+		EditText editTextID = (EditText) findViewById(R.id.editTextID);
+		EditText editTextPW = (EditText) findViewById(R.id.editTextPW);
+		CheckBox checkBoxAutoLogin = (CheckBox) findViewById(R.id.checkBoxAutoLogin);
+		boolean isChecked = checkBoxAutoLogin.isChecked();
+		// action
+		
+		AlertDialog.Builder builder = new AlertDialog.Builder(ConfigDetailActivity.this);
+        builder.setTitle("알림");
+        builder.setMessage("저장이 완료되었습니다.");
+        builder.setNeutralButton("확인", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+            }
+        });
+        builder.show();
+	}
 }

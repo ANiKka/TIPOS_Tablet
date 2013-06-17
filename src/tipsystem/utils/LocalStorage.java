@@ -2,6 +2,7 @@ package tipsystem.utils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -65,4 +66,27 @@ public class LocalStorage {
 		}
      	return null;
 	 }
+	 
+	 public static void setJSONObject(Context ctx, String key, JSONObject data) {
+
+	     	SharedPreferences prefs = ctx.getSharedPreferences("appData", Context.MODE_PRIVATE);
+			SharedPreferences.Editor editor = prefs.edit();	
+		    editor.putString(key, data.toString());
+		    editor.commit();
+	     	Log.e("LocalStorage", "setJSONArray() saved: " + key);
+		 }
+		 
+		 public static JSONObject getJSONObject(Context ctx, String key) {
+
+	     	SharedPreferences prefs = ctx.getSharedPreferences("appData", Context.MODE_PRIVATE);
+	     	String data = prefs.getString(key, "{}");
+
+			try {
+				JSONObject json = new JSONObject(data);
+		     	return json;
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+	     	return null;
+		 }
 }

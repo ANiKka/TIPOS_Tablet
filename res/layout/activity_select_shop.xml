@@ -20,6 +20,7 @@
         android:id="@+id/listShops"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:choiceMode="singleChoice"
         android:layout_below="@id/textViewShopTitle" >
         
     </ListView>

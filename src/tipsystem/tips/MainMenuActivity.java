@@ -4,16 +4,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import tipsystem.utils.LocalStorage;
+import tipsystem.utils.MSSQL;
+
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.AdapterView.OnItemClickListener;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
 import android.content.Intent;
@@ -22,7 +33,12 @@ import android.os.Build;
 
 public class MainMenuActivity extends Activity {
 
+	// loading bar
+	private ProgressDialog dialog; 
+	
 	ListView m_listBoard;
+	JSONArray m_results;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -30,35 +46,33 @@ public class MainMenuActivity extends Activity {
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
-		
-		m_listBoard= (ListView)findViewById(R.id.listViewBoard);
-		
-		 // create the grid item mapping
-		String[] from = new String[] {"content"};
-		int[] to = new int[] { R.id.itemContent};
-		
-		// prepare the list of all records
-		List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		for(int i = 0; i < 10; i++){
-		    HashMap<String, String> map = new HashMap<String, String>();
-		    map.put("content", "content" + i);
-		    fillMaps.add(map);
+        JSONObject shop = LocalStorage.getJSONObject(MainMenuActivity.this, "selectedShopData");        
+        try {
+			fetchNotices(shop.getString("OFFICE_CODE"));
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
 				
-		// fill in the grid_item layout
-		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_board, 
-				from, to);
-		
-		m_listBoard.setAdapter(adapter);
-		
-		
 		Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
         TextView textView = (TextView) findViewById(R.id.textViewShopTitle);
         textView.setTypeface(typeface);
         
-    
-        
-        
+        m_listBoard= (ListView)findViewById(R.id.listViewBoard);
+        m_listBoard.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            	
+				try {
+	            	Intent intent = new Intent(MainMenuActivity.this, InputQuestionActivity.class);
+	            	intent.putExtra("MODE", "UPDATE");
+	            	intent.putExtra("NOTICE", m_results.getJSONObject(position).toString());
+	            	startActivity(intent);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+            	
+            }
+        });
 	}
 
 	/**
@@ -107,10 +121,7 @@ public class MainMenuActivity extends Activity {
 	public void onClickQuestion(View view)
 	{
 		Intent intent = new Intent(this, InputQuestionActivity.class);
-    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
-    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-    	//String message = editText.getText().toString();
-    	//intent.putExtra(EXTRA_MESSAGE, message);
+		intent.putExtra("MODE", "NEW");
     	startActivity(intent);
 	}
 	
@@ -174,4 +185,60 @@ public class MainMenuActivity extends Activity {
     	startActivity(intent);
 	}
 	
+	// 로그인관련 실행 함수 
+    public void fetchNotices(String code) {
+
+    	// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+    	// 쿼리 작성하기
+	    String query =  "";
+	    query = "SELECT * FROM MULT_BBS WHERE (B_GUBUN  = '0') OR (B_GUBUN = '3' AND OFFICE_CODE="+code+")  ORDER BY B_REGROUP;"; 
+	    
+	    // 콜백함수와 함께 실행
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				didFetchNotices(results);
+			}
+	    }).execute("122.49.118.102:18971", "trans", "app_tips", "app_tips", query);
+    }
+
+    // DB에 접속후 호출되는 함수
+    public void didFetchNotices(JSONArray results) {
+    	if (results.length() > 0) {
+    		
+    		m_results = results;
+    		m_listBoard= (ListView)findViewById(R.id.listViewBoard);
+    		
+    		 // create the grid item mapping
+    		String[] from = new String[] {"content"};
+    		int[] to = new int[] { R.id.itemContent};
+    		
+    		// prepare the list of all records
+    		List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+    		for(int i = 0; i < results.length(); i++){
+    			try {
+					JSONObject notice = results.getJSONObject(i);
+
+	    		    HashMap<String, String> map = new HashMap<String, String>();
+	    		    map.put("content", notice.getString("B_Title"));
+	    		    fillMaps.add(map);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}    			
+    		}
+    				
+    		// fill in the grid_item layout
+    		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_board, from, to);
+    		
+    		m_listBoard.setAdapter(adapter);
+    	}
+    }
 }
