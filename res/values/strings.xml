@@ -103,8 +103,7 @@
     </string-array>
     <string-array name="event_type">
         <item>기간행사</item>
-        <item>XX행사</item>
-        <item>YY행사</item>
+        <item>시간행사</item>
     </string-array>
 
     <string name="choose_event_type">행사구분 선택</string>

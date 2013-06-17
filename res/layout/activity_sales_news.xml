@@ -425,14 +425,36 @@
                     android:orientation="vertical"
                      >
 				    
-				    <Spinner
-			            android:id="@+id/spinnerClassificationType"
-			            android:layout_width="wrap_content"
-			            android:layout_height="wrap_content"
-			            android:entries="@array/classification_type"
-			            android:prompt="@string/choose_classification_type"
-			            android:textSize="14sp" />
-				    				    
+	                <LinearLayout
+	                    android:id="@+id/linearSpinner"
+	                    android:layout_width="match_parent"
+	                    android:layout_height="wrap_content"
+	                    android:orientation="horizontal"
+	                     >
+					    
+					    <Spinner
+				            android:id="@+id/spinnerClassificationType1"
+				            android:layout_width="wrap_content"
+				            android:layout_height="wrap_content"
+				            android:prompt="@string/choose_classification_type"
+				            android:textSize="14sp" />
+					    
+					    <Spinner
+				            android:id="@+id/spinnerClassificationType2"
+				            android:layout_width="wrap_content"
+				            android:layout_height="wrap_content"
+				            android:prompt="@string/choose_classification_type"
+				            android:textSize="14sp" />
+					    
+					    <Spinner
+				            android:id="@+id/spinnerClassificationType3"
+				            android:layout_width="wrap_content"
+				            android:layout_height="wrap_content"
+				            android:prompt="@string/choose_classification_type"
+				            android:textSize="14sp" />
+				    
+				    </LinearLayout>
+				    		    
                     <LinearLayout android:id="@+id/header3"
 				        android:layout_height="wrap_content"
 				        android:layout_width="fill_parent"
@@ -491,7 +513,7 @@
 				            android:textSize="14sp"
 				            android:gravity="center"
 				            android:background="@drawable/gray_bar_bg"
-				            android:text="점유율"
+				            android:text="이익금"
 				        />
 				        
 					</LinearLayout>
@@ -505,6 +527,7 @@
 				    <LinearLayout android:id="@+id/layout3"
 				        android:layout_width="match_parent"
 				        android:layout_height="fill_parent"
+				        android:layout_below="@+id/header3"
 				        >
 				        <ListView android:id="@+id/listviewSalesNewsListTab3"
 				            android:layout_height="fill_parent"
