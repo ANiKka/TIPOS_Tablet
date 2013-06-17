@@ -167,17 +167,16 @@ public class MainActivity extends Activity {
     // 인증관련 실행 함수 
     public void onAuthentication(View view) {
 
-    	// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
- 		
  		// 입력된 코드 가져오기
     	EditText textView = (EditText) findViewById(R.id.editTextShopCode);
     	String code = textView.getText().toString();
     	if (code.equals("")) return;
     	
+    	// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.show();
+ 		
     	String phoneNumber = LocalStorage.getString(MainActivity.this, "phoneNumber");
 
     	// 쿼리 작성하기
@@ -203,6 +202,11 @@ public class MainActivity extends Activity {
     
     // DB에 접속후 호출되는 함수
     public void didAuthentication(JSONArray results) {
+    	Toast.makeText(getApplicationContext(), "인증 완료", Toast.LENGTH_SHORT).show();
+
+		LocalStorage.setJSONArray(MainActivity.this, "shopsData", results);
+    	showSelectShop();
+    	/*
     	if (results.length() > 0) {
     		Toast.makeText(getApplicationContext(), "인증 완료", Toast.LENGTH_SHORT).show();
 
@@ -211,7 +215,7 @@ public class MainActivity extends Activity {
     	}
     	else {
     		Toast.makeText(getApplicationContext(), "인증 실패", Toast.LENGTH_SHORT).show();
-    	}
+    	}*/
     }
 
 	class ShopListAdapter extends BaseAdapter 
