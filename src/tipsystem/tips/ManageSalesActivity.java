@@ -341,8 +341,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		
 		new MyAsyncTask ().execute(tabIndex, period1, period2, barCode, productName, customerCode, customerName);
 		
-		
-		
 	}
 
 	public void onClickSetDate1(View v) {

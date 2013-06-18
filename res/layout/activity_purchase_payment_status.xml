@@ -26,15 +26,15 @@
             android:text="기간"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
-        <EditText
-            android:id="@+id/editTextPeriod1"
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="#000000"
-            android:background="@drawable/white_text_box_small"
-            android:textSize="14sp"
-            android:inputType="date" />
+        <Button
+             android:id="@+id/buttonSetDate1"
+             style="?android:attr/buttonStyleSmall"
+             android:layout_width="0dip"
+             android:layout_height="wrap_content"
+             android:layout_weight="1"
+             android:textSize="14sp"
+             android:text="2013-05-19"
+             android:onClick="onClickSetDate1" />
 
         <requestFocus />
 
@@ -49,16 +49,16 @@
             android:text="~"
             android:textAppearance="?android:attr/textAppearanceSmall"
             />
-
-        <EditText
-            android:id="@+id/editTextPeriod2"
+        
+        <Button
+            android:id="@+id/buttonSetDate2"
+            style="?android:attr/buttonStyleSmall"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="#000000"
-            android:background="@drawable/white_text_box_small"
             android:textSize="14sp"
-            android:inputType="date" />
+            android:text="2013-05-19"
+            android:onClick="onClickSetDate2" />
     </LinearLayout>
 
     <LinearLayout
@@ -122,7 +122,7 @@
             android:textSize="14sp"  />
 
         <EditText
-            android:id="@+id/editTextBarcord"
+            android:id="@+id/editTextBarcode"
             android:layout_width="0dip"
              android:layout_height="wrap_content"
              android:layout_weight="1"
@@ -143,7 +143,7 @@
             android:textSize="14sp" />
 
         <EditText
-            android:id="@+id/editTextProductionName"
+            android:id="@+id/editTextProductName"
             android:layout_width="0dip"
 	        android:layout_height="wrap_content"
 	        android:layout_weight="1"
@@ -153,13 +153,35 @@
 	        android:textSize="14sp" />
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/linearLayout4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/linearLayout3"
+        android:orientation="horizontal"
+        android:gravity="center" >
+
+        <Button
+	    	android:id="@+id/buttonPriceSearch"
+	        style="?android:attr/buttonStyleSmall"
+	        android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:gravity="center"
+            android:scaleY="0.8"
+	        android:background="@drawable/basic_inquiry_btn"
+	        android:onClick="OnClickSearch"/>
+			
+    </LinearLayout>
+    
     <!--  android:id="@+id/tabhostPurchasePaymentStatus"  -->
     <TabHost
         android:id="@+id/tabhostPurchasePaymentStatus"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentLeft="true"
-        android:layout_below="@+id/linearLayout3"
+        android:layout_below="@+id/linearLayout4"
         android:layout_marginTop="10dp" >
 
         <LinearLayout
