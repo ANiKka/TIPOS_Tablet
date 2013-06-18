@@ -5,51 +5,121 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import tipsystem.utils.LocalStorage;
-import tipsystem.utils.MSSQL;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
-import android.app.ProgressDialog;
+import android.app.AlertDialog;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Build;
 
 public class ConfigActivity extends Activity {
 
-	// loading bar
-	private ProgressDialog dialog; 
+	JSONObject m_shop;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_config);
+		setContentView(R.layout.activity_config_detail);
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
-        Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
-        TextView textView = (TextView) findViewById(R.id.textViewID);
+		m_shop = LocalStorage.getJSONObject(ConfigActivity.this, "currentShopData");
+
+		String Office_Name= null, OFFICE_CODE =null, SHOP_IP = null, SHOP_PORT= null, APP_HP= null;				
+		try {
+			Office_Name = m_shop.getString("Office_Name");
+			OFFICE_CODE = m_shop.getString("OFFICE_CODE");
+			SHOP_IP = m_shop.getString("SHOP_IP");
+			SHOP_PORT = m_shop.getString("SHOP_PORT");
+			APP_HP = m_shop.getString("APP_HP");
+			Log.i("ConfigDetailActivity", m_shop.toString());
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
+		
+		boolean isAutoLogin = LocalStorage.getBoolean(ConfigActivity.this, "AutoLogin:"+OFFICE_CODE);		
+		String id = LocalStorage.getString(ConfigActivity.this, "LoginID:"+OFFICE_CODE);
+		String pw = LocalStorage.getString(ConfigActivity.this, "LoginPW:"+OFFICE_CODE);
+		String posID = LocalStorage.getString(ConfigActivity.this, "currentPosID:"+OFFICE_CODE);
+
+		// 해당 OFFICE_CODE 에 포스ID 가 없을경우 'P' 로 셋팅
+		if (posID.equals("")) {
+			posID = "P";
+			LocalStorage.setString(ConfigActivity.this, "currentPosID:"+OFFICE_CODE, "P");
+		}
+		
+		Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
+        TextView textView = (TextView) findViewById(R.id.textViewShopTitle);
         textView.setTypeface(typeface);
+        textView.setText(Office_Name + " 환경설정");
         
-        textView = (TextView) findViewById(R.id.textViewPW);
+        textView = (TextView) findViewById(R.id.textViewPhoneNumber);
         textView.setTypeface(typeface);
+        textView.setText(APP_HP);
+
+        EditText editText = (EditText) findViewById(R.id.editTextShopIP);
+        editText.setText(SHOP_IP);
+
+        editText = (EditText) findViewById(R.id.editTextShopPort);
+        editText.setText(SHOP_PORT);
+        
+        Spinner spinnerPosID = (Spinner) findViewById(R.id.spinnerPosID);
+        
+        if (!posID.equals("")) {
+        	char c = posID.charAt(0);
+        	spinnerPosID.setSelection(c - 'A');
+        }
+        
+        EditText editTextID = (EditText) findViewById(R.id.editTextID);
+        EditText editTextPW = (EditText) findViewById(R.id.editTextPW);
+        editTextID.setText(id);
+        editTextPW.setText(pw);
+
+		CheckBox checkBoxAutoLogin = (CheckBox) findViewById(R.id.checkBoxAutoLogin);
+		checkBoxAutoLogin.setChecked(isAutoLogin);
+			
+        Button cancelButton = (Button) findViewById(R.id.buttonCancel);
+        cancelButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				finish();
+			}
+		});
+        Button saveButton = (Button) findViewById(R.id.buttonSave);
+        saveButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				save();
+			}
+		});
+        
 	}
 
 	/**
 	 * Set up the {@link android.app.ActionBar}, if the API is available.
 	 */
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	public void setupActionBar() {
+	private void setupActionBar() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-
+			
 			ActionBar actionbar = getActionBar();         
 			LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
 			actionbar.setCustomView(custom_action_bar);
@@ -59,13 +129,14 @@ public class ConfigActivity extends Activity {
 			actionbar.setDisplayShowCustomEnabled(true);
 			
 			getActionBar().setDisplayHomeAsUpEnabled(true);
+			
 		}
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.config, menu);
+		getMenuInflater().inflate(R.menu.config_detail, menu);
 		return true;
 	}
 
@@ -86,78 +157,36 @@ public class ConfigActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 
-	public void onClickLogin(View view)
-	{
-		EditText editTextLoginID = (EditText) findViewById(R.id.editTextLoginID);
-		EditText editTextLoginPW = (EditText) findViewById(R.id.editTextLoginPW);
+	// private methos
+	
+	private void save() {
+
+		String posID = ((Spinner) findViewById(R.id.spinnerPosID)).getSelectedItem().toString();
+		String id = ((EditText) findViewById(R.id.editTextID)).getText().toString();
+		String pw = ((EditText) findViewById(R.id.editTextPW)).getText().toString();
+		CheckBox checkBoxAutoLogin = (CheckBox) findViewById(R.id.checkBoxAutoLogin);
+		boolean isChecked = checkBoxAutoLogin.isChecked();
 		
-		String id = editTextLoginID.getText().toString();
-		String pw = editTextLoginPW.getText().toString();
-		
-		editTextLoginID.setText("");		
-		editTextLoginPW.setText("");
-		
-		String ip="", port ="";  //"122.49.118.102:18971"
-		JSONArray shopsData = LocalStorage.getJSONArray(ConfigActivity.this, "shopsData");			
 		try {
-			int idx = getIntent().getIntExtra("selectedShopIndex", 0);
+			String OFFICE_CODE = m_shop.getString("OFFICE_CODE");
+			LocalStorage.setBoolean(ConfigActivity.this, "AutoLogin:"+OFFICE_CODE, isChecked);
+			LocalStorage.setString(ConfigActivity.this, "LoginID:"+OFFICE_CODE, id);
+			LocalStorage.setString(ConfigActivity.this, "LoginPW:"+OFFICE_CODE, pw);
+			LocalStorage.setString(ConfigActivity.this, "currentPosID:"+OFFICE_CODE, posID);
 			
-			JSONObject shop = shopsData.getJSONObject(idx);
-			ip = shop.getString("SHOP_IP");
-			port = shop.getString("SHOP_PORT");
-			Log.i("ConfigDetailActivity", shop.toString());
 		} catch (JSONException e) {
 			e.printStackTrace();
-			finish();
 		}
-
-		Toast.makeText(this, "Login:" +id + ":"+ pw + ":" +ip, Toast.LENGTH_SHORT).show();
 		
-		Intent intent = new Intent(this, MainMenuActivity.class);
-    	startActivity(intent);
+		AlertDialog.Builder builder = new AlertDialog.Builder(ConfigActivity.this);
+        builder.setTitle("알림");
+        builder.setMessage("저장이 완료되었습니다.");
+        builder.setNeutralButton("확인", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+            }
+        });
+        builder.show();
 	}
-	
-	// 로그인관련 실행 함수 
-    public void doLogin(String ip, String port, String id, String pw) {
-
-    	if (id.equals("") || pw.equals("") ) return;
-    	
-    	// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
- 		
-    	String ipport = ip + ":" + port; 
-    	
-    	// 쿼리 작성하기
-	    String query =  "";
-	    query =  "select * " 
-	    		+ "from APP_USER " 
-	    		+ ";";
-	    
-	    // 콜백함수와 함께 실행
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-			@Override
-			public void onRequestCompleted(JSONArray results) {
-				dialog.dismiss();
-				dialog.cancel();
-				didLogin(results);
-			}
-	    }).execute(ipport, "TIPS", "sa", "tips", query);
-    }
-
-    // DB에 접속후 호출되는 함수
-    public void didLogin(JSONArray results) {
-    	if (results.length() > 0) {
-    		// 저장소에 저장
-    		LocalStorage.setJSONArray(this, "loginResult", results);
-    		
-    		Toast.makeText(getApplicationContext(), "로그인 완료", Toast.LENGTH_SHORT).show(); 
-    	}
-    	else {
-    		Toast.makeText(getApplicationContext(), "로그인 실패", Toast.LENGTH_SHORT).show();
-    	}
-    }
 }

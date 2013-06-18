@@ -46,7 +46,7 @@ public class MainMenuActivity extends Activity {
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
-        JSONObject shop = LocalStorage.getJSONObject(MainMenuActivity.this, "selectedShopData");        
+        JSONObject shop = LocalStorage.getJSONObject(MainMenuActivity.this, "currentShopData");        
         try {
 			fetchNotices(shop.getString("OFFICE_CODE"));
 		} catch (JSONException e) {

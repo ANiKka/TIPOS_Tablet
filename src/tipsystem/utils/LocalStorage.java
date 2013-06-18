@@ -10,7 +10,24 @@ import android.util.Log;
 
 public class LocalStorage {
 	
-	public static void setInt(Context ctx, String key, int data) {
+	 public static void setBoolean(Context ctx, String key, boolean data) {
+
+     	SharedPreferences prefs = ctx.getSharedPreferences("appData", Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = prefs.edit();	
+	    editor.putBoolean(key, data);
+	    editor.commit();
+     	Log.e("LocalStorage", "setInt() saved: " + key);
+	 }
+	 
+	  public static boolean getBoolean(Context ctx, String key) {
+
+     	SharedPreferences prefs = ctx.getSharedPreferences("appData", Context.MODE_PRIVATE);
+     	Boolean data = prefs.getBoolean(key, false);
+
+     	return data;
+	 } 
+	  
+	 public static void setInt(Context ctx, String key, int data) {
 
      	SharedPreferences prefs = ctx.getSharedPreferences("appData", Context.MODE_PRIVATE);
 		SharedPreferences.Editor editor = prefs.edit();	

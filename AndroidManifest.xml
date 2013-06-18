@@ -27,7 +27,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="tipsystem.tips.ConfigActivity"
+            android:name="tipsystem.tips.LoginActivity"
             android:icon="@drawable/back_btn"
             android:parentActivityName="tipsystem.tips.MainActivity" >
             <meta-data
@@ -35,9 +35,9 @@
                 android:value="tipsystem.tips.MainActivity" />
         </activity>
         <activity
-            android:name="tipsystem.tips.ConfigDetailActivity"
+            android:name="tipsystem.tips.ConfigActivity"
             android:label="@string/title_activity_config_detail"
-            android:parentActivityName="tipsystem.tips.ConfigActivity" >
+            android:parentActivityName="tipsystem.tips.LoginActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="tipsystem.tips.ConfigActivity" />
@@ -59,7 +59,7 @@
         </activity>
         <activity
             android:name="tipsystem.tips.SelectShopActivity"
-            android:parentActivityName="tipsystem.tips.ConfigActivity"
+            android:parentActivityName="tipsystem.tips.LoginActivity"
             android:theme="@android:style/Theme.Holo.Light" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

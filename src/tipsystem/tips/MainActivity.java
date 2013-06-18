@@ -91,12 +91,12 @@ public class MainActivity extends Activity {
 					JSONArray shopsData = LocalStorage.getJSONArray(MainActivity.this, "shopsData");		
 					try {
 						JSONObject shop = shopsData.getJSONObject(mSelectedPosition);
-			    		LocalStorage.setJSONObject(MainActivity.this, "selectedShopData", shop);
+			    		LocalStorage.setJSONObject(MainActivity.this, "currentShopData", shop);
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}
 					
-		        	Intent intent = new Intent(MainActivity.this, ConfigActivity.class);
+		        	Intent intent = new Intent(MainActivity.this, LoginActivity.class);
 			    	intent.putExtra("selectedShopIndex", mSelectedPosition);
 		        	startActivity(intent);
 				}
@@ -262,9 +262,18 @@ public class MainActivity extends Activity {
 					@Override
 					public void onClick(View v) {
 						int idx = (Integer) v.getTag();
-						Intent intent = new Intent(MainActivity.this, ConfigDetailActivity.class);
-				    	intent.putExtra("selectedShopIndex", idx);
-				    	startActivity(intent);
+
+						JSONArray shopsData = LocalStorage.getJSONArray(MainActivity.this, "shopsData");	
+						
+						try {
+							JSONObject shop = shopsData.getJSONObject(idx);
+				    		LocalStorage.setJSONObject(MainActivity.this, "currentShopData", shop);
+							Intent intent = new Intent(MainActivity.this, ConfigActivity.class);
+					    	startActivity(intent);
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+			    		
 					}
 				});
 
