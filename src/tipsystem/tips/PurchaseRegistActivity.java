@@ -48,7 +48,8 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	TextView m_salePrice;
 	TextView m_amount;
 	TextView m_profitRatio;
-	
+	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
+	/*
 	private OnClickListener m_click_save_listener = new OnClickListener() {
         public void onClick(View v) { 
         	
@@ -74,7 +75,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
             new MyAsyncTask ().execute("1", code, name, purchaseDate, immediatePayment, barcode, productName, purchasePrice
             		, salePrice, amount, profitRatio);
         }
-	};
+	};*/
 	
 	
 	@Override
@@ -97,11 +98,15 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		m_amount = (TextView)findViewById(R.id.editTextAmount);
 		m_profitRatio = (TextView)findViewById(R.id.editTextProfitRatio);
 		
+		// 전송대기목록 뷰에 값 전달
 		Button saveButton = (Button)findViewById(R.id.buttonSave);
+		saveButton.setOnClickListener(new OnClickListener() {
+	        public void onClick(View v) { 
+	        	doSendListView();
+	        }
+		});
 		
-		saveButton.setOnClickListener(m_click_save_listener);
-		
-		
+		//saveButton.setOnClickListener(m_click_save_listener);
 		 // create the grid item mapping
 //      String[] from = new String[] {"코드", "거래처","총매입가", "수량"};
 //      int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
@@ -123,7 +128,8 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 //      		from, to);
 //      
 //      m_listReadyToSend.setAdapter(m_adapter);
-      m_listReadyToSend.setOnItemClickListener(this);
+     
+		m_listReadyToSend.setOnItemClickListener(this);
       
       Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
       TextView textView = (TextView) findViewById(R.id.textView2);
@@ -228,6 +234,82 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		
 	}
 
+	// 저장 버튼
+	public void doSendListView(){
+		
+	    String purchaseDate = m_purchaseDate.getText().toString();
+		String immediatePayment = "" + m_immediatePayment.isChecked();
+		String barcode = m_barcode.getText().toString();
+		String productName = m_productName.getText().toString();
+		String code = m_customerCode.getText().toString();
+	    String name = m_customerName.getText().toString();
+		String purchasePrice = m_purchasePrice.getText().toString();
+		String salePrice = m_salePrice.getText().toString();
+		String amount = m_amount.getText().toString();
+		String profitRatio = m_profitRatio.getText().toString();
+		
+		// 비어 있는 값 확인
+	    if(code.equals("") || name.equals("") || purchaseDate.equals("") || barcode.equals("") ||
+	    productName.equals("") || purchasePrice.equals("") || salePrice.equals("") || amount.equals("")
+	    || profitRatio.equals("")) {
+	    	Toast.makeText(getApplicationContext(), "값을 모두 입력해주세요.", 0).show();
+	    	return;
+	    }
+	    
+	    // 배열에 값 입력
+		ArrayList<String> saveArr = new ArrayList<String>();
+		saveArr.add(purchaseDate);
+		saveArr.add(immediatePayment);
+		saveArr.add(barcode);
+		saveArr.add(productName);
+		saveArr.add(code);
+		saveArr.add(name);
+		saveArr.add(purchasePrice);
+		saveArr.add(salePrice);
+		saveArr.add(amount);
+		saveArr.add(profitRatio);
+		
+		setListView(saveArr);
+	}
+
+	// ListView Setting
+	private void setListView(ArrayList<String> saveArr) {
+		// TODO Auto-generated method stub
+		
+		String[] from = new String[] {"barcode", "name","purchasePrice", "amount"};
+		int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
+		
+		  //prepare the list of all records
+		          
+		HashMap<String, String> map = new HashMap<String, String>();
+		
+		map.put("barcode", saveArr.get(2));
+		map.put("name", saveArr.get(5));
+		map.put("purchasePrice", saveArr.get(6));
+		map.put("amount", saveArr.get(8));
+		mfillMaps.add(map);
+		
+		Log.w("..", saveArr.get(0));
+      // fill in the grid_item layout
+      m_adapter = new SimpleAdapter(PurchaseRegistActivity.this, mfillMaps, R.layout.activity_listview_readytosend_list, 
+      		from, to);
+      
+      m_listReadyToSend.setAdapter(m_adapter);
+      
+		// 리스트에서 선택된 값 서버 전송
+		Button sendButton = (Button)findViewById(R.id.buttonSend);
+		sendButton.setOnClickListener(new OnClickListener() {
+	        public void onClick(View v) { 
+	        	doSendFromList(m_adapter);
+	        }
+		});
+	      
+	}
+ 
+	public void doSendFromList(SimpleAdapter m_adapter2){
+		Log.w("asdf", "item" + m_adapter2.getItem(0));
+	
+	}
 	@Override
 	public void onClick(View v) {
 		// TODO Auto-generated method stub
