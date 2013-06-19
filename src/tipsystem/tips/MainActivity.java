@@ -59,8 +59,6 @@ public class MainActivity extends Activity {
 
         m_rgShop = new RadioGroup(this);
         
-        savePhoneNumber(MainActivity.this);
-        
         // test
         updateTestData();
     }
@@ -97,7 +95,6 @@ public class MainActivity extends Activity {
 					}
 					
 		        	Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-			    	intent.putExtra("selectedShopIndex", mSelectedPosition);
 		        	startActivity(intent);
 				}
 			})
@@ -139,31 +136,6 @@ public class MainActivity extends Activity {
 		return linearLayoutView;
 	}
 	
-	private void savePhoneNumber(Context ctx)
-    {
-		//check phone number
-    	TelephonyManager phoneManager = (TelephonyManager) 
-    	getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
-    	String phoneNumber = phoneManager.getLine1Number();
-    	
-    	if (phoneNumber == null || phoneNumber.isEmpty()) {
-        	AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
-            builder.setTitle("알림");
-            builder.setMessage("기기에 등록된 전화번호가 없습니다. 어플이용이 불가능합니다!");
-            builder.setNeutralButton("확인", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    finish();
-                }
-            });
-            builder.show();
-            return ;
-        }
-    	else {
-    		LocalStorage.setString(ctx, "phoneNumber", phoneNumber);
-    	}
-    }
-	
     // 인증관련 실행 함수 
     public void onAuthentication(View view) {
 
@@ -204,9 +176,9 @@ public class MainActivity extends Activity {
     public void didAuthentication(JSONArray results) {
     	Toast.makeText(getApplicationContext(), "인증 완료", Toast.LENGTH_SHORT).show();
 
-		LocalStorage.setJSONArray(MainActivity.this, "shopsData", results);
-    	showSelectShop();
-    	/*
+		//LocalStorage.setJSONArray(MainActivity.this, "shopsData", results);
+    	//showSelectShop();
+    	
     	if (results.length() > 0) {
     		Toast.makeText(getApplicationContext(), "인증 완료", Toast.LENGTH_SHORT).show();
 
@@ -214,8 +186,16 @@ public class MainActivity extends Activity {
         	showSelectShop();
     	}
     	else {
-    		Toast.makeText(getApplicationContext(), "인증 실패", Toast.LENGTH_SHORT).show();
-    	}*/
+    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("알림");
+            builder.setMessage("인증에 실패했습니다.\r\n관리자에게 문의하세요\r\n1600-1833");
+            builder.setNeutralButton("확인", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                }
+            });
+            builder.show();
+    	}
     }
 
 	class ShopListAdapter extends BaseAdapter 
