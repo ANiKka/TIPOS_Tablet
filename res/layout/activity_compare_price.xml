@@ -82,7 +82,15 @@
              android:textColor="#000000"
              android:inputType="text"
              android:background="@drawable/white_text_box_small" />
-
+        
+         <requestFocus />
+         
+         <Button
+	        android:id="@+id/buttonBarcode"
+	        android:layout_width="28dp"
+	        android:layout_height="28dp"
+	        android:layout_marginLeft="5dp"
+	        android:background="@drawable/search_btn" />
         <TextView
              android:id="@+id/textView4"
              android:layout_width="0dip"

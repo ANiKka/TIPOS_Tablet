@@ -8,6 +8,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.dm.zbar.android.scanner.ZBarConstants;
+import com.dm.zbar.android.scanner.ZBarScannerActivity;
+
 import tipsystem.utils.MSSQL;
 
 import android.os.Bundle;
@@ -32,6 +35,9 @@ import android.support.v4.app.NavUtils;
 
 public class ComparePriceActivity extends Activity{
 
+	private static final int ZBAR_SCANNER_REQUEST = 0;
+	private static final int ZBAR_QR_SCANNER_REQUEST = 1;
+	
 	TextView m_customer;
 	TextView m_customer2;
 	TextView m_barcode;
@@ -69,6 +75,8 @@ public class ComparePriceActivity extends Activity{
 		m_productionName = (TextView)findViewById(R.id.editTextProductionName);
 		m_local = (TextView)findViewById(R.id.editTextLocal);
 		Button searchButton = (Button) findViewById(R.id.buttonPriceSearch);
+		Button buttonBarcode = (Button) findViewById(R.id.buttonBarcode);
+				
 		m_listPriceSearch = (ListView)findViewById(R.id.listviewPriceSearchList);
 		m_listPriceSearch.setOnItemClickListener(new OnItemClickListener() {
             @Override
@@ -77,11 +85,45 @@ public class ComparePriceActivity extends Activity{
                 sendDataFromList(position);
             }
         });
+		
 		searchButton.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) { 
 	        	doSearch();
 	        }
 		});
+		
+		// 바코드 카메라 기능
+		buttonBarcode.setOnClickListener(new OnClickListener() {
+	        public void onClick(View v) { 
+	        	doBarcodeSearch();
+	        }
+		});
+		
+		// 바코드 입력 후 포커스 딴 곳을 옮길 경우
+		m_barcode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			//@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+			    if(!hasFocus){
+			    	String barcode = null; 
+			    	barcode = m_barcode.getText().toString();
+			    	if(!barcode.equals("")) // 입력한 Barcode가 값이 있을 경우만
+			    		fillGoodNameFromBarcode(barcode);	    	
+			    }
+			}
+		});
+
+		// 거래처 코드 입력 후 포커스 딴 곳을 옮길 경우
+		m_customer.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			//@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+			    if(!hasFocus){
+			    	String customerCode = null; 
+			    	customerCode = m_customer.getText().toString();
+			    	if(!customerCode.equals("")) // 입력한 customerCode가 값이 있을 경우만
+			    		fillBusNameFromBusCode(customerCode);	    	
+			    }
+			}
+		});	
 	}
 
 	/**
@@ -123,6 +165,82 @@ public class ComparePriceActivity extends Activity{
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+	
+	private void fillGoodNameFromBarcode(String barcode) {
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+		// TODO Auto-generated method stub
+		String query = "";
+		
+		query = "SELECT G_Name From Goods WHERE BarCode = '" + barcode + "';";
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				if (results.length() > 0) {
+					try {
+						JSONObject json = results.getJSONObject(0);
+						String g_name = json.getString("G_Name");
+						m_productionName.setText(g_name);
+						
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+		            //Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
+				}
+				else {
+		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();	
+		            m_productionName.setText("");
+				}
+			}
+	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+		
+	}
+
+	private void fillBusNameFromBusCode(String customerCode) {
+		// TODO Auto-generated method stub
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+		// TODO Auto-generated method stub
+		String query = "";
+		
+		query = "SELECT Office_Name From Office_Manage WHERE Office_Code = '" + customerCode + "';";
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				if (results.length() > 0) {
+					try {
+						JSONObject json = results.getJSONObject(0);
+						String bus_name = json.getString("Office_Name");
+						m_customer2.setText(bus_name);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+		            //Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
+				}
+				else {
+		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+		            m_customer2.setText("");
+				}
+			}
+	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
 	}
 	
 	private void sendDataFromList(int position){
@@ -200,6 +318,32 @@ public class ComparePriceActivity extends Activity{
 			}
 	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
 		
+	}
+	
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{    
+	    if (resultCode == RESULT_OK) 
+	    {
+	        // Scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT)
+	        // Type of the scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE)
+	        Toast.makeText(this, "Scan Result = " + data.getStringExtra(ZBarConstants.SCAN_RESULT), Toast.LENGTH_SHORT).show();
+	        Toast.makeText(this, "Scan Result Type = " + data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE), Toast.LENGTH_SHORT).show();
+	        // The value of type indicates one of the symbols listed in Advanced Options below.
+	        
+	        
+	        String barcode = data.getStringExtra(ZBarConstants.SCAN_RESULT);
+			m_barcode.setText(barcode);
+			fillGoodNameFromBarcode(barcode);
+			
+	    } else if(resultCode == RESULT_CANCELED) {
+	        Toast.makeText(this, "Camera unavailable", Toast.LENGTH_SHORT).show();
+	    }
+	}
+	
+	public void doBarcodeSearch() {
+
+    	Intent intent = new Intent(ComparePriceActivity.this, ZBarScannerActivity.class);
+    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
 	}
 	
 	public void updateListView(JSONArray results) {
