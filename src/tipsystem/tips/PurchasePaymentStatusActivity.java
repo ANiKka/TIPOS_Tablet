@@ -70,6 +70,11 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 	int m_dateMode=0;
 	String m_rBarCode = null;
 	
+	int m_queryCount1 = 0;
+	int m_queryCount2 = 0;
+	int m_queryCount3 = 0;
+	
+	
 	
 	
 	
@@ -149,96 +154,6 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
         textView.setTypeface(typeface);
 	}
 	
-	private void setTabList1(JSONArray results)
-	{
-		
-		
-		 // create the grid item mapping
-		String[] from = new String[] {"In_Num", "In_Date", "Office_Name", "In_Pri"};
-		int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
-	
-		
-		// prepare the list of all records
-		List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		
-		for(int i = 0; i < results.length() ; i++)
-		{
-			HashMap<String, String> map = new HashMap<String, String>();
-			map.put("전표번호", "0000" + i);
-			map.put("매입일", "2013-05-0" + i);
-			map.put("거래처명", "거래처명"+ i);
-			map.put("총매입가", i + "000");
-			fillMaps.add(map);
-		}
-		
-		
-		// fill in the grid_item layout
-		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_product_list, 
-				from, to);
-		
-		m_listPurchaseTab1.setAdapter(adapter);
-		m_listPurchaseTab1.setOnItemClickListener(this);
-	}
-	
-	
-	
-	private void setTabList2(JSONArray results)
-	{
-		
-		
-		 // create the grid item mapping
-		String[] from = new String[] {"코드", "거래처명", "이월", "지급금액", "미지급금액"};
-		int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5};
-		
-		// prepare the list of all records
-		List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		
-		for(int i = 0; i < results.length() ; i++)
-		{
-			HashMap<String, String> map = new HashMap<String, String>();
-			map.put("전표번호", "0000" + i);
-			map.put("매입일", "2013-05-0" + i);
-			map.put("거래처명", "거래처명"+ i);
-			map.put("총매입가", i + "000");
-			fillMaps.add(map);
-		}
-		
-		// fill in the grid_item layout
-		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item5, 
-				from, to);
-		
-		m_listPurchaseTab2.setAdapter(adapter);
-		
-	}
-	
-	private void setTabList3(JSONArray results)
-	{
-		
-		
-		 // create the grid item mapping
-		String[] from = new String[] {"코드", "거래처명", "순매입", "순매출"};
-		int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
-		
-		// prepare the list of all records
-		List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		
-		for(int i = 0; i < results.length() ; i++)
-		{
-			HashMap<String, String> map = new HashMap<String, String>();
-			map.put("전표번호", "0000" + i);
-			map.put("매입일", "2013-05-0" + i);
-			map.put("거래처명", "거래처명"+ i);
-			map.put("총매입가", i + "000");
-			fillMaps.add(map);
-		}
-		
-		// fill in the grid_item layout
-		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
-				from, to);
-		
-		m_listPurchaseTab3.setAdapter(adapter);
-		m_listPurchaseTab3.setOnItemClickListener(this);
-	}
 	
 	/**
 	 * Set up the {@link android.app.ActionBar}.
@@ -289,19 +204,31 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		if ( m_listPurchaseTab1.getId() == arg0.getId() )
 		{
 			Intent intent = new Intent(this, PurchaseListDetailViewActivity.class);
-	    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
-	    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-	    	//String message = editText.getText().toString();
-	    	//intent.putExtra(EXTRA_MESSAGE, message);
+			
+//			String period1 = m_period1.getText().toString();
+//			String period2 = m_period2.getText().toString();
+			
+			String inDate = ((TextView) arg1.findViewById(R.id.item2)).getText().toString();
+			String name = ((TextView) arg1.findViewById(R.id.item3)).getText().toString();
+			
+	    	intent.putExtra("IN_DATE", inDate);
+	    	intent.putExtra("OFFICE_NAME", name);
+		
 	    	startActivity(intent);	
 		}
 		else if ( m_listPurchaseTab2.getId() == arg0.getId() )
 		{
 			Intent intent = new Intent(this, PaymentDetailViewActivity.class);
-	    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
-	    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-	    	//String message = editText.getText().toString();
-	    	//intent.putExtra(EXTRA_MESSAGE, message);
+			
+			String period1 = m_period1.getText().toString();
+			String period2 = m_period2.getText().toString();
+			
+			String officeName = ((TextView) arg1.findViewById(R.id.item2)).getText().toString();
+			
+	    	intent.putExtra("PERIOD1", period1);
+	    	intent.putExtra("PERIOD2", period2);
+	    	intent.putExtra("OFFICE_NAME", officeName);
+	    	
 	    	startActivity(intent);	
 		}
 		else if ( m_listPurchaseTab3.getId() == arg0.getId() )
@@ -445,6 +372,8 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
  			// prepare the list of all records
  			final List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
  			
+ 			m_queryCount1 = 0;
+ 			
 	 		for ( int y = year1; y <= year2; y++ )
 	 		{
 	 			for ( int m = month1; m <= month2; m++ )
@@ -453,41 +382,7 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
  					
  					if ( productName.equals("") != true )
  					{
- 						query = "select Barcode from Goods where G_Name = '" + productName + "'";
- 						m_rBarCode = "";
- 						
- 						// 콜백함수와 함께 실행
- 					    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
- 							@Override
- 							public void onRequestCompleted(JSONArray results) {
- 								try {
- 									
- 									if ( results.length() > 0 )
- 	 								{
- 										m_rBarCode = results.getString(0);	
- 	 								}
- 									else 
- 									{
- 
- 									}
- 					    		} catch (JSONException e) {
- 					    			e.printStackTrace();
- 					    		}
- 								
- 							}
- 					    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
- 						
- 					    if ( m_rBarCode.equals("") != true && barCode.equals("") == true )
- 					    {
- 					    	barCode = m_rBarCode;
- 					    }
- 					    else if ( m_rBarCode.equals("") == true && barCode.equals("") == true )
- 					    {
- 					    	barCode = "null";
- 					    }
- 						
- 						//constraint = setConstraint(constraint, "G_Name", "=", productName);
+ 						constraint = setConstraint(constraint, "G_Name", "=", productName);
  					}
  					
  					if ( barCode.equals("") != true )
@@ -504,21 +399,26 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
  					{
  						constraint = setConstraint(constraint, "Office_Name", "=", customerName);
  					}
- 					 					
-         			query = "select Office_Code, Office_Name, TSell_Pri, TSell_RePri, DC_Pri, ProFit_Pri from " + tableName;
-         			query = query + " where In_Date between '" + period1 + "' and '" + period2 + "'";
-        			
+
+         			query = "select * " 
+    	    		+"  from " + tableName + " inner join Goods " 
+    	    		+ " on " + tableName + ".BARCODE = GOODS.BARCODE " 
+    	    		+ " where In_Date between '" + period1 + "' and '" + period2 + "'";
+    	    		
          			if ( constraint.equals("") != true )
          			{
          				query = query + " and " + constraint;
          			}
          			
+         			m_queryCount1 = m_queryCount1 + 1;
          		// 콜백함수와 함께 실행
 				    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
 						@Override
 						public void onRequestCompleted(JSONArray results) {
 							try {
+								
+								m_queryCount1 = m_queryCount1 - 1;
 								
 								if ( results.length() > 0 )
  								{
@@ -537,14 +437,18 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 										map.put("In_Pri", String.format("%d", son.getInt("In_Pri")) );
 										fillMaps.add(map);
 									}	
-									// fill in the grid_item layout
-									SimpleAdapter adapter = new SimpleAdapter(PurchasePaymentStatusActivity.this, 
-											fillMaps, R.layout.activity_listview_product_list, 
-											from, to);
 									
-									m_listPurchaseTab1.setAdapter(adapter);
-									Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
-									
+									if ( m_queryCount1 == 0 )
+									{
+										// fill in the grid_item layout
+										SimpleAdapter adapter = new SimpleAdapter(PurchasePaymentStatusActivity.this, 
+												fillMaps, R.layout.activity_listview_product_list, 
+												from, to);
+										
+										m_listPurchaseTab1.setAdapter(adapter);
+										Toast.makeText(getApplicationContext(), "조회 완료" + results.length(), Toast.LENGTH_SHORT).show();
+ 								
+									}
  								}
 				    		} catch (JSONException e) {
 				    			e.printStackTrace();
@@ -558,52 +462,120 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
  		}
  		else if ( iTabIndex == 1 ) // 결재현황
  		{
- 		// prepare the list of all records
+ 			// prepare the list of all records
  			final List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+ 			
+ 			m_queryCount2 = 0;
  			
 	 		for ( int y = year1; y <= year2; y++ )
 	 		{
 	 			for ( int m = month1; m <= month2; m++ )
 	 			{	
  					tableName = String.format("InD_%04d%02d", y, m);
+ 					String tableName2 = String.format("SaD_%04d%02d", y, m);
+ 					
+// 					if ( productName.equals("") != true )
+// 					{
+// 						constraint = setConstraint(constraint, "G_Name", "=", productName);
+// 					}
+ 					
+ 					if ( barCode.equals("") != true )
+ 					{
+ 						constraint = setConstraint(constraint, "Barcode", "=", barCode);
+ 					}
+ 					
+ 					if ( customerCode.equals("") != true )
+ 					{
+ 						constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
+ 					}
+ 					
+ 					if ( customerName.equals("") != true)
+ 					{
+ 						constraint = setConstraint(constraint, "Office_Name", "=", customerName);
+ 					}
+
+         			query = "select * " 
+    	    		+"from OFFICE_MANAGE inner join OFFICE_SASETTLEMENT " 
+    	    		+ "on OFFICE_MANAGE.OFFICE_CODE = OFFICE_SASETTLEMENT.OFFICE_CODE " 
+    	    		//+ "join " + tableName + " on OFFICE_MANAGE.OFFICE_CODE = " + tableName + ".OFFICE_CODE "
+    	    		//+ " join " + tableName2 + " on OFFICE_MANAGE.OFFICE_CODE = " + tableName2 + ".OFFICE_CODE"
+    	    		+ "where PRO_DATE between '" + period1 + "' and '" + period2 + "'";
+    	    		
+         			if ( constraint.equals("") != true )
+         			{
+         				query = query + " and " + constraint;
+         			}
+         			
+         			m_queryCount2 = m_queryCount2 + 1;
+         		// 콜백함수와 함께 실행
+				    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+						@Override
+						public void onRequestCompleted(JSONArray results) {
+							try {
+								
+								m_queryCount2 = m_queryCount2 - 1;
+								
+								if ( results.length() > 0 )
+ 								{
+									// create the grid item mapping
+						 			String[] from = new String[] {"OFFICE_CODE", "OFFICE_NAME", "SELLIN_PRI", "SELLPAY_PRI", "DEC_PRI"};
+						 			int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5};
+						 			
+									for(int i = 0; i < results.length() ; i++)
+									{
+										JSONObject son = results.getJSONObject(i);
+										
+										HashMap<String, String> map = new HashMap<String, String>();
+										
+										map.put("OFFICE_CODE", son.getString("OFFICE_CODE") );
+										map.put("OFFICE_NAME", son.getString("OFFICE_NAME"));
+										map.put("SELLIN_PRI", String.format("%d", son.getInt("SELLIN_PRI")) );
+										map.put("SELLPAY_PRI", String.format("%d", son.getInt("SELLPAY_PRI")) );
+										map.put("DEC_PRI", String.format("%d", son.getInt("DEC_PRI")) );
+										
+										fillMaps.add(map);
+									}	
+									
+									if ( m_queryCount2 == 0 )
+									{
+										// fill in the grid_item layout
+										SimpleAdapter adapter = new SimpleAdapter(PurchasePaymentStatusActivity.this, 
+												fillMaps, R.layout.activity_listview_product_list, 
+												from, to);
+										
+										m_listPurchaseTab2.setAdapter(adapter);
+										Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
+ 								
+									}
+ 								}
+				    		} catch (JSONException e) {
+				    			e.printStackTrace();
+				    		}
+							
+						}
+				    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+						         			
+         		}
+ 			}
+ 		}
+ 		else if ( iTabIndex == 2 ) // 결재현황
+ 		{
+ 			// prepare the list of all records
+ 			final List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+ 			
+ 			m_queryCount2 = 0;
+ 			
+	 		for ( int y = year1; y <= year2; y++ )
+	 		{
+	 			for ( int m = month1; m <= month2; m++ )
+	 			{	
+ 					tableName = String.format("InD_%04d%02d", y, m);
+ 					String tableName2 = String.format("SaD_%04d%02d", y, m);
  					
  					if ( productName.equals("") != true )
  					{
- 						query = "select Barcode from Goods where G_Name = '" + productName + "'";
- 						m_rBarCode = "";
- 						
- 						// 콜백함수와 함께 실행
- 					    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
- 							@Override
- 							public void onRequestCompleted(JSONArray results) {
- 								try {
- 									
- 									if ( results.length() > 0 )
- 	 								{
- 										m_rBarCode = results.getString(0);	
- 	 								}
- 									else 
- 									{
- 
- 									}
- 					    		} catch (JSONException e) {
- 					    			e.printStackTrace();
- 					    		}
- 								
- 							}
- 					    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
- 						
- 					    if ( m_rBarCode.equals("") != true && barCode.equals("") == true )
- 					    {
- 					    	barCode = m_rBarCode;
- 					    }
- 					    else if ( m_rBarCode.equals("") == true && barCode.equals("") == true )
- 					    {
- 					    	barCode = "null";
- 					    }
- 						
- 						//constraint = setConstraint(constraint, "G_Name", "=", productName);
+ 						constraint = setConstraint(constraint, "G_Name", "=", productName);
  					}
  					
  					if ( barCode.equals("") != true )
@@ -620,15 +592,22 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
  					{
  						constraint = setConstraint(constraint, "Office_Name", "=", customerName);
  					}
- 					 					
-         			query = "select In_Num, In_Date, Office_Name, In_Pri from " + tableName;
-         			query = query + " where In_Date between '" + period1 + "' and '" + period2 + "'";
-        			
+
+         			query = "select " + tableName + ".OFFICE_CODE, " + tableName + ".OFFICE_NAME, " + tableName + ".PUR_COST, " 
+         			+ tableName2 + ".TSell_Pri, " + tableName2 + ".TSell_RePri, " + tableName2 + ".DC_Pri, " + tableName2 + ".ProFit_Pri "
+ 					//query = "select * "
+    	    		+"from " + tableName + " inner join " + tableName2 + " on "
+    	    		+ tableName + ".BARCODE = " + tableName2 + ".BARCODE " 
+    	    		//+ "join " + tableName + " on OFFICE_MANAGE.OFFICE_CODE = " + tableName + ".OFFICE_CODE "
+    	    		//+ " join " + tableName2 + " on OFFICE_MANAGE.OFFICE_CODE = " + tableName2 + ".OFFICE_CODE"
+    	    		+ "where " + tableName2 + ".Sale_Date between '" + period1 + "' and '" + period2 + "'";
+    	    		
          			if ( constraint.equals("") != true )
          			{
          				query = query + " and " + constraint;
          			}
          			
+         			m_queryCount3 = m_queryCount3 + 1;
          		// 콜백함수와 함께 실행
 				    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
@@ -636,10 +615,12 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 						public void onRequestCompleted(JSONArray results) {
 							try {
 								
+								m_queryCount3 = m_queryCount3 - 1;
+								
 								if ( results.length() > 0 )
  								{
 									// create the grid item mapping
-						 			String[] from = new String[] {"In_Num", "In_Date", "Office_Name", "In_Pri"};
+						 			String[] from = new String[] {"OFFICE_CODE", "OFFICE_NAME", "PUR_COST", "R_SELL"};
 						 			int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
 						 			
 									for(int i = 0; i < results.length() ; i++)
@@ -647,20 +628,29 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 										JSONObject son = results.getJSONObject(i);
 										
 										HashMap<String, String> map = new HashMap<String, String>();
-										map.put("In_Num", son.getString("In_Num") );
-										map.put("In_Date", son.getString("In_Date"));
-										map.put("Office_Name", son.getString("Office_Name"));
-										map.put("In_Pri", String.format("%d", son.getInt("In_Pri")) );
+										
+										map.put("OFFICE_CODE", son.getString("OFFICE_CODE") );
+										map.put("OFFICE_NAME", son.getString("OFFICE_NAME"));
+										map.put("SELLIN_PRI", String.format("%d", son.getInt("PUR_COST")) );
+										
+										int rSell = son.getInt("TSell_Pri") - (son.getInt("TSell_RePri") + son.getInt("ProFit_Pri"));
+										
+										map.put("R_SELL", String.format("%d", rSell));
+																				
 										fillMaps.add(map);
 									}	
-									// fill in the grid_item layout
-									SimpleAdapter adapter = new SimpleAdapter(PurchasePaymentStatusActivity.this, 
-											fillMaps, R.layout.activity_listview_product_list, 
-											from, to);
 									
-									m_listPurchaseTab1.setAdapter(adapter);
-									Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
-									
+									if ( m_queryCount3 == 0 )
+									{
+										// fill in the grid_item layout
+										SimpleAdapter adapter = new SimpleAdapter(PurchasePaymentStatusActivity.this, 
+												fillMaps, R.layout.activity_listview_product_list, 
+												from, to);
+										
+										m_listPurchaseTab3.setAdapter(adapter);
+										Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
+ 								
+									}
  								}
 				    		} catch (JSONException e) {
 				    			e.printStackTrace();
@@ -671,16 +661,7 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 						         			
          		}
  			}
- 			
- 			
- 			
- 			
- 			
- 			
  		}
-		
-		
-		
 	}
 	
 

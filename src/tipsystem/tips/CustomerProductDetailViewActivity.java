@@ -46,7 +46,6 @@ public class CustomerProductDetailViewActivity extends Activity {
 		m_listDetailView= (ListView)findViewById(R.id.listviewCustomerProductDetailViewList);
 		m_period1 = (TextView)findViewById(R.id.textViewPeriod1);
 		m_period2 = (TextView)findViewById(R.id.textViewPeriod2);
-		m_customerCode = (TextView)findViewById(R.id.textViewCustomerCode);
 		m_customerName = (TextView)findViewById(R.id.textViewCustomerName);
 		
 		Intent intent = getIntent();

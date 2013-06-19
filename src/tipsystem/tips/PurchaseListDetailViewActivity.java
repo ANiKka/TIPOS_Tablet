@@ -4,13 +4,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import tipsystem.utils.MSSQL;
+
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Intent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 
 public class PurchaseListDetailViewActivity extends Activity {
@@ -25,27 +33,36 @@ public class PurchaseListDetailViewActivity extends Activity {
 		
 		m_listPurchaseDetail= (ListView)findViewById(R.id.listviewPurchaseDetailViewList);
 		
-		 // create the grid item mapping
-		String[] from = new String[] {"바코드", "상품명", "매입가", "판매가", "수량"};
-		int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5};
+		Intent intent = getIntent();
 		
-		// prepare the list of all records
-		List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		for(int i = 0; i < 10; i++){
-		    HashMap<String, String> map = new HashMap<String, String>();
-		    map.put("바코드", "0000" + i);
-			map.put("상품명", "상품명_" + i);
-			map.put("매입가", i + "000");
-			map.put("판매가", i + "000");
-			map.put("수량", i + "0");
-		    fillMaps.add(map);
-		}
-				
-		// fill in the grid_item layout
-		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item5, 
-				from, to);
+		String customerName = intent.getExtras().getString("OFFICE_NAME");
+		String inDate = intent.getExtras().getString("IN_DATE");
 		
-		m_listPurchaseDetail.setAdapter(adapter);
+		int year1 = Integer.parseInt(inDate.substring(0, 4));
+ 		int month1 = Integer.parseInt(inDate.substring(5, 7));
+ 		
+		String tableName = String.format("InD_%04d%02d", year1, month1);
+		
+    	String query;
+		
+    	query = "select " + tableName + ".BARCODE, " + "Goods.G_NAME, " + tableName + ".PUR_PRI, " 
+     			+ tableName + ".SELL_PRI, " + tableName + ".IN_COUNT "
+					//query = "select * "
+	    		+"from " + tableName + " inner join GOODS on "
+	    		+ tableName + ".BARCODE = GOODS.BARCODE " 
+	    		+ "where " + tableName + ".IN_DATE = '" + inDate + "' and OFFICE_NAME = '" + customerName + "'";
+	    		
+     			
+		// 콜백함수와 함께 실행
+		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+		
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				setListItems(results);
+			}
+		}).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+		
+		 
 	}
 
 	/**
@@ -88,6 +105,50 @@ public class PurchaseListDetailViewActivity extends Activity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+	
+	void setListItems(JSONArray results)
+	{
+		try {
+		
+			if ( results.length() > 0 )
+			{
+				// create the grid item mapping
+				String[] from = new String[] {"BARCODE", "G_NAME", "PUR_PRI", "SELL_PRI", "IN_COUNT"};
+				int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5};
+				
+				// prepare the list of all records
+				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+ 			
+				for(int i = 0; i < results.length() ; i++)
+				{
+					JSONObject son = results.getJSONObject(i);
+					
+					HashMap<String, String> map = new HashMap<String, String>();
+					map.put("BARCODE", son.getString("BARCODE") );
+					map.put("G_NAME", son.getString("G_NAME"));
+					
+					map.put("PUR_PRI", String.format("%d", son.getInt("PUR_PRI")) );
+					map.put("SELL_PRI", String.format("%d", son.getInt("SELL_PRI")) );
+					map.put("IN_COUNT", String.format("%d", son.getInt("IN_COUNT")) );
+					
+					fillMaps.add(map);
+				}	
+			
+				// fill in the grid_item layout
+				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item5, 
+						from, to);
+				
+				m_listPurchaseDetail.setAdapter(adapter);
+								
+			}
+			
+			Toast.makeText(getApplicationContext(), "조회 완료 : " + results.length(), Toast.LENGTH_SHORT).show();
+
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 }
