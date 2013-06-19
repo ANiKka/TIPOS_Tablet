@@ -33,6 +33,7 @@ import android.os.Build;
 
 public class MainMenuActivity extends Activity {
 
+	JSONObject m_shop;
 	// loading bar
 	private ProgressDialog dialog; 
 	
@@ -46,16 +47,20 @@ public class MainMenuActivity extends Activity {
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
-        JSONObject shop = LocalStorage.getJSONObject(MainMenuActivity.this, "currentShopData");        
+		m_shop = LocalStorage.getJSONObject(MainMenuActivity.this, "currentShopData"); 
+
+		String Office_Name= null, OFFICE_CODE =null, SHOP_IP = null, SHOP_PORT= null, APP_HP= null;	
         try {
-			fetchNotices(shop.getString("OFFICE_CODE"));
+			Office_Name = m_shop.getString("Office_Name");
+			OFFICE_CODE = m_shop.getString("OFFICE_CODE");
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-				
+
 		Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
         TextView textView = (TextView) findViewById(R.id.textViewShopTitle);
         textView.setTypeface(typeface);
+        textView.setText(Office_Name);
         
         m_listBoard= (ListView)findViewById(R.id.listViewBoard);
         m_listBoard.setOnItemClickListener(new OnItemClickListener() {
@@ -73,6 +78,8 @@ public class MainMenuActivity extends Activity {
             	
             }
         });
+        
+		fetchNotices(OFFICE_CODE);
 	}
 
 	/**
@@ -128,60 +135,36 @@ public class MainMenuActivity extends Activity {
 	public void onClickDefaultManage(View view)
 	{
 		Intent intent = new Intent(this, ManageCodeActivity.class);
-    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
-    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-    	//String message = editText.getText().toString();
-    	//intent.putExtra(EXTRA_MESSAGE, message);
     	startActivity(intent);
 	}
 	
 	public void onClickPurchaseManage(View view)
 	{
 		Intent intent = new Intent(this, ManagePurchaseActivity.class);
-    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
-    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-    	//String message = editText.getText().toString();
-    	//intent.putExtra(EXTRA_MESSAGE, message);
     	startActivity(intent);
 	}
 	
 	public void onClickSalesManage(View view)
 	{
 		Intent intent = new Intent(this, ManageSalesActivity.class);
-    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
-    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-    	//String message = editText.getText().toString();
-    	//intent.putExtra(EXTRA_MESSAGE, message);
     	startActivity(intent);
 	}
 	
 	public void onClickEventManage(View view)
 	{
 		Intent intent = new Intent(this, ManageEventActivity.class);
-    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
-    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-    	//String message = editText.getText().toString();
-    	//intent.putExtra(EXTRA_MESSAGE, message);
     	startActivity(intent);
 	}
 	
 	public void onClickSalesNews(View view)
 	{
 		Intent intent = new Intent(this, SalesNewsActivity.class);
-    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
-    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-    	//String message = editText.getText().toString();
-    	//intent.putExtra(EXTRA_MESSAGE, message);
     	startActivity(intent);
 	}
 	
 	public void onClickManageStock(View view)
 	{
 		Intent intent = new Intent(this, ManageStockActivity.class);
-    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
-    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-    	//String message = editText.getText().toString();
-    	//intent.putExtra(EXTRA_MESSAGE, message);
     	startActivity(intent);
 	}
 	

@@ -25,6 +25,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
@@ -39,7 +40,7 @@ public class ManageProductActivity extends Activity{
 	private static final int ZBAR_SCANNER_REQUEST = 0;
 	private static final int ZBAR_QR_SCANNER_REQUEST = 1;
 	
-	TextView m_textBarcode;
+	EditText m_textBarcode;
 	TextView m_textProductName;
 	TextView m_textCustomerCode;
 	TextView m_textCustomerName;
@@ -66,7 +67,7 @@ public class ManageProductActivity extends Activity{
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
-		m_textBarcode = (TextView)findViewById(R.id.editTextBarcode);
+		m_textBarcode = (EditText)findViewById(R.id.editTextBarcode);
 		m_textProductName = (TextView)findViewById(R.id.editTextProductName);
 		m_textCustomerCode = (TextView)findViewById(R.id.editTextCustomerCode);
 		m_textCustomerName = (TextView)findViewById(R.id.editTextCustomerName);
@@ -121,6 +122,33 @@ public class ManageProductActivity extends Activity{
 	        	doBarcodeSearch();
 	        }
 		});
+		
+		// 바코드 입력 후 포커스 딴 곳을 옮길 경우
+		m_textBarcode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			//@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+			    if(!hasFocus){
+			    	String barcode = null; 
+			    	barcode = m_textBarcode.getText().toString();
+			    	if(!barcode.equals("")) // 입력한 Barcode가 값이 있을 경우만
+			    		fillGoodNameFromBarcode(barcode);	    	
+			    }
+			}
+		});
+
+		// 거래처 코드 입력 후 포커스 딴 곳을 옮길 경우
+		m_textCustomerCode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			//@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+			    if(!hasFocus){
+			    	String customerCode = null; 
+			    	customerCode = m_textCustomerCode.getText().toString();
+			    	if(!customerCode.equals("")) // 입력한 customerCode가 값이 있을 경우만
+			    		fillBusNameFromBusCode(customerCode);	    	
+			    }
+			}
+		});	
+		          
 		
 	}
 
@@ -179,10 +207,85 @@ public class ManageProductActivity extends Activity{
 	        
 	        String barcode = data.getStringExtra(ZBarConstants.SCAN_RESULT);
 			m_textBarcode.setText(barcode);
+			fillGoodNameFromBarcode(barcode);
 			
 	    } else if(resultCode == RESULT_CANCELED) {
 	        Toast.makeText(this, "Camera unavailable", Toast.LENGTH_SHORT).show();
 	    }
+	}
+	
+	private void fillGoodNameFromBarcode(String barcode) {
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+		// TODO Auto-generated method stub
+		String query = "";
+		
+		query = "SELECT G_Name From Goods WHERE BarCode = '" + barcode + "';";
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				if (results.length() > 0) {
+					try {
+						JSONObject json = results.getJSONObject(0);
+						String g_name = json.getString("G_Name");
+						m_textProductName.setText(g_name);
+						
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+		            //Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
+				}
+				else {
+		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();					
+				}
+			}
+	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+		
+	}
+
+	private void fillBusNameFromBusCode(String customerCode) {
+		// TODO Auto-generated method stub
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+		// TODO Auto-generated method stub
+		String query = "";
+		
+		query = "SELECT Office_Name From Office_Manage WHERE Office_Code = '" + customerCode + "';";
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				if (results.length() > 0) {
+					try {
+						JSONObject json = results.getJSONObject(0);
+						String bus_name = json.getString("Office_Name");
+						m_textCustomerName.setText(bus_name);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+		            //Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
+				}
+				else {
+		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();					
+				}
+			}
+	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
 	}
 	
 	private void fillCustomerFormFromList(int position) {

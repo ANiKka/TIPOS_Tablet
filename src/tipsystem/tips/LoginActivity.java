@@ -30,7 +30,6 @@ public class LoginActivity extends Activity {
 	String m_ip = "122.49.118.102";
 	String m_port = "18971";
 	
-	
 	// loading bar
 	private ProgressDialog dialog; 
 	@Override
@@ -179,7 +178,14 @@ public class LoginActivity extends Activity {
     // DB에 접속후 호출되는 함수
     public void didLogin(JSONArray results) {
     	if (results.length() > 0) {
-
+    		JSONObject user;
+			try {
+				// Admin_User 테이블에서 가져온 사용자 정보를 로컬에 저장
+				user = results.getJSONObject(0);
+	    		LocalStorage.setJSONObject(this, "userProfile", user);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
     		Toast.makeText(getApplicationContext(), "로그인 완료", Toast.LENGTH_SHORT).show(); 
     		
     		Intent intent = new Intent(this, MainMenuActivity.class);

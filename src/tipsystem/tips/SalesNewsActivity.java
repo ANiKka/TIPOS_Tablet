@@ -76,8 +76,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	Calendar m_dateCalender1;
 	Calendar m_dateCalender2;
 	
-	
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -85,13 +83,10 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
-		
 		m_dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
-		
 		
 		m_dateCalender1 = Calendar.getInstance();
 		m_dateCalender2 = Calendar.getInstance();
-		
 		
 		m_buttonSetDate = (Button) findViewById(R.id.buttonSetDate);
 		m_buttonSetDate.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
@@ -106,7 +101,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		m_viewCredit = (TextView)findViewById(R.id.textViewCredit);
 		m_viewOther = (TextView)findViewById(R.id.textViewOther);
 
-		
 		m_listNewsTab1= (ListView)findViewById(R.id.listviewSalesNewsListTab1);
 		m_listNewsTab2= (ListView)findViewById(R.id.listviewSalesNewsListTab2);
 		m_listNewsTab3= (ListView)findViewById(R.id.listviewSalesNewsListTab3);
@@ -145,7 +139,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         m_tabHost.setCurrentTab(0);
         m_tabHost.setOnTabChangedListener(this);
         
-        
         m_dateCalender2.add(Calendar.DAY_OF_MONTH, -1);
         
         String period1 = m_buttonSetDate.getText().toString();
@@ -180,12 +173,10 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 				from, to);
 		
 		m_listNewsTab2.setAdapter(adapter);
-		
 	}
 	
 	private void setTabList3(List<HashMap<String, String>> fillMaps)
 	{
-		
 		 // create the grid item mapping
 		String[] from = new String[] {"Count", "S_Name", "rSale", "Sale_Count", "ProFit_Pri"};
         int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5 };
@@ -214,7 +205,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		actionbar.setTitle("매출속보");
 		
 		getActionBar().setDisplayHomeAsUpEnabled(false);
-
 	}
 
 	@Override
@@ -298,7 +288,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	@Override
 	public void onNothingSelected(AdapterView<?> arg0) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	public void onClickSetDate(View view)
@@ -312,8 +301,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 
 	@Override
 	public void onTabChanged(String tabId) {
-		// TODO Auto-generated method stub
-		
 		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
 		
 		String period1 = m_buttonSetDate.getText().toString();
@@ -711,8 +698,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         		}
         		
         		if ( CommArray.size() > 0 )
-        		{
-        			
+        		{        			
         			m_realSales.setText(String.format("%d", tSellPri));
         			
         			m_viewKNumber.setText(String.format("%d", saleNum));
@@ -722,8 +708,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         			m_viewCard.setText(String.format("%d", cardPri));
         			m_viewCredit.setText(String.format("%d", decPri));
         			
-        			m_viewOther.setText(String.format("%d", 0));
-        			
+        			m_viewOther.setText(String.format("%d", 0));        			
         		}
         		
         		//Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
@@ -742,7 +727,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
                 		tSellPri = json.getInt("TSell_Pri");
                 		
         			} catch (JSONException e) {
-        				// TODO Auto-generated catch block
         				e.printStackTrace();
         			}
         		}
@@ -887,7 +871,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         		//Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
         		
         	}
-        	else if ( m_tabIndex == 0 )
+        	else if ( m_tabIndex == 0 )	// 시간대별
         	{
         		String[] from = new String[] {"Sale_Time", "rSale", "rSale_Yes", "rDSale"};
     	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
@@ -905,8 +889,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
     	        
     	        }
     	        
-    	        
-    	        
             	Iterator<JSONObject> iterator = CommArray.iterator();
         		while (iterator.hasNext()) {
                 	JSONObject json = iterator.next();
@@ -921,45 +903,38 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         				int itRSell = json.getInt("TSell_RePri");
         				int idcPri = json.getInt("DC_Pri");
         				int irSale = itSell - (itRSell + idcPri);
-        				
-        			        				
+        							
         				rSale[iTime] = rSale[iTime] + irSale;
         				
-
         			} catch (JSONException e) {
-        				// TODO Auto-generated catch block
         				e.printStackTrace();
         			}
         		}
                 	
             	iterator = CommArray1.iterator();
         		while (iterator.hasNext()) {
-                    	JSONObject json1 = iterator.next();
-                    	
-                    	try {
-                    		
-            				String tTime = json1.getString("Sale_Time");
-            				
-            				int iTime = Integer.parseInt(tTime.substring(0, 2));
-            				
-            				int itSell = json1.getInt("TSell_Pri");
-            				int itRSell = json1.getInt("TSell_RePri");
-            				int idcPri = json1.getInt("DC_Pri");
-            				int irSale = itSell - (itRSell + idcPri);
-            				            				
-            				rSale1[iTime] = rSale1[iTime] + irSale;
-            				
-
-            			} catch (JSONException e) {
-            				// TODO Auto-generated catch block
-            				e.printStackTrace();
-            			}
+                	JSONObject json1 = iterator.next();
                 	
+                	try {
+                		
+        				String tTime = json1.getString("Sale_Time");
+        				
+        				int iTime = Integer.parseInt(tTime.substring(0, 2));
+        				
+        				int itSell = json1.getInt("TSell_Pri");
+        				int itRSell = json1.getInt("TSell_RePri");
+        				int idcPri = json1.getInt("DC_Pri");
+        				int irSale = itSell - (itRSell + idcPri);
+        				            				
+        				rSale1[iTime] = rSale1[iTime] + irSale;
+        				
+        			} catch (JSONException e) {
+        				e.printStackTrace();
+        			}
         		}
         		
             	for ( int i = 8; i < 23; i++ )
     	        {
-            		
             		rDSale[i] = rSale[i] - rSale1[i];
             		
                 	// prepare the list of all records
@@ -979,7 +954,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         		}
         		
         	}
-        	else if ( m_tabIndex == 1 )
+        	else if ( m_tabIndex == 1 )	// 거래처별 
         	{
         		String[] from = new String[] {"Office_Code", "Office_Name", "rSale", "ProFit_Pri"};
     	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
@@ -1021,7 +996,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         			setTabList2(fillMaps);
         		}
         	}
-        	else if ( m_tabIndex == 2 )
+        	else if ( m_tabIndex == 2 )	// 분류별 
         	{
         		String[] from = new String[] {"Count", "S_Name", "rSale", "Sale_Count", "ProFit_Pri"};
     	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5 };
@@ -1033,7 +1008,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
                 	JSONObject json = iterator.next();
                 	
                 	try {
-                	    
         				String sName = json.getString("S_Name");
         				
         				int tSell = json.getInt("TSell_Pri");
@@ -1053,7 +1027,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
     		            fillMaps.add(map);
         		 
         			} catch (JSONException e) {
-        				// TODO Auto-generated catch block
         				e.printStackTrace();
         			}
         		}

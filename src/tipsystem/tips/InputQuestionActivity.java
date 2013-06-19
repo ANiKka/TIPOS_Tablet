@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
 import android.os.Bundle;
@@ -48,10 +49,8 @@ public class InputQuestionActivity extends Activity implements OnItemSelectedLis
 		setupActionBar();
 		
 		Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
-		TextView textView = (TextView) findViewById(R.id.textViewShopTitle);
-		textView.setTypeface(typeface);
 		
-		textView = (TextView) findViewById(R.id.textView1);
+		TextView textView = (TextView) findViewById(R.id.textView1);
 		textView.setTypeface(typeface);
 
 		textView = (TextView) findViewById(R.id.textView2);
@@ -63,10 +62,12 @@ public class InputQuestionActivity extends Activity implements OnItemSelectedLis
 		textView = (TextView) findViewById(R.id.textView4);
 		textView.setTypeface(typeface);
 		
+		TextView textViewShopTitle = (TextView) findViewById(R.id.textViewShopTitle);
+		textViewShopTitle.setTypeface(typeface);
+		
 		m_spin = (Spinner)findViewById(R.id.spinnerQuestionType);
 		m_spin.setOnItemSelectedListener(this);
 		
-
 		m_cancelButton = (Button) findViewById(R.id.buttonCancel);
 		m_cancelButton.setOnClickListener(new OnClickListener() {
 
@@ -104,6 +105,15 @@ public class InputQuestionActivity extends Activity implements OnItemSelectedLis
 			}
 		}
 		
+		JSONObject currentShopData = LocalStorage.getJSONObject(this, "currentShopData"); 
+
+		String Office_Name= null;	
+        try {
+			Office_Name = currentShopData.getString("Office_Name");
+			textViewShopTitle.setText(Office_Name);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**

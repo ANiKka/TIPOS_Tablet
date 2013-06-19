@@ -89,24 +89,20 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		m_productName = (TextView) findViewById(R.id.editTextProductName);
 		m_customerCode = (TextView) findViewById(R.id.editTextCustomerCode);
 		m_customerName = (TextView) findViewById(R.id.editTextCustomerName);
-		
-		
+				
 		m_dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
-		
-		
+				
 		m_dateCalender1 = Calendar.getInstance();
 		m_dateCalender2 = Calendar.getInstance();
 				
 		m_period1.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
 		m_period2.setText(m_dateFormatter.format(m_dateCalender2.getTime()));
-		
-		
+				
 		m_listSalesTab1= (ListView)findViewById(R.id.listviewSalesListTab1);
 		m_listSalesTab2= (ListView)findViewById(R.id.listviewSalesListTab2);
 		m_listSalesTab3= (ListView)findViewById(R.id.listviewSalesListTab3);
 		m_listSalesTab4= (ListView)findViewById(R.id.listviewSalesListTab4);
-		
-		
+				
 		m_tabHost = (TabHost) findViewById(R.id.tabhostManageSales);
         m_tabHost.setup();
         
@@ -137,9 +133,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         //m_tabHost.getCurrentTab();
         
         m_calendar = (CalendarView)findViewById(R.id.calendarView1);
-        m_calendar.setOnDateChangeListener(this);
-
-        
+        m_calendar.setOnDateChangeListener(this);        
 	}
 	
 	private void setTabList1(List<HashMap<String, String>> fillMaps)
@@ -153,13 +147,11 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 				from, to);
 		
 		m_listSalesTab1.setAdapter(adapter);
-		m_listSalesTab1.setOnItemClickListener(this);
-		
+		m_listSalesTab1.setOnItemClickListener(this);		
 	}
 	
 	private void setTabList2(List<HashMap<String, String>> fillMaps)
-	{
-		
+	{		
 		 // create the grid item mapping
 		String[] from = new String[] {"Barcode", "G_Name", "Sale_Count", "rSale"};
         int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
@@ -172,13 +164,11 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	}
 	
 	private void setTabList3(List<HashMap<String, String>> fillMaps)
-	{
-		
+	{		
 		 // create the grid item mapping
 		String[] from = new String[] {"Office_Code", "Office_Name", "rSale"};
         int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
-		
-		
+				
 		// fill in the grid_item layout
 		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item3, 
 				from, to);
@@ -188,9 +178,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	}
 	
 	private void setTabList4(List<HashMap<String, String>> fillMaps)
-	{
-		
-		
+	{		
 		 // create the grid item mapping
 		String[] from = new String[] {"content"};
 		int[] to = new int[] { R.id.textView1};
@@ -286,8 +274,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 			
 		
 		//Toast.makeText(this, "Item Click." + m_calendar.getId() + " ,  " + arg0.getId(), Toast.LENGTH_SHORT).show();
-		
-		
 	}
 
 	@Override
@@ -305,9 +291,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	
 
 	public void OnClickSearch(View v) {
-		// TODO Auto-generated method stub
-		//Toast.makeText(this, "Search Click.", Toast.LENGTH_SHORT).show();
-		
+		//Toast.makeText(this, "Search Click.", Toast.LENGTH_SHORT).show();		
 		
 		String period1 = m_period1.getText().toString();
 		String period2 = m_period2.getText().toString();
@@ -318,9 +302,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		
 		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
 		
-		new MyAsyncTask().execute(tabIndex, period1, period2, barCode, productName, customerCode, customerName);
-		
-		
+		new MyAsyncTask().execute(tabIndex, period1, period2, barCode, productName, customerCode, customerName);		
 	};
 	
 	    
@@ -329,7 +311,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		// TODO Auto-generated method stub
 		//Toast.makeText(this, "Tab Click.", Toast.LENGTH_SHORT).show();
 		
-		
 		String period1 = m_period1.getText().toString();
 		String period2 = m_period2.getText().toString();
 		String barCode = m_barCode.getText().toString();
@@ -339,12 +320,10 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		
 		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
 		
-		new MyAsyncTask ().execute(tabIndex, period1, period2, barCode, productName, customerCode, customerName);
-		
+		new MyAsyncTask ().execute(tabIndex, period1, period2, barCode, productName, customerCode, customerName);		
 	}
 
 	public void onClickSetDate1(View v) {
-		// TODO Auto-generated method stub
 				
 		DatePickerDialog newDlg = new DatePickerDialog(this, this,
 				m_dateCalender1.get(Calendar.YEAR),
@@ -386,7 +365,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		m_dateMode = 0;
 	}
 	
-
 	
 	class MyAsyncTask extends AsyncTask<String, Integer, String>{
 
@@ -434,15 +412,11 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         		for ( int y = year1; y <= year2; y++ )
         		{
         			for ( int m = month1; m <= month2; m++ )
-        			{
-        				
+        			{        				
         				tableName = String.format("SaD_%04d%02d", y, m);
         				
-        				
         				if ( m_tabIndex == 0 ) // 거래처별
-                		{
-        					
-        					
+                		{     		
         					if ( barCode.equals("") != true )
         					{
         						constraint = setConstraint(constraint, "Barcode", "=", barCode);
@@ -471,7 +445,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
                 				query = query + " and " + constraint;
                 			}
                 			
-                			
                 			Log.e("HTTPJSON","query: " + query );
                         	reset = stmt.executeQuery(query);
             	        	    		
@@ -487,11 +460,8 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
             				    Obj.put("DC_Pri",reset.getInt(5));
             				    Obj.put("ProFit_Pri",reset.getInt(6));
    
-            				    
             				    CommArray.add(Obj);
             				}
-                    	    
-                			
                 		}
                 		else if ( m_tabIndex == 1 ) // 상품명
                 		{
