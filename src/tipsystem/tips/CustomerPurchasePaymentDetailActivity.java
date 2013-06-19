@@ -4,18 +4,35 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import tipsystem.utils.MSSQL;
+
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Intent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
+import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 
 public class CustomerPurchasePaymentDetailActivity extends Activity {
 
 	ListView m_listDetailView;
+	
+	TextView m_period1;
+	TextView m_period2;
+	TextView m_customerCode;
+	TextView m_customerName;
+	TextView m_realPurchase;
+	TextView m_realPayment;
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -26,26 +43,50 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 		
 		m_listDetailView= (ListView)findViewById(R.id.listviewCustomerPurchasePaymentDetailViewList);
 		
-		 // create the grid item mapping
-		String[] from = new String[] {"코드", "거래처명", "순매입", "순매출"};
-		int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
+		Intent intent = getIntent();
 		
-		// prepare the list of all records
-		List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		for(int i = 0; i < 10; i++){
-		    HashMap<String, String> map = new HashMap<String, String>();
-		    map.put("코드", "0000" + i);
-			map.put("거래처명", "거래처명_" + i);
-			map.put("순매입", i + "000");
-			map.put("순매출", i + "000");
-		    fillMaps.add(map);
-		}
-				
-		// fill in the grid_item layout
-		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
-				from, to);
+		String period1 = intent.getExtras().getString("PERIOD1");
+		String period2 = intent.getExtras().getString("PERIOD1");
 		
-		m_listDetailView.setAdapter(adapter);
+		String customerName = intent.getExtras().getString("OFFICE_NAME");
+		
+		m_period1 = (TextView)findViewById(R.id.textViewPeriod1);
+		m_period2 = (TextView)findViewById(R.id.textViewPeriod2);
+		m_customerName = (TextView)findViewById(R.id.textViewCustomerName);
+		m_realPurchase = (TextView)findViewById(R.id.textViewRealPurchase);
+		m_realPayment = (TextView)findViewById(R.id.textViewRealPayment);
+		
+		m_period1.setText(period1);
+		m_period2.setText(period2);
+		
+		m_customerName.setText(customerName);
+		
+		int year1 = Integer.parseInt(period1.substring(0, 4));
+ 		//int year2 = Integer.parseInt(period2.substring(0, 4));
+ 		
+ 		int month1 = Integer.parseInt(period1.substring(5, 7));
+ 		//int month2 = Integer.parseInt(period2.substring(5, 7));
+ 		
+		String tableName = String.format("SaD_%04d%02d", year1, month1);
+		
+		String query;
+		
+    	query = "select BARCODE, G_NAME, PURE_PRI, TSell_PRI, TSell_REPRI, DC_PRI form "
+    			+ tableName 
+	    		+ " where SALE_DATE between '" + period1 + "' and '" + period2 + "' "
+	    		+ "and OFFICE_NAME = '" + customerName + "'";
+	    		
+     			
+		// 콜백함수와 함께 실행
+		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+		
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				setListItems(results);
+			}
+		}).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+		
+
 	}
 
 	/**
@@ -91,4 +132,62 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 
+	
+	void setListItems(JSONArray results)
+	{
+		try {
+		
+			int rPurchase = 0;
+			int rPayment = 0;
+			
+			if ( results.length() > 0 )
+			{
+								
+				// create the grid item mapping
+				String[] from = new String[] {"BARCODE", "G_NAME", "PUR_PRI", "RSALE"};
+				int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
+				
+				// prepare the list of all records
+				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+ 			
+				for(int i = 0; i < results.length() ; i++)
+				{
+					JSONObject son = results.getJSONObject(i);
+					
+					HashMap<String, String> map = new HashMap<String, String>();
+					map.put("BARCODE", son.getString("BARCODE") );
+					map.put("G_NAME", son.getString("G_NAME"));
+					
+					map.put("PUR_PRI", String.format("%d", son.getInt("PUR_PRI")) );
+					
+					int rSale = son.getInt("TSell_PRI") - (son.getInt("TSell_REPRI") + son.getInt("DC_PRI"));
+					
+					map.put("RSALE", String.format("%d", rSale));
+					
+					rPayment = rPayment + rSale;
+					rPurchase = rPurchase + son.getInt("PUR_PRI");
+					
+					fillMaps.add(map);
+				}	
+			
+				// fill in the grid_item layout
+				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item5, 
+						from, to);
+				
+				m_listDetailView.setAdapter(adapter);
+				
+				m_realPurchase.setText(String.format("%d", rPurchase));
+				m_realPayment.setText(String.format("%d", rPayment));
+								
+			}
+			
+			Toast.makeText(getApplicationContext(), "조회 완료 : " + results.length(), Toast.LENGTH_SHORT).show();
+
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+	
 }

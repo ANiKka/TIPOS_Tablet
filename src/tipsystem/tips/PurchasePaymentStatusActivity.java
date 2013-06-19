@@ -234,10 +234,15 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		else if ( m_listPurchaseTab3.getId() == arg0.getId() )
 		{
 			Intent intent = new Intent(this, CustomerPurchasePaymentDetailActivity.class);
-	    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
-	    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-	    	//String message = editText.getText().toString();
-	    	//intent.putExtra(EXTRA_MESSAGE, message);
+			String period1 = m_period1.getText().toString();
+			String period2 = m_period2.getText().toString();
+			
+			String officeName = ((TextView) arg1.findViewById(R.id.item2)).getText().toString();
+			
+	    	intent.putExtra("PERIOD1", period1);
+	    	intent.putExtra("PERIOD2", period2);
+	    	intent.putExtra("OFFICE_NAME", officeName);
+	    	
 	    	startActivity(intent);	
 		}
 		
@@ -279,8 +284,8 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		
 		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
 		
-		//new MyAsyncTask ().execute(tabIndex, period1, period2, barCode, productName, customerCode, customerName);
 		
+		//executeQuery(tabIndex, period1, period2, barCode, productName, customerCode, customerName);
 	
 	}
 
