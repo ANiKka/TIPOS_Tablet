@@ -1,6 +1,7 @@
 package tipsystem.tips;
 
 import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,8 +32,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 
-public class ManageProductActivity extends Activity{
+import com.dm.zbar.android.scanner.ZBarConstants;
+import com.dm.zbar.android.scanner.ZBarScannerActivity;
 
+public class ManageProductActivity extends Activity{
+	private static final int ZBAR_SCANNER_REQUEST = 0;
+	private static final int ZBAR_QR_SCANNER_REQUEST = 1;
+	
 	TextView m_textBarcode;
 	TextView m_textProductName;
 	TextView m_textCustomerCode;
@@ -89,6 +96,7 @@ public class ManageProductActivity extends Activity{
 		Button registButton = (Button) findViewById(R.id.buttonProductRegist);
 		Button renewButton = (Button) findViewById(R.id.buttonProductRenew);
 		Button modifyButton = (Button) findViewById(R.id.buttonProductModify);
+		Button buttonBarcode = (Button) findViewById(R.id.buttonBarcode);
 		
 		searchButton.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) { 
@@ -107,6 +115,13 @@ public class ManageProductActivity extends Activity{
 	        	doClear();
 	        }
 		});
+		
+		buttonBarcode.setOnClickListener(new OnClickListener() {
+	        public void onClick(View v) { 
+	        	doBarcodeSearch();
+	        }
+		});
+		
 	}
 
 	/**
@@ -114,7 +129,6 @@ public class ManageProductActivity extends Activity{
 	 */
 	private void setupActionBar() {
 
-		
 		ActionBar actionbar = getActionBar();         
 //		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
 //		actionbar.setCustomView(custom_action_bar);
@@ -125,7 +139,6 @@ public class ManageProductActivity extends Activity{
 		actionbar.setTitle("상품등록");
 		
 		getActionBar().setDisplayHomeAsUpEnabled(false);
-
 	}
 
 	@Override
@@ -152,6 +165,26 @@ public class ManageProductActivity extends Activity{
 		return super.onOptionsItemSelected(item);
 	}
 
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{    
+	    if (resultCode == RESULT_OK) 
+	    {
+	        // Scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT)
+	        // Type of the scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE)
+	        Toast.makeText(this, "Scan Result = " + data.getStringExtra(ZBarConstants.SCAN_RESULT), Toast.LENGTH_SHORT).show();
+	        Toast.makeText(this, "Scan Result Type = " + data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE), Toast.LENGTH_SHORT).show();
+	        // The value of type indicates one of the symbols listed in Advanced Options below.
+	        
+	        
+	        String barcode = data.getStringExtra(ZBarConstants.SCAN_RESULT);
+			m_textBarcode.setText(barcode);
+			
+	    } else if(resultCode == RESULT_CANCELED) {
+	        Toast.makeText(this, "Camera unavailable", Toast.LENGTH_SHORT).show();
+	    }
+	}
+	
 	private void fillCustomerFormFromList(int position) {
 
 		String barcode = mfillMaps.get(position).get("barcode");
@@ -195,19 +228,30 @@ public class ManageProductActivity extends Activity{
 		}
 	}
 
-	public void doSearch(){
+	public void doBarcodeSearch() {
 
+    	Intent intent = new Intent(ManageProductActivity.this, ZBarScannerActivity.class);
+    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
+	}
+	
+	public void doSearch() {
+		// 입력된 코드 가져오기
+    	String barcode = m_textBarcode.getText().toString();
+	    String productName = m_textProductName.getText().toString();
+	    String customerName = m_textCustomerName.getText().toString();
+	    
+	    /* 필수인경우
+    	if (barcode.equals("") || productName.equals("")  || customerName.equals("")) {
+    		Toast.makeText(this, "비어있는 칸이 있습니다", Toast.LENGTH_SHORT).show();
+    		return;
+    	}*/
+    	
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
  		dialog.setCancelable(false);
  		dialog.show();
  		
- 		// 입력된 코드 가져오기
-    	String barcode = m_textBarcode.getText().toString();
-	    String productName = m_textProductName.getText().toString();
-	    String customerName = m_textCustomerName.getText().toString();
-	    
     	// 쿼리 작성하기
 	    String query =  "";
     	query += "select * from Goods ";

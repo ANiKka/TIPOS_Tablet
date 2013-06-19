@@ -63,8 +63,6 @@ public class ComparePriceActivity extends Activity{
         textView = (TextView) findViewById(R.id.textView5);
         textView.setTypeface(typeface);
         
-        
-        
         m_customer = (TextView)findViewById(R.id.editTextCustomer);
 		m_customer2 = (TextView)findViewById(R.id.editTextCustomer2);
 		m_barcode = (TextView)findViewById(R.id.editTextBarcord);
@@ -84,8 +82,6 @@ public class ComparePriceActivity extends Activity{
 	        	doSearch();
 	        }
 		});
-		
-        
 	}
 
 	/**
@@ -103,7 +99,6 @@ public class ComparePriceActivity extends Activity{
 		actionbar.setTitle("가격비교");
 		
 		getActionBar().setDisplayHomeAsUpEnabled(false);
-
 	}
 
 	@Override
@@ -263,139 +258,4 @@ public class ComparePriceActivity extends Activity{
         SimpleAdapter adapter = new SimpleAdapter(ComparePriceActivity.this, mfillMaps, R.layout. activity_listview_compare_list, from, to);
         m_listPriceSearch.setAdapter(adapter);
     }
-/*
-	class MyAsyncTask extends AsyncTask<String, Integer, String>{
-
-        ArrayList<JSONObject> CommArray=new ArrayList<JSONObject>();
-        
-        protected String doInBackground(String... urls) {
-        	Log.i("Android"," MSSQL Connect Example.");
-        	Connection conn = null;
-        	ResultSet reset = null;
-        	int i = 0;
-        	try {
-        	    Class.forName("net.sourceforge.jtds.jdbc.Driver").newInstance();
-        	    Log.i("Connection","MSSQL driver load");
-
-        	    conn = DriverManager.getConnection("jdbc:jtds:sqlserver://122.49.118.102:18971/TIPS","sa","tips");
-        	   // conn = DriverManager.getConnection("jdbc:jtds:sqlserver://172.30.1.18:1433/TIPS","sa","tips");
-        	    Log.i("Connection","MSSQL open");
-        	    Statement stmt = conn.createStatement();
-        	    
-        	    String customer = urls[0];
-        	    String customer2 = urls[1];
-        	    String barcode = urls[2];
-        	    String productionName = urls[3];
-        	    String local = urls[4];
-        	    String query = "";
-        	    
-        	    
-        	    if(customer.equals("") && customer2.equals("") && barcode.equals("") && productionName.equals("") && local.equals(""))
-        	    {
-        	    	query += "select BarCode, G_Name, Pur_Pri, Sell_Pri from Goods";
-        	    }
-        	    else
-        	    {
-        	    	if(!customer.equals("")){
-        	    			query = "Bus_Code = '" + customer + "' ";
-        	    			i++;
-        	    	}
-        	    	if(!customer2.equals("")){
-        	    		if(i>0){
-        	    			query += "and Bus_Name = '" + customer2 + "' ";
-        	    		} else {
-        	    			query = "Bus_Name = '" + customer2 + "' ";
-        	    			i++;
-        	    		}
-        	    	}
-        	    	if(!barcode.equals("")){
-        	    		if(i>0){
-        	    			query += "and Barcode = '" + barcode + "' ";
-        	    		} else {
-        	    			query = "Barcode = '" + barcode + "' ";
-        	    			i++;
-        	    		}
-        	    	}
-        	    	
-        	    	if(!productionName.equals("")){
-        	    		if(i>0){
-        	    			query += "and G_Name = '" + productionName + "' ";
-        	    		} else {
-        	    			query = "G_Name = '" + productionName + "' ";
-        	    			i++;
-        	    		}
-        	    	}
-        	    	query = "select BarCode, G_Name, Pur_Pri, Sell_Pri from Goods where " + query ;
-        	    	Log.w("MSSQL", "Query : " + query);
-
-        	    }
-        	    reset = stmt.executeQuery(query);
-        	    
-        	    while(reset.next()){
-					Log.w("Connection:",reset.getString(2));
-					
-					JSONObject Obj = new JSONObject();
-				    // original part looks fine:
-				    Obj.put("Barcode",reset.getString(1).trim());
-				    Obj.put("G_Name",reset.getString(2).trim());
-				    Obj.put("Pur_Pri",reset.getString(3).trim());
-				    Obj.put("Sell_Pri",reset.getString(4).trim());
-				    CommArray.add(Obj);
-				}
-        	    conn.close();
-        	
-        	 } catch (Exception e) {
-        	    Log.w("Error connection","" + e.getMessage());		   
-        	 }
-        	publishProgress(0);
-			return null;
-        }
-
-        protected void onProgressUpdate(Integer[] values) {
-            Log.e("HTTPJSON", "onProgressUpdate" );
-        }
-
-        protected void onPostExecute(String result) {
-        	super.onPostExecute(result);
-        	
-        	dialog.dismiss();
-            dialog.cancel();
-            
-			String[] from = new String[] {"Barcode", "G_Name", "Pur_Pri", "Sell_Pri"};
-	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-	        
-	 	        		
-        	Iterator<JSONObject> iterator = CommArray.iterator();
-    		while (iterator.hasNext()) {
-            	JSONObject json = iterator.next();
-            	
-            	try {
-    				String Barcode = json.getString("Barcode");
-    				String G_Name = json.getString("G_Name");
-    				String Pur_Pri = json.getString("Pur_Pri");
-    				String Sell_Pri = json.getString("Sell_Pri");
-    				
-    				// prepare the list of all records
-		            HashMap<String, String> map = new HashMap<String, String>();
-		            map.put("Barcode", Barcode);
-		            map.put("G_Name", G_Name);
-		            map.put("Pur_Pri", Pur_Pri);
-		            map.put("Sell_Pri", Sell_Pri);
-		            mfillMaps.add(map);
-    		 
-    			} catch (JSONException e) {
-    				// TODO Auto-generated catch block
-    				e.printStackTrace();
-    			}
-    		}
-
-	        // fill in the grid_item layout
-	        SimpleAdapter adapter = new SimpleAdapter(ComparePriceActivity.this, mfillMaps, R.layout.activity_listview_compare_list, from, to);
-	        m_listPriceSearch.setAdapter(adapter);
-	        
-            Toast.makeText(getApplicationContext(), "조회 완료", 0).show();
-        }
-    }
-*/
-
 }
