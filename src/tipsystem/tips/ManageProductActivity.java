@@ -1,7 +1,6 @@
 package tipsystem.tips;
 
 import java.util.ArrayList;
-
 import java.util.HashMap;
 import java.util.List;
 
@@ -9,20 +8,30 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.tips.ManageProductListActivity.ProductList;
+import tipsystem.tips.ManageProductListActivity.ProductListAdapter;
 import tipsystem.utils.MSSQL;
-
-import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.app.NavUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -31,34 +40,42 @@ import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.support.v4.app.NavUtils;
 
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
-
+/*
+ * 기본관리 -> 상품관리
+ * */
 public class ManageProductActivity extends Activity{
 	private static final int ZBAR_SCANNER_REQUEST = 0;
 	private static final int ZBAR_QR_SCANNER_REQUEST = 1;
 	
-	EditText m_textBarcode;
+	TextView m_textBarcode;
 	TextView m_textProductName;
 	TextView m_textCustomerCode;
 	TextView m_textCustomerName;
 	TextView m_textCustomerClassification1;
 	TextView m_textCustomerClassification2;
 	TextView m_textCustomerClassification3;
-	Spinner m_spinTaxation;
-	CheckBox m_checkSurtax;
-	Spinner m_spinGroup;
 	TextView m_textStandard;
 	TextView m_textAcquire;
 	TextView m_textPurchasePrice;
 	TextView m_textPurchasePriceOriginal;
 	TextView m_textSalesPrice;
 	TextView m_textDifferentRatio;
+	Spinner m_spinTaxation;
+	CheckBox m_checkSurtax;
+	Spinner m_spinGroup;
 	ListView m_listProduct;
     
-    List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
+	int index = 0;
+	int size = 100;
+	int firstPosition = 0; 
+	//int m_position = 0;
+	
+    ArrayList<ProductList> productArray = new ArrayList<ProductList>();
+    
+
 	private ProgressDialog dialog;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -83,45 +100,69 @@ public class ManageProductActivity extends Activity{
 		m_textPurchasePriceOriginal = (TextView)findViewById(R.id.editTextPurchasePriceOriginal);
 		m_textSalesPrice = (TextView)findViewById(R.id.editTextSalesPrice);
 		m_textDifferentRatio = (TextView)findViewById(R.id.editTextDifferentRatio);
-
 		m_listProduct = (ListView)findViewById(R.id.listviewProductList);
-		m_listProduct.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position,
-                    long id) {
-                fillCustomerFormFromList(position);
-            }
-        });
-		
 		Button searchButton = (Button) findViewById(R.id.buttonProductSearch);
 		Button registButton = (Button) findViewById(R.id.buttonProductRegist);
 		Button renewButton = (Button) findViewById(R.id.buttonProductRenew);
 		Button modifyButton = (Button) findViewById(R.id.buttonProductModify);
 		Button buttonBarcode = (Button) findViewById(R.id.buttonBarcode);
 		
+		// 바코드 검색 버튼 클릭시 나오는 목록 셋팅
+		final String[] option = new String[] { "목록", "카메라"};
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, option);
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("Select Option");
+		
+		// ManageProductListActivity연결 intent 객체 생성
+		final Intent intent = new Intent(this, ManageProductListActivity.class);
+		// 목록 선택시 이벤트 처리
+		builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+                // TODO Auto-generated method stub
+				if(which == 0){ // 목록으로 조회할 경우
+			    	startActivityForResult(intent, 1);
+				} else { // 스캔할 경우
+					Intent intent = new Intent(ManageProductActivity.this, ZBarScannerActivity.class);
+			    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);				
+				}
+          }
+		}); 
+		
+		//조회 버튼 클릭
 		searchButton.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) { 
-	        	doSearch();
+	        	doQuery(1);
 	        }
 		});
-		
+		//등록 버튼 클릭		
 		registButton.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) { 
-	        	doRegist();
+	        	doQuery(2);
 	        }
 		});
 		
+		// 수정 버튼 클릭
+		modifyButton.setOnClickListener(new OnClickListener() {
+	        public void onClick(View v) { 
+	        	doQuery(3);
+	        }
+		});
+
+		//초기화 버튼 클릭		
 		renewButton.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) { 
 	        	doClear();
 	        }
 		});
-		
+
+		final AlertDialog listDialog = builder.create();
+		// 검색 버튼 클릭시 다이얼로그 박스 보여줌
 		buttonBarcode.setOnClickListener(new OnClickListener() {
-	        public void onClick(View v) { 
-	        	doBarcodeSearch();
+	        public void onClick(View v) {
+	        	listDialog.show();
+	        	//doBarcodeSearch();
 	        }
-		});
+		}); 
 		
 		// 바코드 입력 후 포커스 딴 곳을 옮길 경우
 		m_textBarcode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -131,7 +172,7 @@ public class ManageProductActivity extends Activity{
 			    	String barcode = null; 
 			    	barcode = m_textBarcode.getText().toString();
 			    	if(!barcode.equals("")) // 입력한 Barcode가 값이 있을 경우만
-			    		fillGoodNameFromBarcode(barcode);	    	
+			    		doQuery(0);	    	
 			    }
 			}
 		});
@@ -148,8 +189,15 @@ public class ManageProductActivity extends Activity{
 			    }
 			}
 		});	
-		          
 		
+		m_listProduct.setOnItemClickListener(new OnItemClickListener() {
+	        @Override
+	        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+	        	//m_position = position;
+	        	Log.w("asdfasdf", "asdfasdfasf" + position);
+	    		fillCustomerFormFromArray(productArray, position);
+	        }
+	    });
 	}
 
 	/**
@@ -196,62 +244,65 @@ public class ManageProductActivity extends Activity{
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{    
-	    if (resultCode == RESULT_OK) 
-	    {
-	        // Scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT)
-	        // Type of the scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE)
-	        Toast.makeText(this, "Scan Result = " + data.getStringExtra(ZBarConstants.SCAN_RESULT), Toast.LENGTH_SHORT).show();
-	        Toast.makeText(this, "Scan Result Type = " + data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE), Toast.LENGTH_SHORT).show();
-	        // The value of type indicates one of the symbols listed in Advanced Options below.
-	        
-	        
-	        String barcode = data.getStringExtra(ZBarConstants.SCAN_RESULT);
-			m_textBarcode.setText(barcode);
-			fillGoodNameFromBarcode(barcode);
-			
-	    } else if(resultCode == RESULT_CANCELED) {
-	        Toast.makeText(this, "Camera unavailable", Toast.LENGTH_SHORT).show();
-	    }
+		super.onActivityResult(requestCode, resultCode, data);
+		
+		if(!productArray.isEmpty()) productArray.clear();
+		switch(requestCode){
+			// 카메라 스캔을 통한 바코드 검색
+			case 0 :
+				if (resultCode == RESULT_OK) 
+			    {
+			        // Scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT)
+			        // Type of the scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE)
+			        Toast.makeText(this, "Scan Result = " + data.getStringExtra(ZBarConstants.SCAN_RESULT), Toast.LENGTH_SHORT).show();
+			        Toast.makeText(this, "Scan Result Type = " + data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE), Toast.LENGTH_SHORT).show();
+			        // The value of type indicates one of the symbols listed in Advanced Options below.
+			       
+			        String barcode = data.getStringExtra(ZBarConstants.SCAN_RESULT);
+					m_textBarcode.setText(barcode);
+					doQuery(0);
+					
+			    } else if(resultCode == RESULT_CANCELED) {
+			        Toast.makeText(this, "Camera unavailable", Toast.LENGTH_SHORT).show();
+			    }
+				break;
+			// 목록 검색을 통한 바코드 검색				
+			case 1 :
+				if(resultCode == RESULT_OK && data != null) {
+					
+		        	ArrayList<String> fillMaps = data.getStringArrayListExtra("fillmaps");		        	
+		        	ProductList pl = new ProductList(fillMaps.get(0),
+								    				fillMaps.get(1),
+								    				fillMaps.get(2),
+								    				fillMaps.get(3),
+								    				fillMaps.get(4),
+								    				fillMaps.get(5),
+								    				fillMaps.get(6),
+								    				fillMaps.get(7),
+								    				fillMaps.get(8),
+								    				fillMaps.get(9),
+								    				fillMaps.get(10),
+								    				fillMaps.get(11),
+								    				fillMaps.get(12),
+								    				fillMaps.get(13),
+								    				fillMaps.get(14),
+								    				fillMaps.get(15),
+								    				fillMaps.get(16),
+								    				fillMaps.get(17));
+		    		productArray.add(pl);
+		    		fillCustomerFormFromArray(productArray, 0);
+		        }
+		        // 수행을 제대로 하지 못한 경우
+		        else if(resultCode == RESULT_CANCELED)
+		        {
+		        	
+		        }
+				break;
+			}
+	     
 	}
 	
-	private void fillGoodNameFromBarcode(String barcode) {
-		
-		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
- 		
-		// TODO Auto-generated method stub
-		String query = "";
-		
-		query = "SELECT G_Name From Goods WHERE BarCode = '" + barcode + "';";
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-			@Override
-			public void onRequestCompleted(JSONArray results) {
-				dialog.dismiss();
-				dialog.cancel();
-				if (results.length() > 0) {
-					try {
-						JSONObject json = results.getJSONObject(0);
-						String g_name = json.getString("G_Name");
-						m_textProductName.setText(g_name);
-						
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-		            //Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
-				}
-				else {
-		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();					
-				}
-			}
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
-		
-	}
-
+	// 거래처 코드로 거래처명 자동 완성
 	private void fillBusNameFromBusCode(String customerCode) {
 		// TODO Auto-generated method stub
 		// 로딩 다이알로그 
@@ -279,122 +330,6 @@ public class ManageProductActivity extends Activity{
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-		            //Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
-				}
-				else {
-		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();					
-				}
-			}
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
-	}
-	
-	private void fillCustomerFormFromList(int position) {
-
-		String barcode = mfillMaps.get(position).get("barcode");
-		String gName = mfillMaps.get(position).get("gName");
-		String busCode = mfillMaps.get(position).get("busCode");
-		String busName = mfillMaps.get(position).get("busName");
-		String purPri = mfillMaps.get(position).get("purPri");
-		String sellPri = mfillMaps.get(position).get("sellPri");
-		String taxYN = mfillMaps.get(position).get("taxYN");
-		String stdSize = mfillMaps.get(position).get("stdSize");
-		String obtain = mfillMaps.get(position).get("obtain");
-		String purCost = mfillMaps.get(position).get("purCost");
-		String profitRate = mfillMaps.get(position).get("profitRate");
-		String L_Code = mfillMaps.get(position).get("L_Code");
-		String M_Code = mfillMaps.get(position).get("M_Code");
-		String S_Code = mfillMaps.get(position).get("S_Code");
-		String surtax = mfillMaps.get(position).get("surtax");
-		
-		m_textBarcode.setText(barcode);
-		m_textProductName.setText(gName);
-		m_textCustomerCode.setText(busCode);
-		m_textCustomerName.setText(busName);
-		m_textStandard.setText(stdSize);
-		m_textAcquire.setText(obtain);
-		m_textPurchasePrice.setText(purPri); // 매입가
-		m_textSalesPrice.setText(sellPri); //판매가
-		m_textPurchasePriceOriginal.setText(purCost); //매입원가
-		m_textDifferentRatio.setText(profitRate); // 이의율
-		m_textCustomerClassification1.setText(L_Code);
-		m_textCustomerClassification2.setText(M_Code);
-		m_textCustomerClassification3.setText(S_Code); 
-		if(taxYN.equals("0"))
-			m_spinTaxation.setSelection(1);
-		else
-			m_spinTaxation.setSelection(0);
-		if(surtax.equals("0")){
-			m_checkSurtax.setChecked(false);
-		}else{
-			
-			m_checkSurtax.setChecked(true);
-		}
-	}
-
-	public void doBarcodeSearch() {
-
-    	Intent intent = new Intent(ManageProductActivity.this, ZBarScannerActivity.class);
-    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
-	}
-	
-	public void doSearch() {
-		// 입력된 코드 가져오기
-    	String barcode = m_textBarcode.getText().toString();
-	    String productName = m_textProductName.getText().toString();
-	    String customerName = m_textCustomerName.getText().toString();
-	    
-	    /* 필수인경우
-    	if (barcode.equals("") || productName.equals("")  || customerName.equals("")) {
-    		Toast.makeText(this, "비어있는 칸이 있습니다", Toast.LENGTH_SHORT).show();
-    		return;
-    	}*/
-    	
-		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
- 		
-    	// 쿼리 작성하기
-	    String query =  "";
-    	query += "select * from Goods ";
-	    
-	    if (!barcode.equals("") || !productName.equals("") || !customerName.equals("")){
-	    	query += " WHERE";
-		        
-		    boolean added = false;
-		    if (!barcode.equals("")){
-		    	query += " Barcode = '" + barcode + "'";
-		    	added = true;
-		    }
-		    
-		    if (!productName.equals("")){
-		    	if (added) query += " AND ";
-		    	
-		    	query += " G_Name = '" + productName  + "'";
-		    	added = true;
-		    }
-		    
-		    if (!customerName.equals("")){
-		    	if (added) query += " AND ";
-		    	
-		    	query += " Bus_Name = '" + customerName  + "'";
-		    	added = true;
-		    }
-		    query += ";";
-	    } else {
-	    	query = "SELECT TOP 2000 * FROM Goods WHERE BarCode NOT IN(SELECT TOP 1 BarCode FROM Goods);";
-	    }
-	    //query = "SELECT * FROM Goods where BarCode = '9800440210028';";
-	    // 콜백함수와 함께 실행
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-			@Override
-			public void onRequestCompleted(JSONArray results) {
-				dialog.dismiss();
-				dialog.cancel();
-				if (results.length() > 0) {
-					updateListView(results);
 		            Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
 				}
 				else {
@@ -404,8 +339,10 @@ public class ManageProductActivity extends Activity{
 	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
 	}
 
-	public void doRegist(){
+	// SQL QUERY 실행
+	public void doQuery(final int code){
 		
+		String query = "";
 		String barcode = m_textBarcode.getText().toString();
 	    String productName = m_textProductName.getText().toString();
 	    String customerCode = m_textCustomerCode.getText().toString();
@@ -422,27 +359,120 @@ public class ManageProductActivity extends Activity{
 		String salesPrice = m_textSalesPrice.getText().toString();
 		String ratio = m_textDifferentRatio.getText().toString();
 		String surtax = null;
-		if(m_checkSurtax.isChecked())	surtax = "1";
-		else	surtax = "0";
+		if(group.equals(""))	group = null;
 		
-		if(taxation.equals("면세"))		taxation = "0";
-		else	taxation = "1";
 		
-		if (barcode.equals("") || productName.equals("") || customerCode.equals("") || customerName.equals("") ||
-			customerClass1.equals("") || customerClass2.equals("") || customerClass3.equals("") || standard.equals("") || acquire.equals("") ||
-			purchasePrice.equals("") || purchasePriceOriginal.equals("") || salesPrice.equals("") || ratio.equals("")) {
-    	Toast.makeText(getApplicationContext(), "비어있는 필드가 있습니다", Toast.LENGTH_SHORT).show();
-    	return;
-    	}
 		
-	    String query =  "";
-    	query += "insert into Goods(BarCode, G_Name, Bus_Code, Bus_Name, Tax_YN, Std_Size, Obtain, Pur_Pri, Pur_Cost," +
-    			" Sell_Pri, Profit_Rate, L_Code, M_Code, S_Code, Add_Tax) values('" + barcode + "', '" + productName + "'," +
-    			"'"+ customerCode + "', '" + customerName + "', '" + taxation + "', '" + standard + "', '" + acquire + "'," +
-    			"'" + purchasePrice + "', '" + purchasePriceOriginal + "', '" + salesPrice + "', '" + ratio + "'," +
-    			"'" + customerClass1 + "', '" + customerClass2 + "', '" + customerClass3 + "', '" + surtax + "'); SELECT * FROM Goods WHERE BarCode = '" + barcode + "';";
-    	
-    	// 콜백함수와 함께 실행
+		switch(code){
+		
+			case 0 :
+				query = "SELECT * FROM Goods WHERE Barcode = '" + m_textBarcode.getText().toString() + "';";
+				break;
+				
+			case 1 :
+		    	query += "select * from Goods ";
+			    
+			    if (!barcode.equals("") || !productName.equals("") || !customerName.equals("")){
+			    	query += " WHERE";
+				        
+				    boolean added = false;
+				    if (!barcode.equals("")){
+				    	query += " Barcode = '" + barcode + "'";
+				    	added = true;
+				    }
+				    
+				    if (!productName.equals("")){
+				    	if (added) query += " AND ";
+				    	
+				    	query += " G_Name = '" + productName  + "'";
+				    	added = true;
+				    }
+				    
+				    if (!customerName.equals("")){
+				    	if (added) query += " AND ";
+				    	
+				    	query += " Bus_Name = '" + customerName  + "'";
+				    	added = true;
+				    }
+				    query += ";";
+			    } else {
+					query = "SELECT TOP " + size + " * FROM Goods WHERE BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods);";
+			    }
+			    break;
+			    
+			case 2 :
+
+				if(m_checkSurtax.isChecked())
+					surtax = "1";
+				else
+					surtax = "0";
+				
+				if(taxation.equals("면세"))
+					taxation = "0";
+				else
+					taxation = "1";
+				
+				if (barcode.equals("") || productName.equals("") || customerCode.equals("") || customerName.equals("") ||
+					customerClass1.equals("") || customerClass2.equals("") || customerClass3.equals("") || standard.equals("") || acquire.equals("") ||
+					purchasePrice.equals("") || purchasePriceOriginal.equals("") || salesPrice.equals("") || ratio.equals("")) {
+					Toast.makeText(getApplicationContext(), "비어있는 필드가 있습니다", Toast.LENGTH_SHORT).show();
+					return;
+		    	}
+				
+		    	query += "insert into Goods(BarCode, G_Name, Bus_Code, Bus_Name, Tax_YN, Std_Size, Obtain, Pur_Pri, Pur_Cost," +
+		    			" Sell_Pri, Profit_Rate, L_Code, M_Code, S_Code, VAT_CHK) values('" + barcode + "', '" + productName + "'," +
+		    			"'"+ customerCode + "', '" + customerName + "', '" + taxation + "', '" + standard + "', '" + acquire + "'," +
+		    			"'" + purchasePrice + "', '" + purchasePriceOriginal + "', '" + salesPrice + "', '" + ratio + "'," +
+		    			"'" + customerClass1 + "', '" + customerClass2 + "', '" + customerClass3 + "', '" + surtax + "');" +
+		    			"SELECT * FROM Goods WHERE BarCode = '" + barcode + "';";
+		    	break;
+		    // 수정
+			case 3 :
+				
+				String class1 = "";
+				String class2 = "";
+				String class3 = "";
+				int stringLoc1 = customerClass1.indexOf("]");
+				int stringLoc2 = customerClass2.indexOf("]");
+				int stringLoc3 = customerClass3.indexOf("]");
+				class1 = customerClass1.substring(1, stringLoc1);
+				class2 = customerClass2.substring(1, stringLoc2);
+				class3 = customerClass3.substring(1, stringLoc3);
+				
+				if(m_checkSurtax.isChecked())
+				surtax = "1";
+				else
+					surtax = "0";
+				
+				if(taxation.equals("면세"))
+					taxation = "0";
+				else
+					taxation = "1";
+				
+				if (barcode.equals("") || productName.equals("") || customerCode.equals("") || customerName.equals("") ||
+					customerClass1.equals("") || customerClass2.equals("") || customerClass3.equals("") || standard.equals("") || acquire.equals("") ||
+					purchasePrice.equals("") || purchasePriceOriginal.equals("") || salesPrice.equals("") || ratio.equals("")) {
+					Toast.makeText(getApplicationContext(), "비어있는 필드가 있습니다", Toast.LENGTH_SHORT).show();
+					return;
+		    	}
+				
+		    	query += "Update Goods Set BarCode = '" + barcode + "', G_Name = '" + productName + "', Bus_Code = '" + customerCode + "', " +
+		    			  "Bus_Name = '" + customerName + "', Tax_YN = '" + taxation + "', Std_Size = '" + standard + "', Obtain = '" + acquire + "', " +
+		    			  "Pur_Pri = '" + purchasePrice + "', Pur_Cost = '" + purchasePriceOriginal + "', Sell_Pri = '" + salesPrice + "', " + 
+		    			  "Profit_Rate = '" + ratio + "', L_Code = '" + class1 + "', M_Code = '" + class2 + "', S_Code = '" + class3 +
+		    			  "', VAT_CHK = '" + surtax + "' WHERE BarCode = '" + barcode + "';" +
+		    			  "SELECT * FROM Goods WHERE BarCode = '" + barcode + "';";
+		    	break;
+				
+		}
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+
+	    // 콜백함수와 함께 실행
 	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
 			@Override
@@ -450,17 +480,144 @@ public class ManageProductActivity extends Activity{
 				dialog.dismiss();
 				dialog.cancel();
 				if (results.length() > 0) {
-					//updateListView(results);
-		            Toast.makeText(getApplicationContext(), "등록 완료", Toast.LENGTH_SHORT).show();
+					if(code == 0){  
+						settingArray(results, 0);
+					} else if (code == 1 || code == 2){ // code == 1(조회) || code == 2(등록)
+						settingArray(results, 1);
+						if(code == 1)
+							Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
+						else
+							onAlert(code);
+					} else {
+						settingArray(results, 3);
+						onAlert(code);						
+					}
 				}
 				else {
-		            Toast.makeText(getApplicationContext(), "등록 실패", Toast.LENGTH_SHORT).show();
+					if(code < 2)
+						Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+					else 
+						Toast.makeText(getApplicationContext(), "등록 실패", Toast.LENGTH_SHORT).show();
 				}
 			}
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);    	
+	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);		
 	}
+
+	public void onAlert(int code) {
+		// TODO Auto-generated method stub
+		// super.onBackPressed(); //지워야 실행됨
+		
+		AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+		if(code == 2)
+			alertDialog.setMessage("정상적으로 등록되었습니다..");
+		else
+			alertDialog.setMessage("정상적으로 수정되었습니다..");
+		alertDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+
+			public void onClick(DialogInterface dialog, int which) {
+				// process전체 종료
+				dialog.cancel();
+			}
+		});
+		alertDialog.show();
+	} 
+
 	
-	public void doClear(){
+	// 리스트뷰 띄우기
+    public void settingArray(JSONArray results, int code){
+		
+    	if(code == 3){
+    		Log.w("test1", "asdfasdfasdf");
+			productArray.clear();
+			Log.w("test1", "asdfasdfasdf22222222222222222222222");
+    	}
+		ProductList pl;
+		for(int i = 0; i < size-index; i++){
+			JSONObject json;
+			try {
+				json = results.getJSONObject(i);
+				pl = new ProductList(json.getString("BarCode"),
+									json.getString("G_Name"),
+									json.getString("Pur_Pri"),
+									json.getString("Sell_Pri"),
+									json.getString("Bus_Code"),
+									json.getString("Bus_Name"),
+									json.getString("Tax_YN"),
+									json.getString("Std_Size"),
+									json.getString("Obtain"),
+									json.getString("Pur_Cost"),
+									json.getString("Profit_Rate"),
+									json.getString("L_Code"),
+									json.getString("M_Code"),
+									json.getString("S_Code"),
+									json.getString("L_Name"),
+									json.getString("M_Name"),
+									json.getString("S_Name"),
+									json.getString("VAT_CHK"));
+					productArray.add(pl);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		if(code == 0)
+			fillCustomerFormFromArray(productArray, 0);
+		else if (code == 1 || code == 2)
+			showListView();
+		//else 
+			//fillCustomerFormFromArray(productArray, m_position);
+    }
+    
+    // 리스트뷰 보이기
+    public void showListView (){
+
+    	ProductListAdapter ProductList = new ProductListAdapter(this, R.layout.activity_listview_product_list, productArray);
+		ListView m_listProduct = (ListView)findViewById(R.id.listviewProductList);
+		
+		firstPosition = m_listProduct.getFirstVisiblePosition();
+		m_listProduct.setAdapter(ProductList);
+		m_listProduct.setSelection(firstPosition);
+
+	}
+
+    // 입력 폼 채우기
+    public void fillCustomerFormFromArray(ArrayList<ProductList> productArray1, int position){
+
+		m_textBarcode.setText(productArray1.get(position).Barcode);
+		m_textProductName.setText(productArray1.get(position).G_Name);
+		m_textCustomerCode.setText(productArray1.get(position).Bus_Code);
+		m_textCustomerName.setText(productArray1.get(position).Bus_Name);
+		m_textStandard.setText(productArray1.get(position).stdSize);
+		m_textAcquire.setText(productArray1.get(position).obtain);
+		m_textPurchasePrice.setText(productArray1.get(position).Pur_Pri); // 매입가
+		m_textSalesPrice.setText(productArray1.get(position).Sell_Pri); //판매가
+		m_textPurchasePriceOriginal.setText(productArray1.get(position).purCost); //매입원가
+		m_textDifferentRatio.setText(productArray1.get(position).profitRate); // 이의율
+		String class1 = "[" + productArray1.get(position).L_Code + "]" + "" + "[" + productArray1.get(position).L_Name + "]";
+		String class2 = "[" + productArray1.get(position).M_Code + "]" + "" + "[" + productArray1.get(position).M_Name + "]";
+		String class3 = "[" + productArray1.get(position).S_Code + "]" + "" + "[" + productArray1.get(position).S_Name + "]";
+		m_textCustomerClassification1.setText(class1);
+		m_textCustomerClassification2.setText(class2);
+		m_textCustomerClassification3.setText(class3);
+		Log.w("test1", "2");
+		if(productArray1.get(position).taxYN.equals("0")) {
+			m_spinTaxation.setSelection(1);
+		} else {
+			m_spinTaxation.setSelection(0);
+		}
+		Log.w("test1", "3");
+		if(productArray1.get(position).surtax.equals("0")){
+			m_checkSurtax.setChecked(false);
+		} else {
+			m_checkSurtax.setChecked(true);
+		}
+		Log.w("test1", "4");
+    }
+	
+    // 새로 입력
+    public void doClear(){
+    	
 		m_textBarcode.setText("");
 		m_textProductName.setText("");
 		m_textCustomerCode.setText("");
@@ -478,60 +635,121 @@ public class ManageProductActivity extends Activity{
 		m_checkSurtax.setChecked(false);
 	}
 	
-    public void updateListView(JSONArray results) {
-		
-		String[] from = new String[] {"barcode", "gName", "purPri", "sellPri"};
-        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
-        
-        if (!mfillMaps.isEmpty()) mfillMaps.clear();
-        
-        for (int i = 0; i < results.length(); i++) {
-        	Log.w("test", "4");	
-        	try {
-            	JSONObject json = results.getJSONObject(i);
-				String barcode = json.getString("BarCode");
-				String gName = json.getString("G_Name");
-				String purPri = json.getString("Pur_Pri");
-				String sellPri = json.getString("Sell_Pri");
-				String busCode = json.getString("Bus_Code");
-				String busName = json.getString("Bus_Name");
-				String taxYN = json.getString("Tax_YN");
-				String stdSize = json.getString("Std_Size");
-				String obtain = json.getString("Obtain");
-				String purCost = json.getString("Pur_Cost");
-				String profitRate = json.getString("Profit_Rate");
-				String L_Code = json.getString("L_Code");
-				String M_Code = json.getString("M_Code");
-				String S_Code = json.getString("S_Code");
-				String surtax = json.getString("Add_Tax");
+	protected Dialog onCreateDialog(int id) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage("AlertDialog")
+		       .setCancelable(false)
+		       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		        	   dialog.cancel();     
+		           }
+		       })
+		       .setNegativeButton("No", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		                dialog.cancel();
+		           }
+		       });
+		AlertDialog alert = builder.create();
+		return alert;
+	}
+	
+	class ProductList {
+		ProductList(String aBarcode, String aG_Name, String aPur_Pri, String aSell_Pri, String aBusCode, String aBusName,
+					String ataxYN, String astdSize, String aobtain, String apurCost, String aprofitRate, String aL_Code,
+					String aM_Code, String aS_Code, String aL_Name, String aM_Name, String aS_Name, String asurtax){
+			Barcode = aBarcode;
+			G_Name = aG_Name;
+			Pur_Pri = aPur_Pri;
+			Sell_Pri = aSell_Pri;
+			Bus_Code = aBusCode;
+			Bus_Name= aBusName;
+			taxYN = ataxYN;
+			stdSize = astdSize;
+			obtain = aobtain;
+			purCost = apurCost;
+			profitRate = aprofitRate;
+			L_Code = aL_Code;
+			M_Code = aM_Code;
+			S_Code = aS_Code;
+			L_Name = aL_Name;
+			M_Name = aM_Name;
+			S_Name = aS_Name;			
+			surtax = asurtax;
+			}	
+		String Barcode;
+		String G_Name;
+		String Pur_Pri;
+		String Sell_Pri;
+		String Bus_Code;
+		String Bus_Name;
+		String taxYN;
+		String stdSize;
+		String obtain;
+		String purCost;
+		String profitRate;
+		String L_Code;
+		String M_Code;
+		String S_Code;
+		String L_Name;
+		String M_Name;
+		String S_Name;
+		String surtax;		
+	}
+	
+	class ProductListAdapter extends BaseAdapter 
+	{
 
-				// prepare the list of all records
-	            HashMap<String, String> map = new HashMap<String, String>();
-	            map.put("barcode", barcode);
-	            map.put("gName", gName);
-	            map.put("purPri", purPri);
-	            map.put("sellPri", sellPri);
-	            map.put("busCode", busCode);
-	            map.put("busName", busName);
-	            map.put("taxYN", taxYN);
-	            map.put("stdSize", stdSize);
-	            map.put("obtain", obtain);
-	            map.put("purCost", purCost);
-	            map.put("profitRate", profitRate);
-	            map.put("L_Code", L_Code);
-	            map.put("M_Code", M_Code);
-	            map.put("S_Code", S_Code);
-	            map.put("surtax", surtax);	          
-	            Log.w("test", "6");
-	            mfillMaps.add(map);
-		 
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
+		Context ctx;
+		LayoutInflater Inflater;
+		ArrayList<ProductList> arr_Goods;
+		int itemLayout;
+		
+		public ProductListAdapter(Context actx, int aitemLayout, ArrayList<ProductList> aarr_Goods)
+		{
+			ctx = actx;
+			Inflater = (LayoutInflater)actx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			arr_Goods = aarr_Goods;
+			itemLayout = aitemLayout;
 		}
-        // fill in the grid_item layout
-        SimpleAdapter adapter = new SimpleAdapter(ManageProductActivity.this, mfillMaps, R.layout. activity_listview_product_list, from, to);
-        m_listProduct.setAdapter(adapter);
-    }
-    
+
+		@Override
+		public int getCount() {
+			return arr_Goods.size();
+		}
+		@Override
+		public String getItem(int position) {
+			return arr_Goods.get(position).Barcode;
+		}
+		@Override
+		public long getItemId(int position) {
+			//returnFillMaps(position);
+			return position;
+		}
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			final int pos = position;
+			
+			if (convertView == null) {
+				convertView = Inflater.inflate(itemLayout, parent, false);
+			} 
+			
+			TextView barcode = (TextView)convertView.findViewById(R.id.item1);
+			TextView g_name = (TextView)convertView.findViewById(R.id.item2);
+			TextView sell_pri = (TextView)convertView.findViewById(R.id.item3);
+			TextView pur_pri = (TextView)convertView.findViewById(R.id.item4);
+			
+			
+			barcode.setText(arr_Goods.get(position).Barcode);
+			g_name.setText(arr_Goods.get(position).G_Name);
+			sell_pri.setText(arr_Goods.get(position).Pur_Pri);
+			pur_pri.setText(arr_Goods.get(position).Sell_Pri);
+
+			if(position == size-3){
+				index = size;
+				size = size * 2;
+				doQuery(1);
+			}
+			return convertView;
+		}
+	}
 }

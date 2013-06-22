@@ -18,8 +18,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
-import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -27,7 +25,6 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -97,8 +94,7 @@ public class MainActivity extends Activity {
 		        	Intent intent = new Intent(MainActivity.this, LoginActivity.class);
 		        	startActivity(intent);
 				}
-			})
-			.create();
+			}).create();
 		
 		m_alert.show();
 	}

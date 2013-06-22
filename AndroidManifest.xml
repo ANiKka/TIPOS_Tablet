@@ -214,6 +214,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="tipsystem.tips.ManageSalesActivity" />
         </activity>
+        
+         <activity
+            android:name="tipsystem.tips.ManageProductListActivity"
+            android:parentActivityName="tipsystem.tips.ManageSalesActivity" >
+        </activity>
     </application>
 
 </manifest>

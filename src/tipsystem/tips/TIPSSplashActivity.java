@@ -4,16 +4,11 @@ import tipsystem.utils.LocalStorage;
 import tipsystem.utils.Reachability;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
-import android.widget.ListView;
-import android.widget.RadioGroup;
-import android.widget.TextView;
 
 public class TIPSSplashActivity extends Activity {
 	
