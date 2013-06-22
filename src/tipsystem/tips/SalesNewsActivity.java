@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -76,6 +77,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	Calendar m_dateCalender1;
 	Calendar m_dateCalender2;
 	
+	NumberFormat m_numberFormat;
 	
 	
 	@Override
@@ -87,10 +89,11 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		
 		
 		m_dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
-		
+		m_numberFormat = NumberFormat.getInstance();
 		
 		m_dateCalender1 = Calendar.getInstance();
 		m_dateCalender2 = Calendar.getInstance();
+		
 		
 		
 		m_buttonSetDate = (Button) findViewById(R.id.buttonSetDate);
@@ -309,7 +312,24 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 				m_dateCalender1.get(Calendar.DAY_OF_MONTH));
 		 newDlg.show();
 	}
-
+	
+	public void onClickSetDatePrevious(View view)
+	{
+		
+		m_dateCalender1.add(Calendar.DAY_OF_MONTH, -1);
+		m_buttonSetDate.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
+		
+		m_dateCalender2.add(Calendar.DAY_OF_MONTH, -1);
+	}
+	
+	public void onClickSetDateNext(View view)
+	{
+		m_dateCalender1.add(Calendar.DAY_OF_MONTH, 1);
+		m_buttonSetDate.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
+		
+		m_dateCalender2.add(Calendar.DAY_OF_MONTH, 1);
+	}
+	
 	@Override
 	public void onTabChanged(String tabId) {
 		// TODO Auto-generated method stub
@@ -595,6 +615,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         			query = "select Office_Code, Office_Name, TSell_Pri, TSell_RePri, DC_Pri, ProFit_Pri from " + tableName;
         			query = query + " where Sale_Date = '" + period1 + "'";
         			
+        			query = query + " order by Office_Code ASC";
         			Log.e("HTTPJSON","query: " + query );
                 	reset = stmt.executeQuery(query);
     	        	    		
@@ -635,11 +656,14 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         			
         			query = "select TSell_Pri, TSell_RePri, DC_Pri, Sale_Count, ProFit_Pri from " + tableName;
         			query = query + " where Sale_Date = '" + period1 + "'";
-        			
+
         			if ( constraint.equals("") != true )
         			{
         				query = query + " and " + constraint;
         			}
+        			
+        			query = query + " order by S_Name ASC";
+        			
         			
         			Log.e("HTTPJSON","query: " + query );
                 	reset = stmt.executeQuery(query);
@@ -713,16 +737,16 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         		if ( CommArray.size() > 0 )
         		{
         			
-        			m_realSales.setText(String.format("%d", tSellPri));
+        			m_realSales.setText(m_numberFormat.format(tSellPri));
         			
-        			m_viewKNumber.setText(String.format("%d", saleNum));
+        			m_viewKNumber.setText(m_numberFormat.format(saleNum));
         			//m_viewRealSalesYesterday.setText(String.format("%d", tSellPri));
-        			m_viewPrice.setText(String.format("%d", salePri));
-        			m_viewCash.setText(String.format("%d", cashPri));
-        			m_viewCard.setText(String.format("%d", cardPri));
-        			m_viewCredit.setText(String.format("%d", decPri));
+        			m_viewPrice.setText(m_numberFormat.format(salePri));
+        			m_viewCash.setText(m_numberFormat.format(cashPri));
+        			m_viewCard.setText(m_numberFormat.format(cardPri));
+        			m_viewCredit.setText(m_numberFormat.format(decPri));
         			
-        			m_viewOther.setText(String.format("%d", 0));
+        			m_viewOther.setText(m_numberFormat.format(0));
         			
         		}
         		
@@ -749,7 +773,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         		
         		if ( CommArray.size() > 0 )
         		{
-        			m_viewRealSalesYesterday.setText(String.format("%d", tSellPri));
+        			m_viewRealSalesYesterday.setText(m_numberFormat.format(tSellPri));
         		}
         		
         		//Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
@@ -893,11 +917,11 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
     	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
     	        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
     	        
-    	        int [] rSale = new int [24];
-    	        int [] rSale1 = new int [24];
-    	        int [] rDSale = new int [24];
+    	        int [] rSale = new int [25];
+    	        int [] rSale1 = new int [25];
+    	        int [] rDSale = new int [25];
     	        
-    	        for ( int i = 0; i < 24; i++ )
+    	        for ( int i = 0; i < 25; i++ )
     	        {
     	        	rSale[i] = 0;
     	        	rSale1[i] = 0;
@@ -957,7 +981,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
                 	
         		}
         		
-            	for ( int i = 8; i < 23; i++ )
+            	for ( int i = 0; i < 24; i++ )
     	        {
             		
             		rDSale[i] = rSale[i] - rSale1[i];
@@ -965,9 +989,9 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
                 	// prepare the list of all records
 		            HashMap<String, String> map = new HashMap<String, String>();
 		            map.put("Sale_Time", String.format("%02d", i));
-		            map.put("rSale", String.format("%d", rSale[i]));
-		            map.put("rSale_Yes", String.format("%d", rSale1[i]));
-		            map.put("rDSale", String.format("%d", rDSale[i]));
+		            map.put("rSale", m_numberFormat.format(rSale[i]));
+		            map.put("rSale_Yes", m_numberFormat.format(rSale1[i]));
+		            map.put("rDSale", m_numberFormat.format(rDSale[i]));
 		            fillMaps.add(map);
     	        }
     	        
@@ -996,9 +1020,10 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         				int tSell = json.getInt("TSell_Pri");
         				int tRSell = json.getInt("TSell_RePri");
         				int dcPri = json.getInt("DC_Pri");
-        				String sProfit = String.format("%d", json.getInt("ProFit_Pri"));
         				
-        				String rSale = String.format("%d", tSell - (tRSell + dcPri));
+        				String sProfit = m_numberFormat.format( json.getInt("ProFit_Pri"));
+        				
+        				String rSale = m_numberFormat.format((tSell - (tRSell + dcPri)));
         				
         				// prepare the list of all records
     		            HashMap<String, String> map = new HashMap<String, String>();
@@ -1039,9 +1064,9 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         				int tSell = json.getInt("TSell_Pri");
         				int tRSell = json.getInt("TSell_RePri");
         				int dcPri = json.getInt("DC_Pri");
-        				String sProfit = String.format("%d", json.getInt("ProFit_Pri"));
-        				String rSale = String.format("%d", tSell - (tRSell + dcPri));
-        				String saleCount = String.format("%d", json.getInt("Sale_Count"));
+        				String sProfit = m_numberFormat.format(json.getInt("ProFit_Pri"));
+        				String rSale = m_numberFormat.format(tSell - (tRSell + dcPri));
+        				String saleCount = m_numberFormat.format(json.getInt("Sale_Count"));
         				
         				// prepare the list of all records
     		            HashMap<String, String> map = new HashMap<String, String>();
