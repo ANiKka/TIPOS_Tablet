@@ -12,8 +12,6 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import tipsystem.tips.ManageSalesActivity.MyAsyncTask;
-
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;
