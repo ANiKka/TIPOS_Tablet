@@ -3,7 +3,6 @@ package tipsystem.tips;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -49,8 +48,6 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	private static final int ZBAR_SCANNER_REQUEST = 0;
 	private static final int ZBAR_QR_SCANNER_REQUEST = 1;
 	
-	//private int m_inputMode = 0; // 0:NEW 1:CONTINUE
-
 	JSONObject m_shop;
 	String m_ip = "122.49.118.102";
 	String m_port = "18971";
@@ -61,7 +58,6 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	Calendar m_dateCalender1;
 	SimpleAdapter adapter; 
 	
-	Button m_period;
 	
 	int m_selectedListIndex = -1;
 	
@@ -70,7 +66,8 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	String[] from = new String[] {"BarCode", "G_Name", "Real_Sto", "St_Count"};
     int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
     List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-    
+
+	Button m_period;
 	ListView m_listStock;
 	EditText m_textBarcode;
 	EditText m_textProductName;
@@ -78,7 +75,6 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	EditText m_et_salePrice;
 	EditText m_et_numOfReal;
 	EditText m_et_curStock;
-	Button m_bt_dateSelector;
 	Button m_bt_barcodeSearch;
 	private ProgressDialog dialog;
 	
@@ -128,7 +124,6 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		m_et_numOfReal = (EditText)findViewById(R.id.editTextNumberOfReal);
 		m_et_curStock = (EditText)findViewById(R.id.editTextCurStock);
 		m_bt_barcodeSearch = (Button)findViewById(R.id.buttonBarcode);
-		m_bt_dateSelector= (Button)findViewById(R.id.buttonSetDate1);
 		
 		m_stockList = new ArrayList<HashMap<String, String>>();
 
@@ -188,6 +183,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 				// 전체 삭제 기능으로 대체 
 				// TODO: 아이콘 바꾸어야함
 				clearInputBox();
+				deleteListAll();
 			}			
 		});
 		
@@ -224,7 +220,28 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
         m_junpyo = year + month + day + posID + String.format("%04d", m_junpyoIdx);
         m_junpyoIdx++;
 	}
+
+	public void deleteData() {
+		
+		if ( m_selectedListIndex == -1) {
+			Toast.makeText(ManageStockActivity.this, "선택된 행사가 없습니다.", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		
+		fillMaps.remove(m_selectedListIndex);
+		adapter.notifyDataSetChanged();
+		m_stockList.remove(m_selectedListIndex);
+		m_selectedListIndex = -1;
+	}
 	
+	public void deleteListAll() {
+		
+		fillMaps.removeAll(fillMaps);
+		adapter.notifyDataSetChanged();		
+		m_stockList.removeAll(m_stockList);		
+		m_selectedListIndex = -1;
+	}	
+
 	public void clearInputBox () {
 
 		m_textBarcode.setText("");
@@ -240,7 +257,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		if (mode==0) {
 			m_textBarcode.setEnabled(true);
 			m_textProductName.setEnabled(true);
-			m_bt_dateSelector.setEnabled(true);
+			m_period.setEnabled(true);
 			m_bt_barcodeSearch.setEnabled(true);
 			m_et_purchasePrice.setEnabled(true);
 			m_et_salePrice.setEnabled(true);
@@ -250,7 +267,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		else {
 			m_textBarcode.setEnabled(false);
 			m_textProductName.setEnabled(false);
-			m_bt_dateSelector.setEnabled(false);
+			m_period.setEnabled(false);
 			m_bt_barcodeSearch.setEnabled(false);
 			m_et_purchasePrice.setEnabled(true);
 			m_et_salePrice.setEnabled(true);
@@ -259,6 +276,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		}
 	}
 	
+	// MSSQL
 	// StT, StD 테이블에 삽입
 	public void sendSelectedAllData(){
 		
@@ -309,7 +327,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 				dialog.dismiss();
 				dialog.cancel();
 
-				deleteDataAll();
+				deleteListAll();
 				clearInputBox();
 				Toast.makeText(ManageStockActivity.this, "전송완료.", Toast.LENGTH_SHORT).show();
 			}
@@ -351,28 +369,47 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
 	}
 	
-	public void deleteData() {
+	// SQL QUERY 실행
+	public void doQueryWithBarcode () {
 		
-		if ( m_selectedListIndex == -1) {
-			Toast.makeText(ManageStockActivity.this, "선택된 행사가 없습니다.", Toast.LENGTH_SHORT).show();
-			return;
-		}
-		
-		fillMaps.remove(m_selectedListIndex);
-		adapter.notifyDataSetChanged();
-		
-		m_stockList.remove(m_selectedListIndex);
-		
-		m_selectedListIndex = -1;
-	}
+		String query = "";
+		String barcode = m_textBarcode.getText().toString();
+		query = "SELECT * FROM Goods WHERE Barcode = '" + barcode + "';";
 	
-	public void deleteDataAll() {
+		if (barcode.equals("")) return;
 		
-		fillMaps.removeAll(fillMaps);
-		adapter.notifyDataSetChanged();		
-		m_stockList.removeAll(m_stockList);		
-		m_selectedListIndex = -1;
-	}	
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+
+	    // 콜백함수와 함께 실행
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				
+				if (results.length() > 0) {
+					try {
+						m_textProductName.setText(results.getJSONObject(0).getString("G_Name"));
+						m_et_purchasePrice.setText(results.getJSONObject(0).getString("Pur_Pri"));
+						m_et_salePrice.setText(results.getJSONObject(0).getString("Sell_Pri"));
+						m_et_numOfReal.setText(results.getJSONObject(0).getString("Real_Sto"));
+						//m_et_curStock.setText(results.getJSONObject(0).getString("Real_Sto"));
+						
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				else {
+					Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+				}
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
+	}
 
 	public void onBarcodeSearch(View view)
 	{
@@ -434,48 +471,6 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	}
 	
 
-	// SQL QUERY 실행
-	public void doQueryWithBarcode () {
-		
-		String query = "";
-		String barcode = m_textBarcode.getText().toString();
-		query = "SELECT * FROM Goods WHERE Barcode = '" + barcode + "';";
-	
-		if (barcode.equals("")) return;
-		
-		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
-
-	    // 콜백함수와 함께 실행
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-			@Override
-			public void onRequestCompleted(JSONArray results) {
-				dialog.dismiss();
-				dialog.cancel();
-				
-				if (results.length() > 0) {
-					try {
-						m_textProductName.setText(results.getJSONObject(0).getString("G_Name"));
-						m_et_purchasePrice.setText(results.getJSONObject(0).getString("Pur_Pri"));
-						m_et_salePrice.setText(results.getJSONObject(0).getString("Sell_Pri"));
-						m_et_numOfReal.setText(results.getJSONObject(0).getString("Real_Sto"));
-						//m_et_curStock.setText(results.getJSONObject(0).getString("Real_Sto"));
-						
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
-				}
-				else {
-					Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
-				}
-			}
-	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
-	}
-	
 	public void OnClickModify(View v)
 	{
 		if ( m_selectedListIndex == -1) {
