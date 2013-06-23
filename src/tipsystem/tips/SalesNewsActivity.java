@@ -17,6 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import tipsystem.tips.ManageSalesActivity.MyAsyncTask;
+import tipsystem.utils.LocalStorage;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -24,6 +25,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.DialogFragment;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
@@ -50,6 +52,10 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 														OnTabChangeListener,
 														DatePickerDialog.OnDateSetListener{
 
+	JSONObject m_shop;
+	String m_ip = "122.49.118.102";
+	String m_port = "18971";
+	
 	TextView m_realSales;
 	TextView m_viewNumber;
 	TextView m_viewKNumber;
@@ -79,6 +85,8 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	
 	NumberFormat m_numberFormat;
 	
+	ProgressDialog dialog;
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -87,14 +95,21 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
-		
+		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
+	       
+        try {
+			m_ip = m_shop.getString("SHOP_IP");
+	        m_port = m_shop.getString("SHOP_PORT");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+        
 		m_dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
+
 		m_numberFormat = NumberFormat.getInstance();
 		
 		m_dateCalender1 = Calendar.getInstance();
 		m_dateCalender2 = Calendar.getInstance();
-		
-		
 		
 		m_buttonSetDate = (Button) findViewById(R.id.buttonSetDate);
 		m_buttonSetDate.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
@@ -109,7 +124,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		m_viewCredit = (TextView)findViewById(R.id.textViewCredit);
 		m_viewOther = (TextView)findViewById(R.id.textViewOther);
 
-		
 		m_listNewsTab1= (ListView)findViewById(R.id.listviewSalesNewsListTab1);
 		m_listNewsTab2= (ListView)findViewById(R.id.listviewSalesNewsListTab2);
 		m_listNewsTab3= (ListView)findViewById(R.id.listviewSalesNewsListTab3);
@@ -148,11 +162,16 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         m_tabHost.setCurrentTab(0);
         m_tabHost.setOnTabChangedListener(this);
         
-        
         m_dateCalender2.add(Calendar.DAY_OF_MONTH, -1);
         
         String period1 = m_buttonSetDate.getText().toString();
 		String period2 = m_dateFormatter.format(m_dateCalender2.getTime());
+		
+  		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(SalesNewsActivity.this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
 		
 		new MyAsyncTask ().execute("10", period1, period2);
 		new MyAsyncTask ().execute("11", period1, period2);
@@ -183,12 +202,10 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 				from, to);
 		
 		m_listNewsTab2.setAdapter(adapter);
-		
 	}
 	
 	private void setTabList3(List<HashMap<String, String>> fillMaps)
 	{
-		
 		 // create the grid item mapping
 		String[] from = new String[] {"Count", "S_Name", "rSale", "Sale_Count", "ProFit_Pri"};
         int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5 };
@@ -217,7 +234,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		actionbar.setTitle("매출속보");
 		
 		getActionBar().setDisplayHomeAsUpEnabled(false);
-
 	}
 
 	@Override
@@ -276,6 +292,14 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		String period1 = m_buttonSetDate.getText().toString();
 		String period2 = m_dateFormatter.format(m_dateCalender2.getTime());
 		
+  		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(SalesNewsActivity.this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+ 		
+		
 		if ( arg0.getId() == m_spinClassification1.getId() )
 		{
 			String typeL = m_spinClassification1.getItemAtPosition(arg2).toString();
@@ -301,7 +325,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	@Override
 	public void onNothingSelected(AdapterView<?> arg0) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	public void onClickSetDate(View view)
@@ -332,13 +355,19 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	
 	@Override
 	public void onTabChanged(String tabId) {
-		// TODO Auto-generated method stub
-		
 		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
 		
 		String period1 = m_buttonSetDate.getText().toString();
 		String period2 = m_dateFormatter.format(m_dateCalender2.getTime());
 		
+  		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(SalesNewsActivity.this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+ 		
+ 		
 		if ( m_tabHost.getCurrentTab() == 2 )
 		{
 			new MyAsyncTask ().execute("12", period1, period2, "", "", "");
@@ -367,6 +396,14 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		
 		//Toast.makeText(getApplicationContext(), period1 + " , " + period2, Toast.LENGTH_SHORT).show();
 		
+  		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(SalesNewsActivity.this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+ 		
+		
 		new MyAsyncTask ().execute("10", period1, period2, "", "", "");
 		new MyAsyncTask ().execute("11", period1, period2, "", "", "");
 		
@@ -386,7 +423,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         ArrayList<JSONObject> CommArray1=new ArrayList<JSONObject>();
         
         int m_tabIndex = 0;
-        
+         		
         protected String doInBackground(String... urls) 
         {
         	Log.i("Android"," MSSQL Connect Example.");
@@ -397,7 +434,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         	    Class.forName("net.sourceforge.jtds.jdbc.Driver").newInstance();
         	    Log.i("Connection","MSSQL driver load");
 
-        	    conn = DriverManager.getConnection("jdbc:jtds:sqlserver://122.49.118.102:18971/TIPS","sa","tips");
+        	    conn = DriverManager.getConnection("jdbc:jtds:sqlserver://" +m_ip+":"+m_port+ "/TIPS","sa","tips");
         	   // conn = DriverManager.getConnection("jdbc:jtds:sqlserver://172.30.1.18:1433/TIPS","sa","tips");
         	    Log.i("Connection","MSSQL open");
         	    Statement stmt = conn.createStatement();
@@ -422,6 +459,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         				
 				//tableName = String.format("SaD_%04d%02d", y, m);
 				
+  
 				
 				if ( m_tabIndex == 10 ) // 공통 1
         		{
@@ -615,7 +653,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         			query = "select Office_Code, Office_Name, TSell_Pri, TSell_RePri, DC_Pri, ProFit_Pri from " + tableName;
         			query = query + " where Sale_Date = '" + period1 + "'";
         			
-        			query = query + " order by Office_Code ASC";
         			Log.e("HTTPJSON","query: " + query );
                 	reset = stmt.executeQuery(query);
     	        	    		
@@ -641,17 +678,26 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 					
         			if ( typeL.equals("") != true )
 					{
-						constraint = setConstraint(constraint, "L_Name", "=", typeL);
+        				if ( typeL.equals("전체") != true )
+        				{
+        					constraint = setConstraint(constraint, "L_Name", "=", typeL);
+        				}
 					}
         			
         			if ( typeM.equals("") != true )
 					{
-						constraint = setConstraint(constraint, "M_Name", "=", typeM);
-					}
+        				if ( typeM.equals("전체") != true )
+        				{
+        					constraint = setConstraint(constraint, "M_Name", "=", typeM);
+        				}
+        			}
         			
         			if ( typeS.equals("") != true )
 					{
-						constraint = setConstraint(constraint, "S_Name", "=", typeS);
+        				if ( typeS.equals("전체") != true )
+        				{
+        					constraint = setConstraint(constraint, "S_Name", "=", typeS);
+        				}
 					}
         			
         			query = "select TSell_Pri, TSell_RePri, DC_Pri, Sale_Count, ProFit_Pri from " + tableName;
@@ -661,8 +707,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         			{
         				query = query + " and " + constraint;
         			}
-        			
-        			query = query + " order by S_Name ASC";
         			
         			
         			Log.e("HTTPJSON","query: " + query );
@@ -690,7 +734,8 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         	
         	 } catch (Exception e)
         	 {
-        	    Log.w("Error connection","" + e.getMessage());		   
+        	    Log.w("Error connection","" + e.getMessage());
+        	    dialog.cancel();
         	 }
         	 
         	 // onProgressUpdate에서 0이라는 값을 받아서 처리
@@ -747,7 +792,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         			m_viewCredit.setText(m_numberFormat.format(decPri));
         			
         			m_viewOther.setText(m_numberFormat.format(0));
-        			
         		}
         		
         		//Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
@@ -766,7 +810,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
                 		tSellPri = json.getInt("TSell_Pri");
                 		
         			} catch (JSONException e) {
-        				// TODO Auto-generated catch block
         				e.printStackTrace();
         			}
         		}
@@ -785,6 +828,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         		String lName = null;
         		
             	Iterator<JSONObject> iterator = CommArray.iterator();
+            	lSpList.add("전체");
         		while (iterator.hasNext()) {
         			JSONObject json = iterator.next();
                 	
@@ -827,6 +871,8 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         	{
         		ArrayList<String> lSpList = new ArrayList<String>();        		   	        
         		String lName = null;
+        		
+        		lSpList.add("전체");
         		
             	Iterator<JSONObject> iterator = CommArray.iterator();
         		while (iterator.hasNext()) {
@@ -872,6 +918,8 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         		ArrayList<String> lSpList = new ArrayList<String>();        		   	        
         		String lName = null;
         		
+        		lSpList.add("전체");
+        		
             	Iterator<JSONObject> iterator = CommArray.iterator();
         		while (iterator.hasNext()) {
         			JSONObject json = iterator.next();
@@ -911,7 +959,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         		//Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
         		
         	}
-        	else if ( m_tabIndex == 0 )
+        	else if ( m_tabIndex == 0 )	// 시간대별
         	{
         		String[] from = new String[] {"Sale_Time", "rSale", "rSale_Yes", "rDSale"};
     	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
@@ -929,8 +977,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
     	        
     	        }
     	        
-    	        
-    	        
             	Iterator<JSONObject> iterator = CommArray.iterator();
         		while (iterator.hasNext()) {
                 	JSONObject json = iterator.next();
@@ -945,45 +991,38 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         				int itRSell = json.getInt("TSell_RePri");
         				int idcPri = json.getInt("DC_Pri");
         				int irSale = itSell - (itRSell + idcPri);
-        				
-        			        				
+        							
         				rSale[iTime] = rSale[iTime] + irSale;
         				
-
         			} catch (JSONException e) {
-        				// TODO Auto-generated catch block
         				e.printStackTrace();
         			}
         		}
                 	
             	iterator = CommArray1.iterator();
         		while (iterator.hasNext()) {
-                    	JSONObject json1 = iterator.next();
-                    	
-                    	try {
-                    		
-            				String tTime = json1.getString("Sale_Time");
-            				
-            				int iTime = Integer.parseInt(tTime.substring(0, 2));
-            				
-            				int itSell = json1.getInt("TSell_Pri");
-            				int itRSell = json1.getInt("TSell_RePri");
-            				int idcPri = json1.getInt("DC_Pri");
-            				int irSale = itSell - (itRSell + idcPri);
-            				            				
-            				rSale1[iTime] = rSale1[iTime] + irSale;
-            				
-
-            			} catch (JSONException e) {
-            				// TODO Auto-generated catch block
-            				e.printStackTrace();
-            			}
+                	JSONObject json1 = iterator.next();
                 	
+                	try {
+                		
+        				String tTime = json1.getString("Sale_Time");
+        				
+        				int iTime = Integer.parseInt(tTime.substring(0, 2));
+        				
+        				int itSell = json1.getInt("TSell_Pri");
+        				int itRSell = json1.getInt("TSell_RePri");
+        				int idcPri = json1.getInt("DC_Pri");
+        				int irSale = itSell - (itRSell + idcPri);
+        				            				
+        				rSale1[iTime] = rSale1[iTime] + irSale;
+        				
+        			} catch (JSONException e) {
+        				e.printStackTrace();
+        			}
         		}
         		
             	for ( int i = 0; i < 24; i++ )
     	        {
-            		
             		rDSale[i] = rSale[i] - rSale1[i];
             		
                 	// prepare the list of all records
@@ -1003,12 +1042,17 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         		}
         		
         	}
-        	else if ( m_tabIndex == 1 )
+        	else if ( m_tabIndex == 1 )	// 거래처별 
         	{
         		String[] from = new String[] {"Office_Code", "Office_Name", "rSale", "ProFit_Pri"};
     	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
     	        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-    	 	        		
+    	 	    
+    	        ArrayList<String> lSpListCode = new ArrayList<String>();
+    	        ArrayList<String> lSpListName = new ArrayList<String>();
+    	        ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
+    	        ArrayList<Integer> lSpListProfit = new ArrayList<Integer>();
+       	        
             	Iterator<JSONObject> iterator = CommArray.iterator();
         		while (iterator.hasNext()) {
                 	JSONObject json = iterator.next();
@@ -1021,17 +1065,33 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         				int tRSell = json.getInt("TSell_RePri");
         				int dcPri = json.getInt("DC_Pri");
         				
-        				String sProfit = m_numberFormat.format( json.getInt("ProFit_Pri"));
-        				
-        				String rSale = m_numberFormat.format((tSell - (tRSell + dcPri)));
-        				
-        				// prepare the list of all records
-    		            HashMap<String, String> map = new HashMap<String, String>();
-    		            map.put("Office_Code", code);
-    		            map.put("Office_Name", name);
-    		            map.put("rSale", rSale);
-    		            map.put("ProFit_Pri", sProfit);
-    		            fillMaps.add(map);
+        				boolean isExist = false;
+        				               		
+                		for ( int i = 0; i < lSpListCode.size(); i++ )
+                		{
+                			if ( lSpListCode.get(i).toString().equals(code) == true )
+                			{
+                				Integer rsale = lSpListSale.get(i).intValue() + ((tSell - (tRSell + dcPri)));
+                				Integer profit = lSpListProfit.get(i).intValue() + json.getInt("ProFit_Pri");
+                				
+                				lSpListSale.set(i, rsale);
+                				lSpListProfit.set(i, profit);
+                				
+                				isExist = true;
+                				break;
+                			}
+                		}
+                		
+                		if ( isExist == false )
+                		{
+                			Integer rsale = tSell - (tRSell + dcPri);
+            				Integer profit = json.getInt("ProFit_Pri");
+            				
+            				lSpListCode.add(code);
+            				lSpListName.add(name);
+            				lSpListSale.add(rsale);
+            				lSpListProfit.add(profit);
+                		}
         		 
         			} catch (JSONException e) {
         				// TODO Auto-generated catch block
@@ -1039,48 +1099,98 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         			}
         		}
         		
-        		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
+        		for ( int i = 0; i < lSpListCode.size(); i++ )
+        		{
+        			// prepare the list of all records
+    	            HashMap<String, String> map = new HashMap<String, String>();
+    	            
+    	            map.put("Office_Code", lSpListCode.get(i));
+    	            map.put("Office_Name", lSpListName.get(i));
+    	            map.put("rSale", m_numberFormat.format(lSpListSale.get(i).intValue()) );
+    	            map.put("ProFit_Pri", m_numberFormat.format(lSpListProfit.get(i).intValue()));
+    	            fillMaps.add(map);
+        		}
         		
-        		if ( CommArray.size() > 0 )
+        		Toast.makeText(getApplicationContext(), "조회 완료: " +  lSpListCode.size(), Toast.LENGTH_SHORT).show();
+        		
+        		if ( lSpListCode.size() > 0 )
         		{
         			setTabList2(fillMaps);
         		}
         	}
-        	else if ( m_tabIndex == 2 )
+        	else if ( m_tabIndex == 2 )	// 분류별 
         	{
         		String[] from = new String[] {"Count", "S_Name", "rSale", "Sale_Count", "ProFit_Pri"};
     	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5 };
     	        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
     	 	    
+    	        ArrayList<String> lSpListType = new ArrayList<String>();
+    	        ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
+    	        ArrayList<Integer> lSpListSaleCnt = new ArrayList<Integer>();
+    	        ArrayList<Integer> lSpListProfit = new ArrayList<Integer>();
+    	        
     	        int cnt = 0;
             	Iterator<JSONObject> iterator = CommArray.iterator();
         		while (iterator.hasNext()) {
                 	JSONObject json = iterator.next();
                 	
                 	try {
-                	    
         				String sName = json.getString("S_Name");
         				
         				int tSell = json.getInt("TSell_Pri");
         				int tRSell = json.getInt("TSell_RePri");
         				int dcPri = json.getInt("DC_Pri");
-        				String sProfit = m_numberFormat.format(json.getInt("ProFit_Pri"));
-        				String rSale = m_numberFormat.format(tSell - (tRSell + dcPri));
-        				String saleCount = m_numberFormat.format(json.getInt("Sale_Count"));
+        				//String sProfit = m_numberFormat.format(json.getInt("ProFit_Pri"));
+        				//String rSale = m_numberFormat.format(tSell - (tRSell + dcPri));
+        				//String saleCount = m_numberFormat.format(json.getInt("Sale_Count"));
         				
-        				// prepare the list of all records
-    		            HashMap<String, String> map = new HashMap<String, String>();
-    		            map.put("Count", String.format("%d", ++cnt));
-    		            map.put("S_Name", sName);
-    		            map.put("rSale", rSale);
-    		            map.put("Sale_Count", saleCount);
-    		            map.put("ProFit_Pri", sProfit);
-    		            fillMaps.add(map);
-        		 
+        				boolean isExist = false;
+	               		
+                		for ( int i = 0; i < lSpListType.size(); i++ )
+                		{
+                			if ( lSpListType.get(i).toString().equals(sName) == true )
+                			{
+                				Integer rsale = lSpListSale.get(i).intValue() + ((tSell - (tRSell + dcPri)));
+                				Integer sCount = lSpListSaleCnt.get(i).intValue() + json.getInt("Sale_Count");
+                				Integer sProfit = lSpListProfit.get(i).intValue() + json.getInt("ProFit_Pri");
+                				
+                				lSpListSale.set(i, rsale);
+                				lSpListSaleCnt.set(i, sCount);
+                				lSpListProfit.set(i, sProfit);
+                				
+                				isExist = true;
+                				
+                				break;
+                			}
+                		}
+                		
+                		if ( isExist == false )
+                		{
+                			Integer rsale = tSell - (tRSell + dcPri);
+            				Integer profit = json.getInt("ProFit_Pri");
+            				Integer saleCnt = json.getInt("Sale_Count");
+            				
+            				lSpListType.add(sName);
+            				lSpListSale.add(rsale);
+            				lSpListSaleCnt.add(saleCnt);
+            				lSpListProfit.add(profit);
+                		}
+        				
         			} catch (JSONException e) {
-        				// TODO Auto-generated catch block
         				e.printStackTrace();
         			}
+        		}
+        		
+        		for ( int i = 0; i < lSpListType.size(); i++ )
+        		{
+        			// prepare the list of all records
+		            HashMap<String, String> map = new HashMap<String, String>();
+		            map.put("Count", String.format("%d", ++cnt));
+		            map.put("S_Name", lSpListType.get(i));
+		            map.put("rSale", m_numberFormat.format(lSpListSale.get(i).intValue()) );
+		            map.put("Sale_Count", m_numberFormat.format(lSpListSaleCnt.get(i).intValue()) );
+		            map.put("ProFit_Pri", m_numberFormat.format(lSpListProfit.get(i).intValue()) );
+		            fillMaps.add(map);	
         		}
         		
         		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
@@ -1090,6 +1200,8 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         			setTabList3(fillMaps);
         		}
         	}
+        	
+        	dialog.cancel();
         }
         
         private String setConstraint(String str, String field, String op, String value)

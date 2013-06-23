@@ -58,7 +58,7 @@
              android:scaleX="0.8"
              android:scaleY="0.8"
              android:background="@drawable/arrowbox_02"
-             android:onClick="onClickSetDate" />
+             android:onClick="onClickSetNext" />
      
     </LinearLayout>
     
@@ -328,7 +328,7 @@
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"
-				            android:gravity="right"
+				            android:gravity="center"
 				            android:background="@drawable/gray_bar_bg"
 				            android:text="순매출"
 				        />
@@ -339,7 +339,7 @@
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"
-				            android:gravity="right"
+				            android:gravity="center"
 				            android:background="@drawable/gray_bar_bg"
 				            android:text="전일매출"
 				        />
@@ -350,7 +350,7 @@
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"
-				            android:gravity="right"
+				            android:gravity="center"
 				            android:background="@drawable/gray_bar_bg"
 				            android:text="전일대비차액"
 				        />
@@ -413,7 +413,7 @@
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"
-				            android:gravity="right"
+				            android:gravity="center"
 				            android:background="@drawable/gray_bar_bg"
 				            android:text="순매출"
 				        />
@@ -424,7 +424,7 @@
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"
-				            android:gravity="right"
+				            android:gravity="center"
 				            android:background="@drawable/gray_bar_bg"
 				            android:text="이익금"
 				        />
@@ -521,7 +521,7 @@
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"
-				            android:gravity="right"
+				            android:gravity="center"
 				            android:background="@drawable/gray_bar_bg"
 				            android:text="순매출"
 				        />
@@ -543,7 +543,7 @@
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"
-				            android:gravity="right"
+				            android:gravity="center"
 				            android:background="@drawable/gray_bar_bg"
 				            android:text="이익금"
 				        />
