@@ -3,6 +3,7 @@ package tipsystem.tips;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -220,15 +221,13 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		{
 			public void onClick(View v){
 				
-				for ( int i = 0; i < m_evtList.size(); i++ )
-				{
-					sendSelectedData(i);
-				}
-				
-				Toast.makeText(ManageEventActivity.this, "전송완료.", Toast.LENGTH_SHORT).show();
+				sendSelectedAllData();
 				m_selectedListIndex = -1;
 			}			
 		});
+		
+		changeInputMode(0);
+		getSeq();
 	}
 	
 	@Override
@@ -344,7 +343,24 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 			m_et_salePrice.setEnabled(true);
 		}
 	}
-	
+
+	public void makeJunPyo () {
+
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+		String currentDate = sdf.format(new Date());
+		
+        // 전표번호 생성 
+		String posID = "P";
+        try {
+			String OFFICE_CODE = m_shop.getString("OFFICE_CODE");
+			posID = LocalStorage.getString(this, "currentPosID:"+OFFICE_CODE);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+        
+        m_junpyo = currentDate + posID + String.format("%04d", m_junpyoIdx);
+        m_junpyoIdx++;
+	}
 
     public void setDataIntoList(){
     
@@ -398,7 +414,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
         map.put("Evt_Gubun", section);
         map.put("Evt_Date", period1 + " ~ " + period2  );
         fillMaps.add(map);            
-  		
+        fillMaps = makeFillvapsWithStockList();
         adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item3,	from, to);
         m_listEvent.setAdapter(adapter);
         adapter.notifyDataSetChanged();    
@@ -485,6 +501,60 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 				}
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
+	}
+
+	public void sendSelectedAllData(){
+		
+		String tableName = null, sttTableName = null;
+		String period = m_period1.getText().toString();
+		
+		int year = Integer.parseInt(period.substring(0, 4));
+		int month = Integer.parseInt(period.substring(5, 7));
+		
+		tableName = String.format("StD_%04d%02d", year, month);
+		sttTableName = String.format("StT_%04d%02d", year, month);
+
+		// 쿼리 작성하기
+		String query =  "";
+		for ( int i = 0; i < m_evtList.size(); i++ ) {
+			//TODO: 새로운 전표생성
+	        makeJunPyo();
+	        
+		    query +=  "insert into " + tableName + "(Evt_CD, Evt_Name, Evt_Gubun, BarCode, Evt_SDate, Evt_EDate, Sale_Pur, Sale_Sell) " 
+		    		+ " values ("
+		    		+ "'" + m_junpyo + "', "
+				    + "'" + m_evtList.get(i).get("Evt_Name").toString() + "', "
+		    		+ "'" + m_evtList.get(i).get("Evt_Gubun").toString() + "', "
+		    		+ "'" + m_evtList.get(i).get("BarCode").toString() + "', "
+		    		+ "'" + m_evtList.get(i).get("Evt_SDate").toString() + "', "
+		    		+ "'" + m_evtList.get(i).get("Evt_EDate").toString() + "', "
+				    + "'" + m_evtList.get(i).get("Sale_Pur").toString() + "', "
+		    		+ "'" + m_evtList.get(i).get("Sale_Sell").toString() + "');";
+		}
+
+	    query += " select * from " + tableName + " where St_Num='" + m_junpyo +"';";
+	    Log.i("qeury", query);
+	    /*
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+	    // 콜백함수와 함께 실행
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+
+				deleteListAll();
+				clearInputBox();
+				Toast.makeText(getApplicationContext(), "전송완료.", Toast.LENGTH_SHORT).show();
+			}
+			
+	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);*/
 	}
 	
 	public void sendSelectedData(int index){
