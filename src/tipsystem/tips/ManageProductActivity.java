@@ -10,6 +10,7 @@ import org.json.JSONObject;
 
 import tipsystem.tips.ManageProductListActivity.ProductList;
 import tipsystem.tips.ManageProductListActivity.ProductListAdapter;
+import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -49,6 +50,10 @@ import com.dm.zbar.android.scanner.ZBarScannerActivity;
 public class ManageProductActivity extends Activity{
 	private static final int ZBAR_SCANNER_REQUEST = 0;
 	private static final int ZBAR_QR_SCANNER_REQUEST = 1;
+
+	JSONObject m_shop;
+	String m_ip = "122.49.118.102";
+	String m_port = "18971";
 	
 	TextView m_textBarcode;
 	TextView m_textProductName;
@@ -84,6 +89,15 @@ public class ManageProductActivity extends Activity{
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
+		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
+	       
+        try {
+			m_ip = m_shop.getString("SHOP_IP");
+	        m_port = m_shop.getString("SHOP_PORT");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+        
 		m_textBarcode = (EditText)findViewById(R.id.editTextBarcode);
 		m_textProductName = (TextView)findViewById(R.id.editTextProductName);
 		m_textCustomerCode = (TextView)findViewById(R.id.editTextCustomerCode);
@@ -336,7 +350,7 @@ public class ManageProductActivity extends Activity{
 		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();					
 				}
 			}
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
 
 	// SQL QUERY 실행
@@ -500,7 +514,7 @@ public class ManageProductActivity extends Activity{
 						Toast.makeText(getApplicationContext(), "등록 실패", Toast.LENGTH_SHORT).show();
 				}
 			}
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);		
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
 	}
 
 	public void onAlert(int code) {

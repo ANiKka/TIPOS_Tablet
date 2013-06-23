@@ -38,13 +38,6 @@ public class LoginActivity extends Activity {
 		setContentView(R.layout.activity_config);
 		// Show the Up button in the action bar.
 		setupActionBar();
-				
-        Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
-        TextView textView = (TextView) findViewById(R.id.textViewID);
-        textView.setTypeface(typeface);
-        
-        textView = (TextView) findViewById(R.id.textViewPW);
-        textView.setTypeface(typeface);
 
         m_shop = LocalStorage.getJSONObject(this, "currentShopData");
        
@@ -55,6 +48,13 @@ public class LoginActivity extends Activity {
 			e.printStackTrace();
 		}
         
+        Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
+        TextView textView = (TextView) findViewById(R.id.textViewID);
+        textView.setTypeface(typeface);
+        
+        textView = (TextView) findViewById(R.id.textViewPW);
+        textView.setTypeface(typeface);
+
         // test
 		EditText editTextLoginID = (EditText) findViewById(R.id.editTextLoginID);
 		EditText editTextLoginPW = (EditText) findViewById(R.id.editTextLoginPW);

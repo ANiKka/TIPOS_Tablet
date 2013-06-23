@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
 import android.os.Bundle;
@@ -33,6 +34,10 @@ import android.support.v4.app.NavUtils;
 
 public class ManageCustomerActivity extends Activity{
 
+	JSONObject m_shop;
+	String m_ip = "122.49.118.102";
+	String m_port = "18971";
+	
 	Spinner m_spin;
 	ListView m_cusList;
 	
@@ -52,6 +57,15 @@ public class ManageCustomerActivity extends Activity{
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
+		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
+	       
+        try {
+			m_ip = m_shop.getString("SHOP_IP");
+	        m_port = m_shop.getString("SHOP_PORT");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+        
 		//m_spin = (Spinner)findViewById(R.id.spinnerCustomerCodeType);
 		//m_spin.setOnItemSelectedListener(this);
 		m_cusList= (ListView)findViewById(R.id.listviewCustomerList);
@@ -228,7 +242,7 @@ public class ManageCustomerActivity extends Activity{
 				updateListView(results);
 		    	Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
 			}
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
     }
 
 	// 등록 실행 함수 
@@ -271,7 +285,7 @@ public class ManageCustomerActivity extends Activity{
 		            Toast.makeText(getApplicationContext(), "등록 실패", Toast.LENGTH_SHORT).show();					
 				}
 			}
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
     }
     
     public void updateListView(JSONArray results) {
