@@ -4,12 +4,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.graphics.Typeface;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -33,16 +38,35 @@ public class PurchaseDetailActivity extends Activity {
 		int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5};
 		
 		// prepare the list of all records
-		List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		for(int i = 0; i < 10; i++){
-		    HashMap<String, String> map = new HashMap<String, String>();
-		    map.put("바코드", "0000" + i);
-			map.put("상품명", "상품명_" + i);
-			map.put("매입가", i + "000");
-			map.put("판매가", i + "000");
-			map.put("수량", i + "0");
-		    fillMaps.add(map);
+		List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();		
+		String data = getIntent().getStringExtra("data");
+		try {
+			JSONArray jsons = new JSONArray(data);
+			
+			for(int i = 0; i < jsons.length(); i++){
+				JSONObject obj = jsons.getJSONObject(i);
+			    HashMap<String, String> map = new HashMap<String, String>();
+			    map.put("바코드", obj.getString("BarCode"));
+				map.put("상품명", obj.getString("G_Name"));
+				map.put("매입가", obj.getString("Pur_Pri"));
+				map.put("판매가", obj.getString("Sell_Pri"));
+				map.put("수량", obj.getString("In_Count"));
+			    fillMaps.add(map);
+			}
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
+		
+		String Office_Name = getIntent().getStringExtra("Office_Name");
+		String Office_Code = getIntent().getStringExtra("Office_Code");
+
+		EditText customerCode = (EditText)findViewById(R.id.editTextCustomerCode);
+		EditText customerName = (EditText)findViewById(R.id.editTextCustomerName);
+		customerCode.setText(Office_Name);
+		customerName.setText(Office_Code);
+		customerCode.setEnabled(false);
+		customerName.setEnabled(false);
 		
 		// fill in the grid_item layout
 		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_purchase_detail_list, 

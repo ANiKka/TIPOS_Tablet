@@ -55,7 +55,9 @@ import android.support.v4.app.NavUtils;
 public class PurchaseRegistActivity extends Activity implements OnItemClickListener, OnDateSetListener{
 
 	private static final int ZBAR_SCANNER_REQUEST = 0;
-	private static final int ZBAR_QR_SCANNER_REQUEST = 1;
+	private static final int BARCODE_MANAGER_REQUEST = 2;
+	private static final int CUSTOMER_MANAGER_REQUEST = 3;
+	private static final int PURCHASE_REGIST_REQUEST = 4;
 
 	JSONObject m_shop;
 	String m_ip = "122.49.118.102";
@@ -204,7 +206,6 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		actionbar.setTitle("매입등록");
 		
 		getActionBar().setDisplayHomeAsUpEnabled(false);
-
 	}
 
 	@Override
@@ -232,22 +233,36 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	}
 	
 	@Override
-	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) 
+	public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) 
 	{
 		CheckBox checkbox = ((CheckBox)arg1.findViewById(R.id.item5));
 		if(checkbox != null) { 
 			checkbox.setChecked(!checkbox.isChecked());
 			// 베리 킥 포인트 요거 꼭해줘야 checkbox 에서 바로 바로 적용됩니다.
-			m_adapter.notifyDataSetChanged();
-			
-			
-			Intent intent = new Intent(this, PurchaseDetailActivity.class);
-	    	//Intent intent = new Intent(this, SelectShopActivity.class);    	
-	    	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
-	    	//String message = editText.getText().toString();
-	    	//intent.putExtra(EXTRA_MESSAGE, message);
-	    	startActivity(intent);
+			m_adapter.notifyDataSetChanged();						
 		}
+
+		String Office_Code = mfillMaps.get(position).get("Office_Code");
+		String Office_Name = mfillMaps.get(position).get("Office_Name");
+		Iterator<HashMap<String, String>> iterator = m_purList.iterator();	
+		
+		JSONArray array = new JSONArray();
+		
+	    while (iterator.hasNext()) {
+			 HashMap<String, String> element = iterator.next();
+	         String eOffice_Code = element.get("Office_Code");
+	         
+	         if (eOffice_Code.equals(Office_Code)) {
+	        	 JSONObject object = new JSONObject(element);
+	        	 array.put(object);
+	         }
+	    }
+
+		Intent intent = new Intent(this, PurchaseDetailActivity.class);
+		intent.putExtra("data", array.toString());
+		intent.putExtra("Office_Code", Office_Code);
+		intent.putExtra("Office_Name", Office_Name);
+		startActivityForResult(intent, PURCHASE_REGIST_REQUEST);
 	}
 
 	public void onClickSetDate1(View v) {
@@ -451,7 +466,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		
 		switch(requestCode){
 			// 카메라 스캔을 통한 바코드 검색
-			case 0 :
+			case ZBAR_SCANNER_REQUEST :
 				if (resultCode == RESULT_OK) {
 			        // Scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT)
 			        // Type of the scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE)
@@ -468,7 +483,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 			    }
 				break;
 			// 목록 검색을 통한 바코드 검색				
-			case 1 :
+			case BARCODE_MANAGER_REQUEST :
 				if(resultCode == RESULT_OK && data != null) {
 					
 		        	ArrayList<String> fillMaps = data.getStringArrayListExtra("fillmaps");		        	
@@ -476,7 +491,26 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 					doQueryWithBarcode(); 
 		        }
 				break;
+			case CUSTOMER_MANAGER_REQUEST :
+				if(resultCode == RESULT_OK && data != null) {
+					String result = data.getStringExtra("result");
+					try {
+						JSONObject json = new JSONObject(result);
+						m_customerCode.setText(json.getString("Office_Code"));
+						m_customerName.setText(json.getString("Office_Name"));
+			        	//m_textBarcode.setText(fillMaps.get(0));
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+		        }
+				break;
 			}
+	}
+	
+	public void onCustomerSearch(View view)
+	{
+		Intent intent = new Intent(PurchaseRegistActivity.this, ManageCustomerListActivity.class);
+    	startActivityForResult(intent, CUSTOMER_MANAGER_REQUEST);
 	}
 	
 	public void onBarcodeSearch(View view)
@@ -493,7 +527,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 
 				if(which == 0){ // 목록으로 조회할 경우
 					Intent intent = new Intent(PurchaseRegistActivity.this, ManageProductListActivity.class);
-			    	startActivityForResult(intent, 1);
+			    	startActivityForResult(intent, BARCODE_MANAGER_REQUEST);
 				} else { // 스캔할 경우
 					Intent intent = new Intent(PurchaseRegistActivity.this, ZBarScannerActivity.class);
 			    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);				

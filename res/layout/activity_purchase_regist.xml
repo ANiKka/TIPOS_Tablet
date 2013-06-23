@@ -82,6 +82,13 @@
 		    android:lines="1"
             android:ems="10"/>
 	        
+         <Button
+	        android:id="@+id/buttonCustomer"
+	        android:layout_width="28dp"
+	        android:layout_height="28dp"
+	        android:layout_marginLeft="5dp"
+	        android:background="@drawable/search_btn"
+            android:onClick="onCustomerSearch" />
         
          <EditText
 	        android:id="@+id/editTextCustomerName"

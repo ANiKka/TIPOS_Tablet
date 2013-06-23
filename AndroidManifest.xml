@@ -87,6 +87,10 @@
                 android:value="tipsystem.tips.ManageCodeActivity" />
         </activity>
         <activity
+            android:name="tipsystem.tips.ManageCustomerListActivity"
+            android:label="거래처 선택">
+        </activity>
+        <activity
             android:name="tipsystem.tips.ManageProductActivity"
             android:label="상품등록"
             android:parentActivityName="tipsystem.tips.ManageCodeActivity" >
