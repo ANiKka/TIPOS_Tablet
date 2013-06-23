@@ -80,8 +80,8 @@ public class ManageProductActivity extends Activity{
 	
     ArrayList<ProductList> productArray = new ArrayList<ProductList>();
     
-
 	private ProgressDialog dialog;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -318,7 +318,6 @@ public class ManageProductActivity extends Activity{
 	
 	// 거래처 코드로 거래처명 자동 완성
 	private void fillBusNameFromBusCode(String customerCode) {
-		// TODO Auto-generated method stub
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
@@ -592,7 +591,6 @@ public class ManageProductActivity extends Activity{
 		firstPosition = m_listProduct.getFirstVisiblePosition();
 		m_listProduct.setAdapter(ProductList);
 		m_listProduct.setSelection(firstPosition);
-
 	}
 
     // 입력 폼 채우기

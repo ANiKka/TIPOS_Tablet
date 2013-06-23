@@ -3,25 +3,17 @@ package tipsystem.tips;
 /*
  * 기본관리 -> 상품관리 -> 검색버튼
  * */
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import tipsystem.tips.MainActivity.ViewHolder;
-import tipsystem.tips.ManageSalesActivity.MyAsyncTask;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -34,14 +26,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.View.OnClickListener;
-import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.ListView;
-import android.widget.RadioButton;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
@@ -208,7 +195,6 @@ public class ManageProductListActivity extends Activity {
 									 json.getString("VAT_CHK"));
 				productArray.add(pl);
 			} catch (JSONException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

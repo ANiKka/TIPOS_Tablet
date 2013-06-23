@@ -65,8 +65,16 @@
             android:background="@drawable/white_text_box_small"
             android:inputType="text"
             android:ems="10"
-            android:textSize="14sp"  />
+            android:textSize="12sp"  />
         
+         <Button
+	        android:id="@+id/buttonBarcode"
+	        android:layout_width="28dp"
+	        android:layout_height="28dp"
+	        android:layout_marginLeft="5dp"
+	        android:background="@drawable/search_btn"
+            android:onClick="onBarcodeSearch" />
+         
         <TextView
             android:id="@+id/textView6"
             android:layout_width="0dip"
@@ -297,7 +305,7 @@
 			android:textSize="14sp"
 			android:gravity="center"
 			android:background="@drawable/gray_bar_bg"
-            android:text="현재고"
+            android:text="실사수량"
         />
         <TextView android:id="@+id/item4"
             android:layout_height="fill_parent"
@@ -308,7 +316,7 @@
 			android:textSize="14sp"
 			android:gravity="center"
 			android:background="@drawable/gray_bar_bg"
-            android:text="실사수량"
+            android:text="현재고"
         />
     </LinearLayout>
 
@@ -348,7 +356,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dip"
-            android:background="@drawable/purchase_send_btn" />
+            android:text="전체삭제"/>
 
         <Button
             android:id="@+id/buttonDelete"
