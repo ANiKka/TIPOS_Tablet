@@ -1,7 +1,10 @@
 package tipsystem.tips;
 
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -18,6 +21,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -86,13 +91,50 @@ public class MainActivity extends Activity {
 					JSONArray shopsData = LocalStorage.getJSONArray(MainActivity.this, "shopsData");		
 					try {
 						JSONObject shop = shopsData.getJSONObject(mSelectedPosition);
+						
+						String APP_EDATE = shop.getString("APP_EDATE");
+						String APP_SDATE = shop.getString("APP_SDATE");
+						SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+						Date edate = formatter.parse(APP_EDATE);
+						Date sdate = formatter.parse(APP_SDATE);
+
+						Date today = new Date();
+					    if(today.getTime() < sdate.getTime()) {
+
+				    		AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+				            builder.setTitle("알림");
+				            builder.setMessage("아직 이용할수 없습니다.\r\n관리자에게 문의하세요\r\n1600-1833");
+				            builder.setNeutralButton("확인", new DialogInterface.OnClickListener() {
+				                @Override
+				                public void onClick(DialogInterface dialog, int which) {
+				                }
+				            });
+				            builder.show();
+				            return;
+					    }
+					    if(today.getTime() > edate.getTime()) {
+
+				    		AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+				            builder.setTitle("알림");
+				            builder.setMessage("기간이 지났습니다.\r\n관리자에게 문의하세요\r\n1600-1833");
+				            builder.setNeutralButton("확인", new DialogInterface.OnClickListener() {
+				                @Override
+				                public void onClick(DialogInterface dialog, int which) {
+				                }
+				            });
+				            builder.show();
+				            return;
+					    }	
+
 			    		LocalStorage.setJSONObject(MainActivity.this, "currentShopData", shop);
+			        	Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+			        	startActivity(intent);
+						   
+					} catch (ParseException e) {
+						
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}
-					
-		        	Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-		        	startActivity(intent);
 				}
 			}).create();
 		
@@ -154,7 +196,7 @@ public class MainActivity extends Activity {
 	    		+"  from APP_USER inner join V_OFFICE_USER " 
 	    		+ " on APP_USER.OFFICE_CODE = V_OFFICE_USER.Sto_CD " 
 	    		+ " JOIN APP_SETTLEMENT on APP_USER.OFFICE_CODE = APP_SETTLEMENT.OFFICE_CODE " 
-	    		+ " where APP_HP =" + phoneNumber + ";"; 
+	    		+ " where APP_HP =" + phoneNumber + "AND DEL_YN = 0;"; 
 
 	    // 콜백함수와 함께 실행
 	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {

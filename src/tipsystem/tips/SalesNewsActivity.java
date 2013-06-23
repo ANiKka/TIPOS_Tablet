@@ -17,6 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import tipsystem.tips.ManageSalesActivity.MyAsyncTask;
+import tipsystem.utils.LocalStorage;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -50,6 +51,10 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 														OnTabChangeListener,
 														DatePickerDialog.OnDateSetListener{
 
+	JSONObject m_shop;
+	String m_ip = "122.49.118.102";
+	String m_port = "18971";
+	
 	TextView m_realSales;
 	TextView m_viewNumber;
 	TextView m_viewKNumber;
@@ -86,6 +91,15 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
+		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
+	       
+        try {
+			m_ip = m_shop.getString("SHOP_IP");
+	        m_port = m_shop.getString("SHOP_PORT");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+        
 		m_dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
 
 		m_numberFormat = NumberFormat.getInstance();
@@ -386,7 +400,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         	    Class.forName("net.sourceforge.jtds.jdbc.Driver").newInstance();
         	    Log.i("Connection","MSSQL driver load");
 
-        	    conn = DriverManager.getConnection("jdbc:jtds:sqlserver://122.49.118.102:18971/TIPS","sa","tips");
+        	    conn = DriverManager.getConnection("jdbc:jtds:sqlserver://" +m_ip+":"+m_port+ "/TIPS","sa","tips");
         	   // conn = DriverManager.getConnection("jdbc:jtds:sqlserver://172.30.1.18:1433/TIPS","sa","tips");
         	    Log.i("Connection","MSSQL open");
         	    Statement stmt = conn.createStatement();

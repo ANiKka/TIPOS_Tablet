@@ -67,6 +67,9 @@ public class TIPSSplashActivity extends Activity {
 
 	private void startMainActivity() {
 		Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
+        finish();
     }
 }

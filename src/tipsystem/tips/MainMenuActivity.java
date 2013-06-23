@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,6 +24,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
@@ -33,6 +35,8 @@ import android.os.Build;
 public class MainMenuActivity extends Activity {
 
 	JSONObject m_shop;
+	JSONObject m_userProfile;
+	String m_APP_USER_GRADE;
 	// loading bar
 	private ProgressDialog dialog; 
 	
@@ -47,15 +51,22 @@ public class MainMenuActivity extends Activity {
 		setupActionBar();
 		
 		m_shop = LocalStorage.getJSONObject(MainMenuActivity.this, "currentShopData"); 
-
-		String Office_Name= null, OFFICE_CODE =null, SHOP_IP = null, SHOP_PORT= null, APP_HP= null;	
+		m_userProfile = LocalStorage.getJSONObject(MainMenuActivity.this, "userProfile"); 
+		
+        Log.i("currentShopData", m_shop.toString() );
+        Log.i("userProfile", m_userProfile.toString() );
+		
+		String Office_Name= null, OFFICE_CODE =null, SHOP_IP = null, SHOP_PORT= null, APP_HP= null, OFFICE_CODE2 =null;	
         try {
 			Office_Name = m_shop.getString("Office_Name");
 			OFFICE_CODE = m_shop.getString("OFFICE_CODE");
+			
+			m_APP_USER_GRADE =m_userProfile.getString("APP_USER_GRADE");
+			OFFICE_CODE2 =m_userProfile.getString("OFFICE_CODE"); //수수료매장코드
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-
+        
 		Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
         TextView textView = (TextView) findViewById(R.id.textViewShopTitle);
         textView.setTypeface(typeface);
@@ -78,7 +89,7 @@ public class MainMenuActivity extends Activity {
             }
         });
         
-		fetchNotices(OFFICE_CODE);
+		fetchNotices("122.49.118.102","18971",OFFICE_CODE);
 	}
 
 	/**
@@ -133,13 +144,37 @@ public class MainMenuActivity extends Activity {
 	
 	public void onClickDefaultManage(View view)
 	{
+        // 수수료매장인경우
+        if (m_APP_USER_GRADE.equals("2")) {
+    		Toast.makeText(getApplicationContext(), "수수료매장은 사용할수 없습니다", Toast.LENGTH_SHORT).show(); 
+        	return;
+        }
+        
 		Intent intent = new Intent(this, ManageCodeActivity.class);
     	startActivity(intent);
 	}
 	
 	public void onClickPurchaseManage(View view)
 	{
+        // 수수료매장인경우
+        if (m_APP_USER_GRADE.equals("2")) {
+    		Toast.makeText(getApplicationContext(), "수수료매장은 사용할수 없습니다", Toast.LENGTH_SHORT).show(); 
+        	return;
+        }
+        
 		Intent intent = new Intent(this, ManagePurchaseActivity.class);
+    	startActivity(intent);
+	}
+
+	public void onClickSalesNews(View view)
+	{
+        // 수수료매장인경우
+        if (m_APP_USER_GRADE.equals("2")) {
+    		Toast.makeText(getApplicationContext(), "수수료매장은 사용할수 없습니다", Toast.LENGTH_SHORT).show(); 
+        	return;
+        }
+        
+		Intent intent = new Intent(this, SalesNewsActivity.class);
     	startActivity(intent);
 	}
 	
@@ -151,24 +186,30 @@ public class MainMenuActivity extends Activity {
 	
 	public void onClickEventManage(View view)
 	{
+        // 수수료매장인경우
+        if (m_APP_USER_GRADE.equals("2")) {
+    		Toast.makeText(getApplicationContext(), "수수료매장은 사용할수 없습니다", Toast.LENGTH_SHORT).show(); 
+        	return;
+        }
+        
 		Intent intent = new Intent(this, ManageEventActivity.class);
-    	startActivity(intent);
-	}
-	
-	public void onClickSalesNews(View view)
-	{
-		Intent intent = new Intent(this, SalesNewsActivity.class);
     	startActivity(intent);
 	}
 	
 	public void onClickManageStock(View view)
 	{
+        // 수수료매장인경우
+        if (m_APP_USER_GRADE.equals("2")) {
+    		Toast.makeText(getApplicationContext(), "수수료매장은 사용할수 없습니다", Toast.LENGTH_SHORT).show(); 
+        	return;
+        }
+        
 		Intent intent = new Intent(this, ManageStockActivity.class);
     	startActivity(intent);
 	}
 	
 	// 로그인관련 실행 함수 
-    public void fetchNotices(String code) {
+    public void fetchNotices(String ip, String port, String code) {
 
     	// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
@@ -189,7 +230,7 @@ public class MainMenuActivity extends Activity {
 				dialog.cancel();
 				didFetchNotices(results);
 			}
-	    }).execute("122.49.118.102:18971", "trans", "app_tips", "app_tips", query);
+	    }).execute(ip + ":" + port, "trans", "app_tips", "app_tips", query);
     }
 
     // DB에 접속후 호출되는 함수

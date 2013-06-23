@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -45,14 +46,14 @@ public class LoginActivity extends Activity {
         textView = (TextView) findViewById(R.id.textViewPW);
         textView.setTypeface(typeface);
 
-        m_shop = LocalStorage.getJSONObject(LoginActivity.this, "currentShopData");
-       /*
+        m_shop = LocalStorage.getJSONObject(this, "currentShopData");
+       
         try {
 			m_ip = m_shop.getString("SHOP_IP");
 	        m_port = m_shop.getString("SHOP_PORT");
 		} catch (JSONException e) {
 			e.printStackTrace();
-		}*/
+		}
         
         // test
 		EditText editTextLoginID = (EditText) findViewById(R.id.editTextLoginID);
@@ -160,7 +161,7 @@ public class LoginActivity extends Activity {
 	    query =  "select * " 
 	    		+ "from Admin_User where User_ID='" + id + "' and User_PWD ='" + pw +"'"  
 	    		+ ";";
-	    //query = "select * from Admin_User ;";
+	    //query = "select * from Admin_User where APP_USER_GRADE=2;";
 	    
 	    // 콜백함수와 함께 실행
 	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
