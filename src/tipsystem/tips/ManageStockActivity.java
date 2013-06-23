@@ -188,47 +188,31 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 				// 전체 삭제 기능으로 대체 
 				// TODO: 아이콘 바꾸어야함
 				clearInputBox();
-				/*
-				if ( m_selectedListIndex == -1) {
-					Toast.makeText(ManageStockActivity.this, "선택된 행사가 없습니다.", Toast.LENGTH_SHORT).show();
-					return;
-				}
-				
-				sendSelectedData(m_selectedListIndex);
-				
-				Toast.makeText(ManageStockActivity.this, "전송완료.", Toast.LENGTH_SHORT).show();
-				m_selectedListIndex = -1;
-				*/
 			}			
 		});
 		
 		btn_SendAll.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v){
-				
-				for ( int i = 0; i < m_stockList.size(); i++ ) {
-					sendSelectedData(i);
-				}
+				sendSelectedAllData();
 
-				deleteDataAll();
-				clearInputBox();
-				Toast.makeText(ManageStockActivity.this, "전송완료.", Toast.LENGTH_SHORT).show();
-				m_selectedListIndex = -1;
-				
-				//TODO: 새로운 전표생성
-		        makeJunPyo(m_junpyoIdx++);
+				m_selectedListIndex = -1;				
 			}			
 		});
 
-        makeJunPyo(m_junpyoIdx++);
 		changeInputMode(0);
+		getSeq();
 	}
 	
-	public void makeJunPyo (int idx) {
+	public void makeJunPyo () {
 
+		String period = m_period.getText().toString();
+		
+		int year = Integer.parseInt(period.substring(0, 4));
+		int month = Integer.parseInt(period.substring(5, 7));
+		int day = Integer.parseInt(period.substring(8, 10));
+		
         // 전표번호 생성 
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-		String currentDate = sdf.format(new Date()); 
 		String posID = "P";
         try {
 			String OFFICE_CODE = m_shop.getString("OFFICE_CODE");
@@ -237,7 +221,8 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 			e.printStackTrace();
 		}
         
-        m_junpyo = currentDate+ posID + String.format("%04d", idx);
+        m_junpyo = year + month + day + posID + String.format("%04d", m_junpyoIdx);
+        m_junpyoIdx++;
 	}
 	
 	public void clearInputBox () {
@@ -274,43 +259,67 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		}
 	}
 	
-	public void sendSelectedData(int index){
+	// StT, StD 테이블에 삽입
+	public void sendSelectedAllData(){
 		
-		String tableName = null;
+		String tableName = null, sttTableName = null;
 		String period = m_period.getText().toString();
 		
 		int year = Integer.parseInt(period.substring(0, 4));
 		int month = Integer.parseInt(period.substring(5, 7));
 		
 		tableName = String.format("StD_%04d%02d", year, month);
-		
+		sttTableName = String.format("StT_%04d%02d", year, month);
+
 		// 쿼리 작성하기
-	    String query =  "";
-	    query =  "insert into " + tableName + "(St_Num, St_BarCode, St_Date, BarCode, Pur_Pri, Sell_Pri, St_Count) " 
-	    		+ " values ("
-	    		+ "'" + m_junpyo + "', "
-	    		+ "'" + m_junpyo + "', "
-	    		+ "'" + m_stockList.get(index).get("St_Date").toString() + "', "
-	    		+ "'" + m_stockList.get(index).get("BarCode").toString() + "', "
-	    		+ "'" + m_stockList.get(index).get("Pur_Pri").toString() + "', "
-	    		+ "'" + m_stockList.get(index).get("Sell_Pri").toString() + "', "
-	    		+ "'" + m_stockList.get(index).get("St_Count").toString() + "');";
+		String query =  "";
+		for ( int i = 0; i < m_stockList.size(); i++ ) {
+			//TODO: 새로운 전표생성
+	        makeJunPyo();
+	        
+		    query +=  "insert into " + tableName + "(St_Num, St_BarCode, St_Date, BarCode, Pur_Pri, Sell_Pri, St_Count) " 
+		    		+ " values ("
+		    		+ "'" + m_junpyo + "', "
+		    		+ "'" + m_junpyo + "', "
+		    		+ "'" + m_stockList.get(i).get("St_Date").toString() + "', "
+		    		+ "'" + m_stockList.get(i).get("BarCode").toString() + "', "
+		    		+ "'" + m_stockList.get(i).get("Pur_Pri").toString() + "', "
+		    		+ "'" + m_stockList.get(i).get("Sell_Pri").toString() + "', "
+		    		+ "'" + m_stockList.get(i).get("St_Count").toString() + "');";
+
+		    query =  "insert into " + sttTableName + "(St_Num, St_Date) " 
+		    		+ " values ("
+		    		+ "'" + m_junpyo + "', "
+		    		+ "'" + m_stockList.get(i).get("St_Date").toString() + "');";
+		}
+
 	    query += " select * from " + tableName + " where St_Num='" + m_junpyo +"';";
-	    
+
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
 	    // 콜백함수와 함께 실행
 	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
 
+				deleteDataAll();
+				clearInputBox();
+				Toast.makeText(ManageStockActivity.this, "전송완료.", Toast.LENGTH_SHORT).show();
 			}
 			
 	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
-		
 	}
-	
-	public void sendSelectedDataToStT(int index){
-		
+
+	//전표갯수를 구함
+	public void getSeq(){
+
 		String tableName = null;
 		String period = m_period.getText().toString();
 		
@@ -320,28 +329,26 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		tableName = String.format("StD_%04d%02d", year, month);
 		
 		// 쿼리 작성하기
-	    String query =  "";
-	    query =  "insert into " + tableName + "(St_Num, St_BarCode, St_Date, BarCode, Pur_Pri, Sell_Pri, St_Count) " 
-	    		+ " values ("
-	    		+ "'" + m_junpyo + "', "
-	    		+ "'" + m_junpyo + "', "
-	    		+ "'" + m_stockList.get(index).get("St_Date").toString() + "', "
-	    		+ "'" + m_stockList.get(index).get("BarCode").toString() + "', "
-	    		+ "'" + m_stockList.get(index).get("Pur_Pri").toString() + "', "
-	    		+ "'" + m_stockList.get(index).get("Sell_Pri").toString() + "', "
-	    		+ "'" + m_stockList.get(index).get("St_Count").toString() + "');";
-	    query += " select * from " + tableName + " where St_Num='" + m_junpyo +"';";
-	    
+		String query =  "";
+	    query += " select * from " + tableName + " ;";
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
 	    // 콜백함수와 함께 실행
 	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
-
+				dialog.dismiss();
+				dialog.cancel();
+				m_junpyoIdx = results.length()+1;
 			}
 			
 	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
-		
 	}
 	
 	public void deleteData() {
@@ -643,6 +650,8 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 			int dayOfMonth) {
 		m_dateCalender1.set(year, monthOfYear, dayOfMonth);
 		m_period.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
+		
+		getSeq();
 	}
 
 	@Override

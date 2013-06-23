@@ -1,6 +1,9 @@
 package tipsystem.tips;
 
+import org.json.JSONArray;
+
 import tipsystem.utils.LocalStorage;
+import tipsystem.utils.MSSQL;
 import tipsystem.utils.Reachability;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -23,6 +26,8 @@ public class TIPSSplashActivity extends Activity {
         savePhoneNumber(this);
         
         startMainActivity();
+        
+        testQuery();
     }
 
     private void checkNetwork() {
@@ -72,4 +77,27 @@ public class TIPSSplashActivity extends Activity {
         startActivity(intent);
         finish();
     }
+	
+	public void testQuery(){
+		
+		String tableName = null;		
+		int year = 2013;
+		int month = 6;
+		
+		tableName = String.format("StD_%04d%02d", year, month);
+		
+		// 쿼리 작성하기
+		String query =  "";
+	    query += " select * from " + tableName + " ;";
+		
+	    // 콜백함수와 함께 실행
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+
+			}
+			
+	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+	}
 }
