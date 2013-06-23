@@ -51,13 +51,14 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	JSONObject m_shop;
 	String m_ip = "122.49.118.102";
 	String m_port = "18971";
+
+	String m_junpyo ="";
+	int  m_junpyoIdx = 0;
 	
 	DatePicker m_datePicker;
-	SimpleDateFormat m_dateFormatter;
-	
+	SimpleDateFormat m_dateFormatter;	
 	Calendar m_dateCalender1;
 	SimpleAdapter adapter; 
-	
 	
 	int m_selectedListIndex = -1;
 	
@@ -78,8 +79,6 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	Button m_bt_barcodeSearch;
 	private ProgressDialog dialog;
 	
-	String m_junpyo ="";
-	int  m_junpyoIdx = 0;
 	 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -131,31 +130,9 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		{
 			public void onClick(View v){
 
-				String barcode = m_textBarcode.getText().toString();
-				String productName = m_textProductName.getText().toString();
-				String purchasePrice = m_et_purchasePrice.getText().toString();
-				String salePrice = m_et_salePrice.getText().toString();
-				String numOfReal = m_et_numOfReal.getText().toString();
-				String m_textProductName = m_et_curStock.getText().toString();
-
-				if (barcode.equals("") || productName.equals("") || purchasePrice.equals("") || salePrice.equals("") || numOfReal.equals("")|| m_textProductName.equals("")) {
-					Toast.makeText(ManageStockActivity.this, "비어있는 필드가 있습니다.", Toast.LENGTH_SHORT).show();
-					return;
-				}
-				
 				m_selectedListIndex = -1;
 				setDataIntoList();
 				changeInputMode(1);
-				/*
-				if (m_inputMode==0) {	// 새로 입력
-
-					setDataIntoList();
-					changeInputMode(1);
-				}
-				else {	// 계속 입력
-					setDataIntoList();
-					//setDataIntoListContinue();
-				}*/
 			 }			
 		});
 		
@@ -235,6 +212,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	}
 	
 	public void deleteListAll() {
+		if (fillMaps.isEmpty()) return;
 		
 		fillMaps.removeAll(fillMaps);
 		adapter.notifyDataSetChanged();		
@@ -510,13 +488,18 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	}
 
 	public void setDataIntoList(){
-	    
-		TextView barcode = (TextView)findViewById(R.id.editTextBarcode);
-		TextView productName = (TextView)findViewById(R.id.editTextProductName);
-		TextView purchasePrice = (TextView)findViewById(R.id.editTextPurchasePrice);
-		TextView salePrice = (TextView)findViewById(R.id.editTextSalePrice);
-		TextView numOfReal = (TextView)findViewById(R.id.editTextNumberOfReal);
-		TextView curStock = (TextView)findViewById(R.id.editTextCurStock);
+
+		String barcode = m_textBarcode.getText().toString();
+		String productName = m_textProductName.getText().toString();
+		String purchasePrice = m_et_purchasePrice.getText().toString();
+		String salePrice = m_et_salePrice.getText().toString();
+		String numOfReal = m_et_numOfReal.getText().toString();
+		String curStock = m_et_curStock.getText().toString();
+		
+		if (barcode.equals("") || productName.equals("") || purchasePrice.equals("") || salePrice.equals("") || numOfReal.equals("")|| numOfReal.equals("")) {
+			Toast.makeText(ManageStockActivity.this, "비어있는 필드가 있습니다.", Toast.LENGTH_SHORT).show();
+			return;
+		}
 		
 		String period = m_period.getText().toString();
 		    
@@ -525,20 +508,21 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
         rmap.put("St_Num", m_junpyo);
         rmap.put("St_BarCode", m_junpyo);
         rmap.put("St_Date", period);
-        rmap.put("BarCode", barcode.getText().toString());
-        rmap.put("G_Name", productName.getText().toString());
-        rmap.put("Pur_Pri", purchasePrice.getText().toString());
-        rmap.put("Sell_Pri", salePrice.getText().toString());
-        rmap.put("St_Count", curStock.getText().toString());
-        rmap.put("Real_Sto", numOfReal.getText().toString());
+        rmap.put("BarCode", barcode);
+        rmap.put("G_Name", productName);
+        rmap.put("Pur_Pri", purchasePrice);
+        rmap.put("Sell_Pri", salePrice);
+        rmap.put("St_Count", curStock);
+        rmap.put("Real_Sto", numOfReal);
         
         m_stockList.add(rmap);
         
+        //ListView 에 뿌려줌
     	HashMap<String, String> map = new HashMap<String, String>();
-        map.put("BarCode", barcode.getText().toString());
-        map.put("G_Name", productName.getText().toString());
-        map.put("Real_Sto", numOfReal.getText().toString());
-        map.put("St_Count", curStock.getText().toString());
+        map.put("BarCode", barcode);
+        map.put("G_Name", productName);
+        map.put("Real_Sto", numOfReal);
+        map.put("St_Count", curStock);
         fillMaps.add(map);            
   		
         adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, from, to);

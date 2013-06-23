@@ -18,6 +18,7 @@ import com.dm.zbar.android.scanner.ZBarScannerActivity;
 
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.MSSQL2;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -221,7 +222,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		{
 			public void onClick(View v){
 				
-				sendSelectedAllData();
+				sendAllData();
 				m_selectedListIndex = -1;
 			}			
 		});
@@ -303,6 +304,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	}
 	
 	public void deleteListAll() {
+		if (fillMaps.isEmpty()) return;
 		
 		fillMaps.removeAll(fillMaps);
 		adapter.notifyDataSetChanged();		
@@ -440,7 +442,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		        	 // 같은게 있으면 fm_element에 추가 
 			         String Evt_Gubun = fm_element.get("Evt_Gubun");
 			         String Evt_SDate = fm_element.get("Evt_SDate");
-			         String Evt_EDate = element.get("Evt_EDate");
+			         String Evt_EDate = fm_element.get("Evt_EDate");
 		         }
 	         }
 	         
@@ -503,16 +505,15 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
 	}
 
-	public void sendSelectedAllData(){
+	public void sendAllData(){
 		
-		String tableName = null, sttTableName = null;
+		String tableName = null;
 		String period = m_period1.getText().toString();
 		
 		int year = Integer.parseInt(period.substring(0, 4));
 		int month = Integer.parseInt(period.substring(5, 7));
 		
 		tableName = String.format("StD_%04d%02d", year, month);
-		sttTableName = String.format("StT_%04d%02d", year, month);
 
 		// 쿼리 작성하기
 		String query =  "";
@@ -532,9 +533,9 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		    		+ "'" + m_evtList.get(i).get("Sale_Sell").toString() + "');";
 		}
 
-	    query += " select * from " + tableName + " where St_Num='" + m_junpyo +"';";
+	    query = " select * from " + tableName + " where St_Num='" + m_junpyo +"';";
 	    Log.i("qeury", query);
-	    /*
+	    
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
@@ -542,7 +543,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
  		dialog.show();
  		
 	    // 콜백함수와 함께 실행
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
@@ -553,60 +554,17 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 				clearInputBox();
 				Toast.makeText(getApplicationContext(), "전송완료.", Toast.LENGTH_SHORT).show();
 			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				Toast.makeText(getApplicationContext(), "전송실패("+String.valueOf(code)+"):" + msg, Toast.LENGTH_SHORT).show();
+			}
 			
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);*/
+	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
 	}
 	
-	public void sendSelectedData(int index){
-		
-		String gubun = null;
-		if (m_evtList.get(index).get("Evt_Name").toString().equals("기간행사") == true ) {
-			gubun = "1";
-		}
-		else {
-			gubun = "0";
-		}
-		
-		// 쿼리 작성하기
-	    String query =  "";
-	    query =  "insert Evt_Mst(Evt_Name, Evt_Gubun, Evt_SDate, Evt_EDate, Evt_STime, Evt_ETime, BarCode, Sale_Pur, Sale_Sell) " 
-	    		+ "into values (" 
-	    		+ "'" + m_evtList.get(index).get("Evt_Name").toString() + "', "
-	    		+ "'" + gubun + "'"
-	    		+ "'" + m_evtList.get(index).get("Evt_SDate").toString() + "', "
-	    		+ "'" + m_evtList.get(index).get("Evt_EDate").toString() + "', "
-	    		+ "'" + m_evtList.get(index).get("Evt_STime").toString() + "', "
-	    		+ "'" + m_evtList.get(index).get("Evt_ETime").toString() + "', "
-	    		+ "'" + m_evtList.get(index).get("BarCode").toString() + "', "
-	    		+ "'" + m_evtList.get(index).get("Sale_Pur").toString() + "', "
-	    		+ "'" + m_evtList.get(index).get("Sale_Sell").toString() + "';";
-	    
-	    // 콜백함수와 함께 실행
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-			@Override
-			public void onRequestCompleted(JSONArray results) {
-
-			}
-			
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
-	    
-	    
-	    query =  "";
-	    query =  "insert Finish(Finish_Date) " 
-	    		+ "into values (" 
-	    		+ "'" + m_evtList.get(index).get("Evt_EDate").toString() + "';";
-	    
-	    // 콜백함수와 함께 실행
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-			@Override
-			public void onRequestCompleted(JSONArray results) {
-
-			}
-			
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
-	}
 	
 	//전표갯수를 구함
 	public void getSeq(){
@@ -630,7 +588,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
  		dialog.show();
  		
 	    // 콜백함수와 함께 실행
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
@@ -638,11 +596,17 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 				dialog.cancel();
 				m_junpyoIdx = results.length()+1;
 			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				Toast.makeText(getApplicationContext(), "실패("+String.valueOf(code)+"):" + msg, Toast.LENGTH_SHORT).show();
+			}
 			
 	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
 	}
 
-	
 	public void OnClickModify(View v) {
 		if ( m_selectedListIndex == -1) {
 			Toast.makeText(ManageEventActivity.this, "선택된 행사가 없습니다.", Toast.LENGTH_SHORT).show();

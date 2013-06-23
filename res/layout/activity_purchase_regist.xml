@@ -27,16 +27,16 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
              />
 
-        <EditText
-            android:id="@+id/editTextPurchaseDate"
-            android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="#ffffff"
-            android:background="@drawable/white_text_box_small"
-            android:textSize="14sp"
-            android:inputType="date" />
-                 
+        <Button
+             android:id="@+id/buttonSetDate1"
+             style="?android:attr/buttonStyleSmall"
+             android:layout_width="0dip"
+             android:layout_height="wrap_content"
+             android:layout_weight="1"
+             android:textSize="14sp"
+             android:text="2013-05-19"
+             android:onClick="onClickSetDate1" />
+        
          <requestFocus />
 
          <CheckBox
@@ -78,6 +78,8 @@
             android:background="@drawable/white_text_box_small"
             android:textSize="14sp"
             android:inputType="number"
+		    android:singleLine="true"
+		    android:lines="1"
             android:ems="10"/>
 	        
         
@@ -88,6 +90,8 @@
             android:layout_weight="1"
             android:layout_marginLeft="5dp"
             android:textColor="#000000"
+		    android:singleLine="true"
+		    android:lines="1"
             android:background="@drawable/white_text_box_small"
             android:textSize="14sp"
             android:inputType="number"
@@ -121,8 +125,18 @@
              android:ems="10"
              android:textSize="14sp"
              android:textColor="#000000"
+		    android:singleLine="true"
+		    android:lines="1"
              android:background="@drawable/white_text_box_small" />
         
+         <Button
+	        android:id="@+id/buttonBarcode"
+	        android:layout_width="28dp"
+	        android:layout_height="28dp"
+	        android:layout_marginLeft="5dp"
+	        android:background="@drawable/search_btn"
+            android:onClick="onBarcodeSearch" />
+         
         <TextView
             android:id="@+id/textView5"
             android:layout_width="0dip"
@@ -141,6 +155,8 @@
 	        android:layout_weight="1"
 	        android:ems="10"
 	        android:textColor="#000000"
+		    android:singleLine="true"
+		    android:lines="1"
             android:background="@drawable/white_text_box_small"
 	        android:textSize="14sp" />       
     
@@ -172,6 +188,8 @@
             android:ems="10"
             android:textSize="14sp"
             android:textColor="#000000"
+		    android:singleLine="true"
+		    android:lines="1"
             android:background="@drawable/white_text_box_small" />
        
         <TextView
@@ -192,6 +210,8 @@
 	        android:layout_weight="1"
 	        android:ems="10"
 	        android:textColor="#000000"
+		    android:singleLine="true"
+		    android:lines="1"
             android:background="@drawable/white_text_box_small"
 	        android:textSize="14sp"
 	     />       
@@ -223,6 +243,9 @@
             android:layout_weight="1"
             android:ems="10"
             android:textSize="14sp"
+            android:inputType="number"
+		    android:singleLine="true"
+		    android:lines="1"
             android:textColor="#000000"
             android:background="@drawable/white_text_box_small" />
         
@@ -244,6 +267,9 @@
 	        android:layout_weight="1"
 	        android:ems="10"
 	        android:textColor="#000000"
+            android:inputType="number"
+		    android:singleLine="true"
+		    android:lines="1"
             android:background="@drawable/white_text_box_small"
 	        android:textSize="14sp"/>
          
@@ -257,7 +283,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:layout_below="@+id/linearLayout5"
-        android:orientation="vertical" >
+        android:orientation="horizontal" >
         
 	    <Button
 	        android:id="@+id/buttonSave"
@@ -267,6 +293,15 @@
 	        android:background="@drawable/purchase_save_btn"
 	        android:scaleY="0.8"
 	        android:layout_gravity="center"/>
+	           
+       <Button
+	        android:id="@+id/buttonRenew"
+	        style="?android:attr/buttonStyleSmall"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="10dip"
+	        android:scaleY="0.8"
+	        android:background="@drawable/replace_btn" />
 	    
 	</LinearLayout>
 	
@@ -351,6 +386,7 @@
             android:background="@drawable/gray_bar_bg"
             android:text="수량"
         />
+        <!-- 
         <TextView android:id="@+id/item5"
             android:layout_height="fill_parent"
             android:layout_width="0dip"
@@ -364,6 +400,7 @@
             android:background="@drawable/gray_bar_bg"
             android:text="선택"
         />
+        -->
     </LinearLayout>
 
     <!-- List Divider -->
@@ -406,8 +443,8 @@
             android:layout_gravity="center"
             android:scaleX="0.8"
             android:scaleY="0.8"
-            android:background="@drawable/purchase_send_btn" />
-
+            android:text="전체삭제"/>
+        
         <Button
             android:id="@+id/buttonDelete"
             style="?android:attr/buttonStyleSmall"
