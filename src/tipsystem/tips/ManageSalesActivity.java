@@ -5,6 +5,7 @@ import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -16,18 +17,23 @@ import java.util.Locale;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.tips.ManageProductListActivity.ProductList;
+
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -36,6 +42,7 @@ import android.widget.CalendarView.OnDateChangeListener;
 import android.widget.DatePicker;
 import android.widget.DatePicker.OnDateChangedListener;
 import android.widget.TabHost.OnTabChangeListener;
+import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -73,8 +80,18 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	Calendar m_dateCalender1;
 	Calendar m_dateCalender2;
 	
-	int m_dateMode=0;	
+	int m_dateMode=0;
 	
+	NumberFormat m_numberFormat;
+	
+	ProgressDialog dialog;
+	
+	//List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
+    //ArrayList<CustomerList> customerArray = new ArrayList<CustomerList>();
+    int index = 0;
+    int size = 100;
+    int firstPosition = 0;
+    
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -89,24 +106,22 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		m_productName = (TextView) findViewById(R.id.editTextProductName);
 		m_customerCode = (TextView) findViewById(R.id.editTextCustomerCode);
 		m_customerName = (TextView) findViewById(R.id.editTextCustomerName);
-		
-		
+				
 		m_dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
 		
-		
+		m_numberFormat = NumberFormat.getInstance();
+				
 		m_dateCalender1 = Calendar.getInstance();
 		m_dateCalender2 = Calendar.getInstance();
 				
 		m_period1.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
 		m_period2.setText(m_dateFormatter.format(m_dateCalender2.getTime()));
-		
-		
+				
 		m_listSalesTab1= (ListView)findViewById(R.id.listviewSalesListTab1);
 		m_listSalesTab2= (ListView)findViewById(R.id.listviewSalesListTab2);
 		m_listSalesTab3= (ListView)findViewById(R.id.listviewSalesListTab3);
 		m_listSalesTab4= (ListView)findViewById(R.id.listviewSalesListTab4);
-		
-		
+				
 		m_tabHost = (TabHost) findViewById(R.id.tabhostManageSales);
         m_tabHost.setup();
         
@@ -137,9 +152,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         //m_tabHost.getCurrentTab();
         
         m_calendar = (CalendarView)findViewById(R.id.calendarView1);
-        m_calendar.setOnDateChangeListener(this);
-
-        
+        m_calendar.setOnDateChangeListener(this);        
 	}
 	
 	private void setTabList1(List<HashMap<String, String>> fillMaps)
@@ -153,13 +166,11 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 				from, to);
 		
 		m_listSalesTab1.setAdapter(adapter);
-		m_listSalesTab1.setOnItemClickListener(this);
-		
+		m_listSalesTab1.setOnItemClickListener(this);		
 	}
 	
 	private void setTabList2(List<HashMap<String, String>> fillMaps)
-	{
-		
+	{		
 		 // create the grid item mapping
 		String[] from = new String[] {"Barcode", "G_Name", "Sale_Count", "rSale"};
         int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
@@ -172,13 +183,11 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	}
 	
 	private void setTabList3(List<HashMap<String, String>> fillMaps)
-	{
-		
+	{		
 		 // create the grid item mapping
 		String[] from = new String[] {"Office_Code", "Office_Name", "rSale"};
         int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
-		
-		
+				
 		// fill in the grid_item layout
 		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item3, 
 				from, to);
@@ -188,9 +197,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	}
 	
 	private void setTabList4(List<HashMap<String, String>> fillMaps)
-	{
-		
-		
+	{		
 		 // create the grid item mapping
 		String[] from = new String[] {"content"};
 		int[] to = new int[] { R.id.textView1};
@@ -283,11 +290,9 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	    	
 	    	startActivity(intent);
 		}
-			
+		
 		
 		//Toast.makeText(this, "Item Click." + m_calendar.getId() + " ,  " + arg0.getId(), Toast.LENGTH_SHORT).show();
-		
-		
 	}
 
 	@Override
@@ -299,15 +304,19 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		String period1 = String.format("%04d-%02d-%02d", year, month, dayOfMonth);
 		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
 		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
 		new MyAsyncTask().execute(tabIndex, period1, period1 , "", "", "", "");
 		
 	}
 	
 
 	public void OnClickSearch(View v) {
-		// TODO Auto-generated method stub
-		//Toast.makeText(this, "Search Click.", Toast.LENGTH_SHORT).show();
-		
+		//Toast.makeText(this, "Search Click.", Toast.LENGTH_SHORT).show();		
 		
 		String period1 = m_period1.getText().toString();
 		String period2 = m_period2.getText().toString();
@@ -318,9 +327,13 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		
 		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
 		
-		new MyAsyncTask().execute(tabIndex, period1, period2, barCode, productName, customerCode, customerName);
-		
-		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+		new MyAsyncTask().execute(tabIndex, period1, period2, barCode, productName, customerCode, customerName);		
 	};
 	
 	    
@@ -329,7 +342,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		// TODO Auto-generated method stub
 		//Toast.makeText(this, "Tab Click.", Toast.LENGTH_SHORT).show();
 		
-		
 		String period1 = m_period1.getText().toString();
 		String period2 = m_period2.getText().toString();
 		String barCode = m_barCode.getText().toString();
@@ -339,12 +351,16 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		
 		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
 		
-		new MyAsyncTask ().execute(tabIndex, period1, period2, barCode, productName, customerCode, customerName);
-		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+		new MyAsyncTask ().execute(tabIndex, period1, period2, barCode, productName, customerCode, customerName);		
 	}
 
 	public void onClickSetDate1(View v) {
-		// TODO Auto-generated method stub
 				
 		DatePickerDialog newDlg = new DatePickerDialog(this, this,
 				m_dateCalender1.get(Calendar.YEAR),
@@ -386,7 +402,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		m_dateMode = 0;
 	}
 	
-
 	
 	class MyAsyncTask extends AsyncTask<String, Integer, String>{
 
@@ -434,15 +449,11 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         		for ( int y = year1; y <= year2; y++ )
         		{
         			for ( int m = month1; m <= month2; m++ )
-        			{
-        				
+        			{        				
         				tableName = String.format("SaD_%04d%02d", y, m);
         				
-        				
         				if ( m_tabIndex == 0 ) // 거래처별
-                		{
-        					
-        					
+                		{     		
         					if ( barCode.equals("") != true )
         					{
         						constraint = setConstraint(constraint, "Barcode", "=", barCode);
@@ -471,7 +482,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
                 				query = query + " and " + constraint;
                 			}
                 			
-                			
                 			Log.e("HTTPJSON","query: " + query );
                         	reset = stmt.executeQuery(query);
             	        	    		
@@ -487,11 +497,8 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
             				    Obj.put("DC_Pri",reset.getInt(5));
             				    Obj.put("ProFit_Pri",reset.getInt(6));
    
-            				    
             				    CommArray.add(Obj);
             				}
-                    	    
-                			
                 		}
                 		else if ( m_tabIndex == 1 ) // 상품명
                 		{
@@ -590,8 +597,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
             				    
             				    CommArray.add(Obj);
             				}
-                			
-                			
                 		}
                 		else if ( m_tabIndex == 3 ) // 달력매출
                 		{
@@ -641,14 +646,17 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         protected void onPostExecute(String result) {
         	super.onPostExecute(result);
         	
-        	
-        	
         	if ( m_tabIndex == 0 )
         	{
         		String[] from = new String[] {"Office_Code", "Office_Name", "rSale", "ProFit_Pri"};
     	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
     	        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-    	 	        		
+    	 	    
+    	        ArrayList<String> lSpListCode = new ArrayList<String>();
+    	        ArrayList<String> lSpListName = new ArrayList<String>();
+    	        ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
+    	        ArrayList<Integer> lSpListProfit = new ArrayList<Integer>();
+    	        
             	Iterator<JSONObject> iterator = CommArray.iterator();
         		while (iterator.hasNext()) {
                 	JSONObject json = iterator.next();
@@ -660,27 +668,55 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         				int tSell = json.getInt("TSell_Pri");
         				int tRSell = json.getInt("TSell_RePri");
         				int dcPri = json.getInt("DC_Pri");
-        				String sProfit = String.format("%d", json.getInt("ProFit_Pri"));
-        				
-        				String rSale = String.format("%d", tSell - (tRSell + dcPri));
-        				
-        				// prepare the list of all records
-    		            HashMap<String, String> map = new HashMap<String, String>();
-    		            map.put("Office_Code", code);
-    		            map.put("Office_Name", name);
-    		            map.put("rSale", rSale);
-    		            map.put("ProFit_Pri", sProfit);
-    		            fillMaps.add(map);
-        		 
+        				        				
+        				boolean isExist = false;
+	               		
+                		for ( int i = 0; i < lSpListCode.size(); i++ )
+                		{
+                			if ( lSpListCode.get(i).toString().equals(code) == true )
+                			{
+                				Integer rsale = lSpListSale.get(i).intValue() + ((tSell - (tRSell + dcPri)));
+                				Integer profit = lSpListProfit.get(i).intValue() + json.getInt("ProFit_Pri");
+                				
+                				lSpListSale.set(i, rsale);
+                				lSpListProfit.set(i, profit);
+                				
+                				isExist = true;
+                				break;
+                			}
+                		}
+                		
+                		if ( isExist == false )
+                		{
+                			Integer rsale = tSell - (tRSell + dcPri);
+            				Integer profit = json.getInt("ProFit_Pri");
+            				
+            				lSpListCode.add(code);
+            				lSpListName.add(name);
+            				lSpListSale.add(rsale);
+            				lSpListProfit.add(profit);
+                		}
         			} catch (JSONException e) {
         				// TODO Auto-generated catch block
         				e.printStackTrace();
         			}
         		}
         		
-        		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
+        		for ( int i = 0; i < lSpListCode.size(); i++ )
+        		{
+        			// prepare the list of all records
+    	            HashMap<String, String> map = new HashMap<String, String>();
+    	            
+    	            map.put("Office_Code", lSpListCode.get(i));
+    	            map.put("Office_Name", lSpListName.get(i));
+    	            map.put("rSale", m_numberFormat.format(lSpListSale.get(i).intValue()) );
+    	            map.put("ProFit_Pri", m_numberFormat.format(lSpListProfit.get(i).intValue()));
+    	            fillMaps.add(map);
+        		}
         		
-        		if ( CommArray.size() > 0 )
+        		Toast.makeText(getApplicationContext(), "조회 완료: " + lSpListCode.size(), Toast.LENGTH_SHORT).show();
+        		
+        		if ( lSpListCode.size() > 0 )
         		{
         			setTabList1(fillMaps);
         		}
@@ -691,7 +727,12 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         		String[] from = new String[] {"Barcode", "G_Name", "Sale_Count", "rSale"};
     	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
     	        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-    	 	        		
+    	 	    
+    	        ArrayList<String> lSpListCode = new ArrayList<String>();
+    	        ArrayList<String> lSpListName = new ArrayList<String>();
+    	        ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
+    	        ArrayList<Integer> lSpListSaleCnt = new ArrayList<Integer>();
+    	        
             	Iterator<JSONObject> iterator = CommArray.iterator();
         		while (iterator.hasNext()) {
                 	JSONObject json = iterator.next();
@@ -707,13 +748,34 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         				
         				String rSale = String.format("%d", tSell - (tRSell + dcPri));
         				
-        				// prepare the list of all records
-    		            HashMap<String, String> map = new HashMap<String, String>();
-    		            map.put("Barcode", code);
-    		            map.put("G_Name", name);
-    		            map.put("Sale_Count", saleCount);
-    		            map.put("rSale", rSale);
-    		            fillMaps.add(map);
+        				boolean isExist = false;
+	               		
+                		for ( int i = 0; i < lSpListCode.size(); i++ )
+                		{
+                			if ( lSpListCode.get(i).toString().equals(code) == true )
+                			{
+                				Integer rsale = lSpListSale.get(i).intValue() + ((tSell - (tRSell + dcPri)));
+                				Integer profit = lSpListSaleCnt.get(i).intValue() + json.getInt("Sale_Count");
+                				
+                				lSpListSale.set(i, rsale);
+                				lSpListSaleCnt.set(i, profit);
+                				
+                				isExist = true;
+                				break;
+                			}
+                		}
+                		
+                		if ( isExist == false )
+                		{
+                			Integer rsale = tSell - (tRSell + dcPri);
+            				Integer count = json.getInt("Sale_Count");
+            				
+            				lSpListCode.add(code);
+            				lSpListName.add(name);
+            				lSpListSale.add(rsale);
+            				lSpListSaleCnt.add(count);
+                		}
+
         		 
         			} catch (JSONException e) {
         				// TODO Auto-generated catch block
@@ -721,9 +783,22 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         			}
         		}
         		
-        		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
         		
-        		if ( CommArray.size() > 0 )
+        		for ( int i = 0; i < lSpListCode.size(); i++ )
+        		{
+        			// prepare the list of all records
+    	            HashMap<String, String> map = new HashMap<String, String>();
+    	            
+    	            map.put("Barcode", lSpListCode.get(i));
+    	            map.put("G_Name", lSpListName.get(i));
+    	            map.put("Sale_Count", String.format("%d", lSpListSaleCnt.get(i).intValue()));
+    	            map.put("rSale", m_numberFormat.format(lSpListSale.get(i).intValue()));
+    	            fillMaps.add(map);
+        		}
+        		       		
+        		Toast.makeText(getApplicationContext(), "조회 완료: " + lSpListCode.size(), Toast.LENGTH_SHORT).show();
+        		
+        		if ( lSpListCode.size() > 0 )
         		{
         			setTabList2(fillMaps);
         		}
@@ -734,7 +809,11 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         		String[] from = new String[] {"Office_Code", "Office_Name", "rSale"};
     	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
     	        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-    	 	        		
+    	 	    
+    	        ArrayList<String> lSpListCode = new ArrayList<String>();
+    	        ArrayList<String> lSpListName = new ArrayList<String>();
+    	        ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
+    	        
             	Iterator<JSONObject> iterator = CommArray.iterator();
         		while (iterator.hasNext()) {
                 	JSONObject json = iterator.next();
@@ -749,12 +828,32 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         				        				
         				String rSale = String.format("%d", tSell - (tRSell + dcPri));
         				
-        				// prepare the list of all records
-    		            HashMap<String, String> map = new HashMap<String, String>();
-    		            map.put("Office_Code", code);
-    		            map.put("Office_Name", name);
-    		            map.put("rSale", rSale);
-    		            fillMaps.add(map);
+        				boolean isExist = false;
+	               		
+                		for ( int i = 0; i < lSpListCode.size(); i++ )
+                		{
+                			if ( lSpListCode.get(i).toString().equals(code) == true )
+                			{
+                				Integer rsale = lSpListSale.get(i).intValue() + ((tSell - (tRSell + dcPri)));
+                				
+                				lSpListSale.set(i, rsale);
+                				
+                				isExist = true;
+                				break;
+                			}
+                		}
+                		
+                		if ( isExist == false )
+                		{
+                			Integer rsale = tSell - (tRSell + dcPri);
+            				Integer profit = json.getInt("ProFit_Pri");
+            				
+            				lSpListCode.add(code);
+            				lSpListName.add(name);
+            				lSpListSale.add(rsale);
+                		}
+                		
+        				
         		 
         			} catch (JSONException e) {
         				// TODO Auto-generated catch block
@@ -762,9 +861,20 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         			}
         		}
         		
-        		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
+        		for ( int i = 0; i < lSpListCode.size(); i++ )
+        		{
+        			// prepare the list of all records
+    	            HashMap<String, String> map = new HashMap<String, String>();
+    	            
+    	            map.put("Office_Code", lSpListCode.get(i));
+    	            map.put("Office_Name", lSpListName.get(i));
+    	            map.put("rSale", m_numberFormat.format(lSpListSale.get(i).intValue()) );
+    	            fillMaps.add(map);
+        		}
         		
-        		if ( CommArray.size() > 0 )
+        		Toast.makeText(getApplicationContext(), "조회 완료: " + lSpListCode.size(), Toast.LENGTH_SHORT).show();
+        		
+        		if ( lSpListCode.size() > 0 )
         		{
         			setTabList3(fillMaps);
         		}
@@ -812,14 +922,43 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         			}
         		}
         		
-        		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
-        		
-        		if ( CommArray.size() > 0 )
+        		if ( CommArray.size() == 0 )
         		{
-        			setTabList4(fillMaps);
+        			
+        			String rSale = String.format("순매출 : %d원", 0);
+    				String saleNum = String.format("객 수 : %d명", 0);
+    				String salePri = String.format("객단가 : %d원", 0);
+    				String tPurPri = String.format("매입금액 : %d원",0);
+    				
+    				// prepare the list of all records
+		            HashMap<String, String> map1 = new HashMap<String, String>();
+		            HashMap<String, String> map2 = new HashMap<String, String>();
+		            HashMap<String, String> map3 = new HashMap<String, String>();
+		            HashMap<String, String> map4 = new HashMap<String, String>();
+    				
+		            map1.put("content", rSale);
+		            fillMaps.add(map1);
+		            
+		            map2.put("content", saleNum);
+		            fillMaps.add(map2);
+		            
+		            map3.put("content", salePri);
+		            fillMaps.add(map3);
+		            
+		            map4.put("content", tPurPri);
+		            fillMaps.add(map4);
+        			
         		}
         		
+        		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
+        		
+        		
+        		setTabList4(fillMaps);
+        		
+        		
         	}
+        	
+        	dialog.cancel();
     		
         }
         
@@ -835,4 +974,83 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         	return str;
         }
     }
+	
+	/*
+	class CustomerList {
+		CustomerList(String Office_Code, String Office_Name, String rSale, String ProFit_Pri){
+			
+			this.Office_Code = Office_Code;
+			this.Office_Name = Office_Name;
+			this.rSale = rSale;
+			this.ProFit_Pri = ProFit_Pri;
+			
+		}	
+		
+		String Office_Code;
+		String Office_Name;
+		String rSale;
+		String ProFit_Pri;
+		
+	}
+	
+	
+	class CustomerListAdapter extends BaseAdapter 
+	{
+
+		Context ctx;
+		LayoutInflater Inflater;
+		ArrayList<CustomerList> arr_Customers;
+		int itemLayout;
+		
+		public CustomerListAdapter(Context actx, int aitemLayout, ArrayList<CustomerList> aarr_Customers)
+		{
+			ctx = actx;
+			Inflater = (LayoutInflater)actx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			arr_Customers = aarr_Customers;
+			itemLayout = aitemLayout;
+		}
+
+		@Override
+		public int getCount() {
+			return arr_Customers.size();
+		}
+		@Override
+		public String getItem(int position) {
+			return arr_Customers.get(position).Office_Code;
+		}
+		@Override
+		public long getItemId(int position) {
+
+			return position;
+		}
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			final int pos = position;
+			
+			if (convertView == null) {
+				convertView = Inflater.inflate(itemLayout, parent, false);
+			} 
+			
+			TextView office_code = (TextView)convertView.findViewById(R.id.item1);
+			TextView office_name = (TextView)convertView.findViewById(R.id.item2);
+			TextView rSale = (TextView)convertView.findViewById(R.id.item3);
+			TextView ProFit_Pri = (TextView)convertView.findViewById(R.id.item4);
+			
+			
+			office_code.setText(arr_Customers.get(position).Office_Code);
+			office_name.setText(arr_Customers.get(position).Office_Name);
+			rSale.setText(arr_Customers.get(position).rSale);
+			ProFit_Pri.setText(arr_Customers.get(position).ProFit_Pri);
+
+			if(position == size-3){
+				index = size;
+				size = size * 2;
+				
+				//doSearch(index, size);
+			}
+			return convertView;
+		}
+	}*/
+	
+	
 }

@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -17,10 +18,12 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.support.v4.app.NavUtils;
@@ -35,9 +38,15 @@ public class ChargeCustomerDetailActivity extends Activity {
 	
 	TextView m_contents[];
 	
+	CheckBox m_isCashDeduction;
+	TextView m_ratioDeduction;
+	
 	int m_qIndex = 0;
 	int m_isTax = 0;
 	int m_isCashR = 0;
+	
+	ProgressDialog dialog;
+	NumberFormat m_numberFormat;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -47,10 +56,13 @@ public class ChargeCustomerDetailActivity extends Activity {
 		setupActionBar();
 		
 		
+		
 		m_period1 = (TextView)findViewById(R.id.textViewPeriod1);
 		m_period2 = (TextView)findViewById(R.id.textViewPeriod2);
 		m_customerCode = (TextView)findViewById(R.id.textViewCustomerCode);
 		m_customerName = (TextView)findViewById(R.id.textViewCustomerName);
+		
+		m_numberFormat = NumberFormat.getInstance();
 		
 		m_contents = new TextView[24];
 		
@@ -84,6 +96,9 @@ public class ChargeCustomerDetailActivity extends Activity {
 		m_contents[22] = (TextView)findViewById(R.id.content23);
 		m_contents[23] = (TextView)findViewById(R.id.content24);
 		
+		m_isCashDeduction = (CheckBox)findViewById(R.id.checkBoxIsCashDeduction);
+		m_ratioDeduction = (TextView)findViewById(R.id.editTextCashDeduction);
+		
 		Intent intent = getIntent();
 		
 		m_period1.setText(intent.getExtras().getString("PERIOD1"));
@@ -97,9 +112,16 @@ public class ChargeCustomerDetailActivity extends Activity {
 		String customerCode = m_customerCode.getText().toString();
 		String customerName = m_customerName.getText().toString();
 		
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
 	
 		new MyAsyncTask().execute("0", period1, period2, customerCode, customerName, "", ""); // SaD
-		new MyAsyncTask().execute("1", period1, period2, customerCode, customerName, "", ""); // SaT
+		//new MyAsyncTask().execute("1", period1, period2, customerCode, customerName, "", ""); // SaT
 		new MyAsyncTask().execute("2", period1, period2, customerCode, customerName, "", ""); // 현영매출
 		new MyAsyncTask().execute("3", period1, period2, customerCode, customerName, "1", "0"); // 과세매출
 		new MyAsyncTask().execute("3", period1, period2, customerCode, customerName, "0", "0"); // 면세매출
@@ -220,15 +242,20 @@ public class ChargeCustomerDetailActivity extends Activity {
         					}
         					
         					// 현금매출, 수카드금액, 매장수수료, 카드수수료, 포인트, 캐쉬백
-                			query = "select Cash_Pri, Card_Pri, SU_CardPri, Cus_Point, CashBack_Point from " + tableName1;
-                			query = query + " where Sale_Num in (select Sale_Num from " + tableName2 + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
+                			//query = "select Cash_Pri, Card_Pri, SU_CardPri, Cus_Point, CashBack_Point from " + tableName1;
+                			//query = query + " where Sale_Num in (select Sale_Num from " + tableName2 + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
                			
+        					query = "select * "
+        							+ "from " + tableName1 + " inner joint " +  tableName2
+        							+ " on " + tableName1 + ".Sale_Num = " + tableName2 + ".Sale_Num"
+        							+ " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
+        					
                 			if ( constraint.equals("") != true )
                 			{
                 				query = query + " and " + constraint;
                 			}
                 			
-                			query = query + ")";
+                			//query = query + ")";
                 			
                 			Log.e("HTTPJSON","query: " + query );
                         	reset = stmt.executeQuery(query);
@@ -239,12 +266,17 @@ public class ChargeCustomerDetailActivity extends Activity {
             					
             					JSONObject Obj = new JSONObject();
             				    // original part looks fine:
-
-            				    Obj.put("Cash_Pri",reset.getInt(1));
-            				    Obj.put("Card_Pri",reset.getInt(2));
-            				    Obj.put("SU_CardPri",reset.getInt(3));
-            				    Obj.put("Cus_Point",reset.getInt(4));
-            				    Obj.put("CashBack_Point",reset.getInt(5));
+            					
+            				    Obj.put("Cash_Pri",reset.getInt("Cash_Pri"));
+            				    Obj.put("Card_Pri",reset.getInt("Card_Pri"));
+            				    Obj.put("Card_YN",reset.getString("Card_YN"));
+            				    Obj.put("Cus_Point",reset.getInt("Cus_Point"));
+            				    Obj.put("CashBack_Point",reset.getInt("CashBack_Point"));
+            				    Obj.put("Fee", reset.getInt("Fee"));
+            				    Obj.put("Card_Fee", reset.getInt("Card_Fee"));
+            				    Obj.put("TSell_Pri", reset.getInt("TSell_Pri"));
+            				    Obj.put("TSell_RePri", reset.getInt("TSell_RePri"));
+            				    Obj.put("DC_Pri", reset.getInt("DC_Pri"));
             				    
             				    CommArray.add(Obj);
             				}
@@ -254,6 +286,7 @@ public class ChargeCustomerDetailActivity extends Activity {
         		}
     			else if ( m_qIndex == 1 )
     			{
+/*    				
     				for ( int y = year1; y <= year2; y++ )
             		{
             			for ( int m = month1; m <= month2; m++ )
@@ -300,7 +333,7 @@ public class ChargeCustomerDetailActivity extends Activity {
             			}
             			
             		}        			
-    				
+*/    				
     			}
     			else if ( m_qIndex == 2 )
     			{
@@ -443,6 +476,15 @@ public class ChargeCustomerDetailActivity extends Activity {
 				int suCardPri = 0;
 				int cusPoint = 0;
 				int cashBackPoint = 0;
+				int fee = 0;
+				int cardFee = 0;
+				
+				int tSellPri = 0;
+				int tSellRePri = 0;
+				int dcPri = 0;
+				int rSale = 0;
+				
+				int deductionPri = 0;
 				
         		
             	Iterator<JSONObject> iterator = CommArray.iterator();
@@ -454,7 +496,17 @@ public class ChargeCustomerDetailActivity extends Activity {
                 		
         				cashPri = cashPri + json.getInt("Cash_Pri");
         				cardPri = cardPri + json.getInt("Card_Pri");
-        				suCardPri = suCardPri + json.getInt("SU_CardPri");
+        				fee = fee + json.getInt("Fee");
+        				cardFee = cardFee + json.getInt("Card_Fee");
+        				
+        				tSellPri = tSellPri + json.getInt("TSell_Pri");
+        				tSellRePri =  tSellRePri + json.getInt("TSell_RePri");
+        				dcPri = dcPri + json.getInt("DC_Pri");
+        				
+        				if (json.getString("Card_YN").toString().equals("1") == true )
+        				{
+        					suCardPri = suCardPri + cardPri;
+        				}
         				
         				cusPoint = cusPoint + json.getInt("Cus_Point");
         				cashBackPoint = cashBackPoint + json.getInt("CashBack_Point");
@@ -465,21 +517,53 @@ public class ChargeCustomerDetailActivity extends Activity {
         			}
         		}
         		
-        		m_contents[6].setText(String.format("%d", cashPri));
-        		
-        		m_contents[9].setText(String.format("%d", cardPri));
-        		
-        		m_contents[15].setText(String.format("%d", suCardPri));
-        		m_contents[18].setText(String.format("%d", cusPoint));
-        		m_contents[19].setText(String.format("%d", cashBackPoint));
+        		rSale = tSellPri - (tSellRePri + dcPri);
         		
         		
-        		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
+        		
+        		m_contents[6].setText(m_numberFormat.format(cashPri));
+        		        		
+        		m_contents[9].setText(m_numberFormat.format(cardPri));
+        		
+        		m_contents[15].setText(m_numberFormat.format(suCardPri));
+        		m_contents[18].setText(m_numberFormat.format(cusPoint));
+        		m_contents[19].setText(m_numberFormat.format(cashBackPoint));
+        		
+        		m_contents[0].setText(m_numberFormat.format(tSellPri));
+        		m_contents[1].setText(m_numberFormat.format(tSellRePri));
+        		m_contents[2].setText(m_numberFormat.format(dcPri));
+        		m_contents[3].setText(m_numberFormat.format(rSale));
+        		
+        		m_contents[16].setText(m_numberFormat.format(fee));
+        		m_contents[17].setText(m_numberFormat.format(cardFee));
+        		
+        		if ( m_isCashDeduction.isChecked() == true )
+        		{
+        			double ratio = Double.parseDouble(m_ratioDeduction.getText().toString());
+        			ratio = ratio / 100.0f;
+        			
+        			m_contents[20].setText(m_numberFormat.format((int)(cashPri*ratio)));
+        			
+        			deductionPri =  (suCardPri + fee + cardFee + cusPoint + cashBackPoint + (int)(cashPri*ratio));
+        			
+        		}
+        		else 
+        		{
+        			m_contents[20].setText("0");
+        			deductionPri =  (suCardPri + fee + cardFee + cusPoint + cashBackPoint);
+        		}
+        		
+        		m_contents[21].setText(m_numberFormat.format(deductionPri));
+        		m_contents[22].setText(m_numberFormat.format(rSale - deductionPri));
+        		
+        		m_contents[23].setText(String.format("%.2f", rSale /  tSellPri * 100.0f));
+        		
+        		//Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
         		
         	}
         	else if ( m_qIndex == 1 )
         	{
-        		int tSellPri = 0;
+  /*      		int tSellPri = 0;
 				int tSellRePri = 0;
 				int dcPri = 0;
 				int fee = 0;
@@ -514,7 +598,7 @@ public class ChargeCustomerDetailActivity extends Activity {
         		
         		m_contents[16].setText(String.format("%d", fee));
         		m_contents[17].setText(String.format("%d", cardFee));
-        		        		
+*/        		        		
         	}
         	else if ( m_qIndex == 2 )
         	{
@@ -534,7 +618,7 @@ public class ChargeCustomerDetailActivity extends Activity {
         			}
         		}
 
-        		m_contents[12].setText(String.format("%d", tSellPri));
+        		m_contents[12].setText(m_numberFormat.format(tSellPri));
       		
         	}
         	else if ( m_qIndex == 3 )
@@ -561,25 +645,30 @@ public class ChargeCustomerDetailActivity extends Activity {
         		
         		if ( m_isCashR == 0 && m_isTax == 1 )
         		{
-        			m_contents[4].setText(String.format("%d", tSellPri));
-        			m_contents[7].setText(String.format("%d", cashPri));
-        			m_contents[10].setText(String.format("%d", cardPri));
+        			m_contents[4].setText(m_numberFormat.format(tSellPri));
+        			m_contents[7].setText(m_numberFormat.format(cashPri));
+        			m_contents[10].setText(m_numberFormat.format(cardPri));
         		}
         		else if ( m_isCashR == 0 && m_isTax == 0 )
         		{
-        			m_contents[5].setText(String.format("%d", tSellPri));
-        			m_contents[8].setText(String.format("%d", cashPri));
-        			m_contents[11].setText(String.format("%d", cardPri));
+        			m_contents[5].setText(m_numberFormat.format(tSellPri));
+        			m_contents[8].setText(m_numberFormat.format(cashPri));
+        			m_contents[11].setText(m_numberFormat.format(cardPri));
         		}
         		else if ( m_isCashR == 1 && m_isTax == 1 )
         		{
-        			m_contents[13].setText(String.format("%d", tSellPri));
+        			m_contents[13].setText(m_numberFormat.format(tSellPri));
         		}
         		else if ( m_isCashR == 1 && m_isTax == 0 )
         		{
-        			m_contents[14].setText(String.format("%d", tSellPri));
-        		}      		
+        			m_contents[14].setText(m_numberFormat.format(tSellPri));
+        			
+        			dialog.cancel();
+        		}
+        		
+        		
         	}
+        	
         		   		
         }
         
