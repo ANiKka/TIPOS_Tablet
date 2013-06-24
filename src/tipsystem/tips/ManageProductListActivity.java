@@ -3,17 +3,25 @@ package tipsystem.tips;
 /*
  * 기본관리 -> 상품관리 -> 검색버튼
  * */
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.tips.MainActivity.ViewHolder;
+import tipsystem.tips.ManageSalesActivity.MyAsyncTask;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -26,9 +34,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.View.OnClickListener;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
@@ -36,10 +49,6 @@ import android.support.v4.app.NavUtils;
 
 public class ManageProductListActivity extends Activity {
 
-	JSONObject m_shop;
-	String m_ip = "122.49.118.102";
-	String m_port = "18971";
-	
 	private ProgressDialog dialog;
     List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
     ArrayList<ProductList> productArray = new ArrayList<ProductList>();
@@ -53,16 +62,6 @@ public class ManageProductListActivity extends Activity {
 		setContentView(R.layout.activity_manage_product_list);
 		// Show the Up button in the action bar.
 		setupActionBar();
-
-        m_shop = LocalStorage.getJSONObject(this, "currentShopData");
-       
-        try {
-			m_ip = m_shop.getString("SHOP_IP");
-	        m_port = m_shop.getString("SHOP_PORT");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-        
 		doSearch(index, size);
 	}
 
@@ -94,7 +93,7 @@ public class ManageProductListActivity extends Activity {
 		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();					
 				}
 			}
-	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
 	}
 
 	/**
@@ -158,9 +157,6 @@ public class ManageProductListActivity extends Activity {
 		sendArr.add(productArray.get(position).L_Code);
 		sendArr.add(productArray.get(position).M_Code);
 		sendArr.add(productArray.get(position).S_Code);
-		sendArr.add(productArray.get(position).L_Name);
-		sendArr.add(productArray.get(position).M_Name);
-		sendArr.add(productArray.get(position).S_Name);
 		sendArr.add(productArray.get(position).surtax);
 		
 		intent.putExtra("fillmaps", sendArr);
@@ -195,6 +191,7 @@ public class ManageProductListActivity extends Activity {
 									 json.getString("VAT_CHK"));
 				productArray.add(pl);
 			} catch (JSONException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
