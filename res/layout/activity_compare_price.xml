@@ -39,6 +39,14 @@
          
          <requestFocus />
          
+         <Button
+	        android:id="@+id/buttonCustomer"
+	        android:layout_width="28dp"
+	        android:layout_height="28dp"
+	        android:layout_marginLeft="5dp"
+	        android:background="@drawable/search_btn"
+            android:onClick="onCustomerSearch" />
+         
          <EditText
 	        android:id="@+id/editTextCustomer2"
 	        android:layout_width="0dip"
@@ -90,7 +98,9 @@
 	        android:layout_width="28dp"
 	        android:layout_height="28dp"
 	        android:layout_marginLeft="5dp"
-	        android:background="@drawable/search_btn" />
+	        android:background="@drawable/search_btn" 
+            android:onClick="onBarcodeSearch" />
+         
         <TextView
              android:id="@+id/textView4"
              android:layout_width="0dip"

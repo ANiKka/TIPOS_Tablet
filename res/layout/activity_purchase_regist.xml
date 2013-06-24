@@ -280,8 +280,6 @@
             android:background="@drawable/white_text_box_small"
 	        android:textSize="14sp"/>
          
-         
-    
     </LinearLayout>
     
 	<LinearLayout

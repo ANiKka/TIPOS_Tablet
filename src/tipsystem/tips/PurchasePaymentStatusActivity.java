@@ -267,15 +267,18 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 	    	startActivity(intent);	
 		}
 		
-		
 		//Toast.makeText(this, "Item Click." + m_listPurchaseTab1.getId() + " ,  " + arg0.getId(), Toast.LENGTH_SHORT).show();
-		
-		
+	}
+	
+	public void OnClickRenew(View v) {
+
+		m_barCode.setText("");
+		m_productName.setText("");
+		m_customerCode.setText("");
+		m_customerName.setText("");
 	}
 	
 	public void OnClickSearch(View v) {
-		// TODO Auto-generated method stub
-		//Toast.makeText(this, "Search Click.", Toast.LENGTH_SHORT).show();
 		
 		String period1 = m_period1.getText().toString();
 		String period2 = m_period2.getText().toString();

@@ -19,8 +19,10 @@ import tipsystem.utils.MSSQL2;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.util.Log;
@@ -32,6 +34,7 @@ import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -44,9 +47,11 @@ public class ComparePriceActivity extends Activity{
 
 	private static final int ZBAR_SCANNER_REQUEST = 0;
 	private static final int ZBAR_QR_SCANNER_REQUEST = 1;
+	private static final int BARCODE_MANAGER_REQUEST = 2;
+	private static final int CUSTOMER_MANAGER_REQUEST = 3;
 	
-	TextView m_customer;
-	TextView m_customer2;
+	TextView m_customerCode;
+	TextView m_customerName;
 	TextView m_barcode;
 	TextView m_productionName;
 	TextView m_local;	
@@ -83,8 +88,8 @@ public class ComparePriceActivity extends Activity{
         textView = (TextView) findViewById(R.id.textView5);
         textView.setTypeface(typeface);
         
-        m_customer = (TextView)findViewById(R.id.editTextCustomer);
-		m_customer2 = (TextView)findViewById(R.id.editTextCustomer2);
+        m_customerCode = (TextView)findViewById(R.id.editTextCustomer);
+        m_customerName = (TextView)findViewById(R.id.editTextCustomer2);
 		m_barcode = (TextView)findViewById(R.id.editTextBarcord);
 		m_productionName = (TextView)findViewById(R.id.editTextProductionName);
 		m_local = (TextView)findViewById(R.id.editTextLocal);
@@ -109,7 +114,7 @@ public class ComparePriceActivity extends Activity{
 		// 바코드 카메라 기능
 		buttonBarcode.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) { 
-	        	doBarcodeSearch();
+	        	
 	        }
 		});
 		
@@ -127,12 +132,12 @@ public class ComparePriceActivity extends Activity{
 		});
 
 		// 거래처 코드 입력 후 포커스 딴 곳을 옮길 경우
-		m_customer.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+		m_customerCode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 			//@Override
 			public void onFocusChange(View v, boolean hasFocus) {
 			    if(!hasFocus){
 			    	String customerCode = null; 
-			    	customerCode = m_customer.getText().toString();
+			    	customerCode = m_customerCode.getText().toString();
 			    	if(!customerCode.equals("")) // 입력한 customerCode가 값이 있을 경우만
 			    		fillBusNameFromBusCode(customerCode);	    	
 			    }
@@ -242,7 +247,7 @@ public class ComparePriceActivity extends Activity{
 					try {
 						JSONObject json = results.getJSONObject(0);
 						String bus_name = json.getString("Office_Name");
-						m_customer2.setText(bus_name);
+						m_customerName.setText(bus_name);
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -251,7 +256,7 @@ public class ComparePriceActivity extends Activity{
 				}
 				else {
 		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
-		            m_customer2.setText("");
+		            m_customerName.setText("");
 				}
 			}
 	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
@@ -278,8 +283,8 @@ public class ComparePriceActivity extends Activity{
  		dialog.setCancelable(false);
  		dialog.show();
  		
-    	String customer = m_customer.getText().toString();
-	    String customer2 = m_customer2.getText().toString();
+    	String customer = m_customerCode.getText().toString();
+	    String customer2 = m_customerName.getText().toString();
 	    String barcode = m_barcode.getText().toString();
 	    String productionName = m_productionName.getText().toString();
 	    String local = m_local.getText().toString();
@@ -492,31 +497,6 @@ public class ComparePriceActivity extends Activity{
     	
     }
 
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
-	{    
-	    if (resultCode == RESULT_OK) 
-	    {
-	        // Scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT)
-	        // Type of the scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE)
-	        Toast.makeText(this, "Scan Result = " + data.getStringExtra(ZBarConstants.SCAN_RESULT), Toast.LENGTH_SHORT).show();
-	        Toast.makeText(this, "Scan Result Type = " + data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE), Toast.LENGTH_SHORT).show();
-	        // The value of type indicates one of the symbols listed in Advanced Options below.
-	        
-	        
-	        String barcode = data.getStringExtra(ZBarConstants.SCAN_RESULT);
-			m_barcode.setText(barcode);
-			fillGoodNameFromBarcode(barcode);
-			
-	    } else if(resultCode == RESULT_CANCELED) {
-	        Toast.makeText(this, "Camera unavailable", Toast.LENGTH_SHORT).show();
-	    }
-	}
-	
-	public void doBarcodeSearch() {
-
-    	Intent intent = new Intent(ComparePriceActivity.this, ZBarScannerActivity.class);
-    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
-	}
 
 	class ProductList {
 		ProductList(String aBarcode, String aG_Name, String aPur_Pri, String aSell_Pri, String aBusCode, String aBusName,
@@ -624,4 +604,122 @@ public class ComparePriceActivity extends Activity{
 		}
 	}
 
+
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{    
+		super.onActivityResult(requestCode, resultCode, data);
+		
+		switch(requestCode){
+			// 카메라 스캔을 통한 바코드 검색
+			case ZBAR_SCANNER_REQUEST :
+				if (resultCode == RESULT_OK) {
+			        // Scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT)
+			        // Type of the scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE)
+			        Toast.makeText(this, "Scan Result = " + data.getStringExtra(ZBarConstants.SCAN_RESULT), Toast.LENGTH_SHORT).show();
+			        Toast.makeText(this, "Scan Result Type = " + data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE), Toast.LENGTH_SHORT).show();
+			        // The value of type indicates one of the symbols listed in Advanced Options below.
+			       
+			        String barcode = data.getStringExtra(ZBarConstants.SCAN_RESULT);
+			        m_barcode.setText(barcode);
+					doQueryWithBarcode();
+					
+			    } else if(resultCode == RESULT_CANCELED) {
+			        Toast.makeText(this, "Camera unavailable", Toast.LENGTH_SHORT).show();
+			    }
+				break;
+			// 목록 검색을 통한 바코드 검색				
+			case BARCODE_MANAGER_REQUEST :
+				if(resultCode == RESULT_OK && data != null) {
+					
+		        	ArrayList<String> fillMaps = data.getStringArrayListExtra("fillmaps");		        	
+		        	m_barcode.setText(fillMaps.get(0));
+					doQueryWithBarcode(); 
+		        }
+				break;
+			case CUSTOMER_MANAGER_REQUEST :
+				if(resultCode == RESULT_OK && data != null) {
+					String result = data.getStringExtra("result");
+					try {
+						JSONObject json = new JSONObject(result);
+						m_customerCode.setText(json.getString("Office_Code"));
+						m_customerName.setText(json.getString("Office_Name"));
+			        	//m_textBarcode.setText(fillMaps.get(0));
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+		        }
+				break;
+			}
+	}
+	
+	public void onCustomerSearch(View view)
+	{
+		Intent intent = new Intent(this, ManageCustomerListActivity.class);
+    	startActivityForResult(intent, CUSTOMER_MANAGER_REQUEST);
+	}
+	
+	public void onBarcodeSearch(View view)
+	{
+		// 바코드 검색 버튼 클릭시 나오는 목록 셋팅
+		final String[] option = new String[] { "목록", "카메라"};
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, option);
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("Select Option");
+		
+		// 목록 선택시 이벤트 처리
+		builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+
+				if(which == 0){ // 목록으로 조회할 경우
+					Intent intent = new Intent(ComparePriceActivity.this, ManageProductListActivity.class);
+			    	startActivityForResult(intent, BARCODE_MANAGER_REQUEST);
+				} else { // 스캔할 경우
+					Intent intent = new Intent(ComparePriceActivity.this, ZBarScannerActivity.class);
+			    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);				
+				}
+			}
+		}); 
+		builder.show();
+	}
+	
+
+	// MSSQL
+	// SQL QUERY 실행
+	public void doQueryWithBarcode () {
+		
+		String query = "";
+		String barcode = m_barcode.getText().toString();
+		query = "SELECT * FROM Goods WHERE Barcode = '" + barcode + "';";
+	
+		if (barcode.equals("")) return;
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+
+	    // 콜백함수와 함께 실행
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				
+				if (results.length() > 0) {
+					try {						
+						m_productionName.setText(results.getJSONObject(0).getString("G_Name"));
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				else {
+					Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+				}
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
+	}
 }

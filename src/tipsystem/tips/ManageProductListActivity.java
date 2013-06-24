@@ -3,25 +3,17 @@ package tipsystem.tips;
 /*
  * 기본관리 -> 상품관리 -> 검색버튼
  * */
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import tipsystem.tips.MainActivity.ViewHolder;
-import tipsystem.tips.ManageSalesActivity.MyAsyncTask;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -34,14 +26,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.View.OnClickListener;
-import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.ListView;
-import android.widget.RadioButton;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
@@ -78,14 +65,12 @@ public class ManageProductListActivity extends Activity {
 	}
 
 	private void doSearch(int index, int size) {
-		// TODO Auto-generated method stub
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
  		dialog.setCancelable(false);
  		dialog.show();
  		
-		// TODO Auto-generated method stub
 		String query = "";
 		
 		query = "SELECT TOP " + size + " * FROM Goods WHERE BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods);";
@@ -105,7 +90,7 @@ public class ManageProductListActivity extends Activity {
 		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();					
 				}
 			}
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
 
 	/**
