@@ -48,6 +48,9 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.support.v4.app.NavUtils;
 
 public class ManageProductListActivity extends Activity {
+	JSONObject m_shop;
+	String m_ip = "122.49.118.102";
+	String m_port = "18971";
 
 	private ProgressDialog dialog;
     List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
@@ -62,6 +65,15 @@ public class ManageProductListActivity extends Activity {
 		setContentView(R.layout.activity_manage_product_list);
 		// Show the Up button in the action bar.
 		setupActionBar();
+        m_shop = LocalStorage.getJSONObject(this, "currentShopData");
+        
+        try {
+			m_ip = m_shop.getString("SHOP_IP");
+	        m_port = m_shop.getString("SHOP_PORT");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
 		doSearch(index, size);
 	}
 

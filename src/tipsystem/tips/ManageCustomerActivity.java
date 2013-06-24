@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
 import android.os.Bundle;
@@ -34,6 +35,10 @@ import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 
 public class ManageCustomerActivity extends Activity{
+	
+	JSONObject m_shop;
+	String m_ip = "122.49.118.102";
+	String m_port = "18971";
 
 	Spinner m_spin;
 	ListView m_cusList;
@@ -53,6 +58,16 @@ public class ManageCustomerActivity extends Activity{
 		setContentView(R.layout.activity_manage_customer);
 		// Show the Up button in the action bar.
 		setupActionBar();
+		
+		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
+	       
+        try {
+			m_ip = m_shop.getString("SHOP_IP");
+	        m_port = m_shop.getString("SHOP_PORT");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
 		
 		//m_spin = (Spinner)findViewById(R.id.spinnerCustomerCodeType);
 		//m_spin.setOnItemSelectedListener(this);
@@ -272,9 +287,7 @@ public class ManageCustomerActivity extends Activity{
 						doQuery(0);					
 				}
 			}
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
-	    
-	    
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
     }
     
     public void doClear() {

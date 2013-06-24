@@ -25,16 +25,15 @@ public class ManagePurchaseActivity extends Activity {
 	 */
 	private void setupActionBar() {
 
-		ActionBar actionbar = getActionBar();         
+		ActionBar actionbar = getActionBar();
 		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
 		actionbar.setCustomView(custom_action_bar);
 
 		actionbar.setDisplayShowHomeEnabled(true);
 		actionbar.setDisplayShowTitleEnabled(false);
 		actionbar.setDisplayShowCustomEnabled(true);
-		
-		getActionBar().setDisplayHomeAsUpEnabled(true);
 
+		getActionBar().setDisplayHomeAsUpEnabled(true);
 	}
 
 	@Override
