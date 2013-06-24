@@ -309,7 +309,6 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 				clearInputBox();
 				Toast.makeText(ManageStockActivity.this, "전송완료.", Toast.LENGTH_SHORT).show();
 			}
-			
 	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
 	}
 

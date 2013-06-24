@@ -89,7 +89,8 @@
              android:textSize="14sp"
              android:textColor="#000000"
              android:background="@drawable/white_text_box_small" 
-             android:inputType="text"/>
+             android:inputType="text"
+             android:singleLine="true"/>
 
         <TextView
             android:id="@+id/textView5"
@@ -111,7 +112,8 @@
 	        android:textColor="#000000"
             android:background="@drawable/white_text_box_small"
 	        android:textSize="14sp"
-	        android:inputType="text" />
+	        android:inputType="text"
+	        android:singleLine="true" />
         
     </LinearLayout>
     
@@ -143,7 +145,8 @@
             android:background="@drawable/white_text_box_small"
             android:textSize="14sp"
             android:inputType="text"
-            android:ems="10"/>
+            android:ems="10"
+            android:singleLine="true"/>
 
         <EditText
             android:id="@+id/editTextCustomerName"
@@ -155,7 +158,8 @@
             android:background="@drawable/white_text_box_small"
             android:textSize="14sp"
             android:inputType="text"
-            android:ems="10" />
+            android:ems="10"
+            android:singleLine="true" />
     </LinearLayout>
         
     

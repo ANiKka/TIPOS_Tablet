@@ -1,5 +1,6 @@
 package tipsystem.tips;
 
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -19,6 +20,7 @@ import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.util.Log;
@@ -74,7 +76,8 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 	int m_queryCount2 = 0;
 	int m_queryCount3 = 0;
 	
-	
+	ProgressDialog dialog;
+	NumberFormat m_numberFormat;
 	
 	
 	
@@ -102,6 +105,7 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		
 		
 		m_dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
+		m_numberFormat = NumberFormat.getInstance();
 		
 		
 		m_dateCalender1 = Calendar.getInstance();
@@ -109,9 +113,6 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 				
 		m_period1.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
 		m_period2.setText(m_dateFormatter.format(m_dateCalender2.getTime()));
-		
-		
-		
 		
 		
 		m_tabHost = (TabHost) findViewById(R.id.tabhostPurchasePaymentStatus);
@@ -264,6 +265,12 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		String customerName = m_customerName.getText().toString();
 		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
 		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
 		executeQuery(tabIndex, period1, period2, barCode, productName, customerCode, customerName);
 
 	};
@@ -415,6 +422,8 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
          				query = query + " and " + constraint;
          			}
          			
+         			
+         			
          			m_queryCount1 = m_queryCount1 + 1;
          		// 콜백함수와 함께 실행
 				    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
@@ -452,11 +461,16 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 										
 										m_listPurchaseTab1.setAdapter(adapter);
 										Toast.makeText(getApplicationContext(), "조회 완료" + results.length(), Toast.LENGTH_SHORT).show();
- 								
+										dialog.cancel();
 									}
  								}
+								else 
+								{
+									dialog.cancel();
+								}
 				    		} catch (JSONException e) {
 				    			e.printStackTrace();
+				    			dialog.cancel();
 				    		}
 							
 						}
@@ -471,6 +485,14 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
  			final List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
  			
  			m_queryCount2 = 0;
+ 			
+ 			final ArrayList<String> lSpListCode = new ArrayList<String>();
+ 			final ArrayList<String> lSpListName = new ArrayList<String>();
+ 			final ArrayList<Integer> lSpListSellInPri = new ArrayList<Integer>();
+ 			final ArrayList<Integer> lSpListSellPayPri = new ArrayList<Integer>();
+ 			final ArrayList<Integer> lSpListDecPri = new ArrayList<Integer>();
+ 			
+ 			
  			
 	 		for ( int y = year1; y <= year2; y++ )
 	 		{
@@ -512,6 +534,7 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
          			}
          			
          			m_queryCount2 = m_queryCount2 + 1;
+         			
          		// 콜백함수와 함께 실행
 				    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
@@ -523,27 +546,69 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 								
 								if ( results.length() > 0 )
  								{
-									// create the grid item mapping
-						 			String[] from = new String[] {"OFFICE_CODE", "OFFICE_NAME", "SELLIN_PRI", "SELLPAY_PRI", "DEC_PRI"};
-						 			int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5};
-						 			
 									for(int i = 0; i < results.length() ; i++)
 									{
 										JSONObject son = results.getJSONObject(i);
 										
-										HashMap<String, String> map = new HashMap<String, String>();
-										
-										map.put("OFFICE_CODE", son.getString("OFFICE_CODE") );
-										map.put("OFFICE_NAME", son.getString("OFFICE_NAME"));
-										map.put("SELLIN_PRI", String.format("%d", son.getInt("SELLIN_PRI")) );
-										map.put("SELLPAY_PRI", String.format("%d", son.getInt("SELLPAY_PRI")) );
-										map.put("DEC_PRI", String.format("%d", son.getInt("DEC_PRI")) );
-										
-										fillMaps.add(map);
-									}	
+										String code = son.getString("OFFICE_CODE");
+				        				String name = son.getString("OFFICE_NAME");
+				        				int sellInPri = son.getInt("SELLIN_PRI");
+				        				int sellPayPri = son.getInt("SELLPAY_PRI");
+				        				int decPri = son.getInt("DEC_PRI");
+				        				
+				        				boolean isExist = false;
+				        				               		
+				                		for ( int j = 0; j < lSpListCode.size(); j++ )
+				                		{
+				                			if ( lSpListCode.get(j).toString().equals(code) == true )
+				                			{
+				                				Integer sInPri = lSpListSellInPri.get(j).intValue() + sellInPri;
+				                				Integer sPayPri = lSpListSellPayPri.get(j).intValue() + sellPayPri;
+				                				Integer dPri = lSpListDecPri.get(j).intValue() + decPri;
+				                				
+				                				lSpListSellInPri.set(j, sInPri);
+				                				lSpListSellPayPri.set(j, sPayPri);
+				                				lSpListDecPri.set(j, dPri);
+				                				
+				                				isExist = true;
+				                				break;
+				                			}
+				                		}
+				                		
+				                		if ( isExist == false )
+				                		{
+				                			Integer sInPri = sellInPri;
+			                				Integer sPayPri = sellPayPri;
+			                				Integer dPri = decPri;
+			                				
+				            				lSpListCode.add(code);
+				            				lSpListName.add(name);
+				            				lSpListSellInPri.add(sInPri);
+				            				lSpListSellPayPri.add(sPayPri);
+				            				lSpListDecPri.add(dPri);
+				                		}
+									}
 									
 									if ( m_queryCount2 == 0 )
 									{
+										// create the grid item mapping
+							 			String[] from = new String[] {"OFFICE_CODE", "OFFICE_NAME", "SELLIN_PRI", "SELLPAY_PRI", "DEC_PRI"};
+							 			int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5};
+							 			
+										for(int i = 0; i < lSpListCode.size() ; i++)
+										{
+											
+											HashMap<String, String> map = new HashMap<String, String>();
+
+											map.put("OFFICE_CODE", lSpListCode.get(i) );
+											map.put("OFFICE_NAME", lSpListName.get(i) );
+											map.put("SELLIN_PRI", m_numberFormat.format( lSpListSellInPri.get(i)) );
+											map.put("SELLPAY_PRI", m_numberFormat.format( lSpListSellPayPri.get(i)) );
+											map.put("DEC_PRI", m_numberFormat.format( lSpListDecPri.get(i)) );
+											
+											fillMaps.add(map);
+										}	
+										
 										// fill in the grid_item layout
 										SimpleAdapter adapter = new SimpleAdapter(PurchasePaymentStatusActivity.this, 
 												fillMaps, R.layout.activity_listview_product_list, 
@@ -551,11 +616,16 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 										
 										m_listPurchaseTab2.setAdapter(adapter);
 										Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
- 								
+										dialog.cancel();
 									}
  								}
+								else 
+								{
+									dialog.cancel();
+								}
 				    		} catch (JSONException e) {
 				    			e.printStackTrace();
+				    			dialog.cancel();
 				    		}
 							
 						}
@@ -570,6 +640,12 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
  			final List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
  			
  			m_queryCount2 = 0;
+ 			
+ 			final ArrayList<String> lSpListCode = new ArrayList<String>();
+ 			final ArrayList<String> lSpListName = new ArrayList<String>();
+ 			final ArrayList<Integer> lSpListPurCost = new ArrayList<Integer>();
+ 			final ArrayList<Integer> lSpListRSell = new ArrayList<Integer>();
+ 			
  			
 	 		for ( int y = year1; y <= year2; y++ )
 	 		{
@@ -624,29 +700,66 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 								
 								if ( results.length() > 0 )
  								{
-									// create the grid item mapping
-						 			String[] from = new String[] {"OFFICE_CODE", "OFFICE_NAME", "PUR_COST", "R_SELL"};
-						 			int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
-						 			
+									
 									for(int i = 0; i < results.length() ; i++)
 									{
 										JSONObject son = results.getJSONObject(i);
 										
-										HashMap<String, String> map = new HashMap<String, String>();
-										
-										map.put("OFFICE_CODE", son.getString("OFFICE_CODE") );
-										map.put("OFFICE_NAME", son.getString("OFFICE_NAME"));
-										map.put("SELLIN_PRI", String.format("%d", son.getInt("PUR_COST")) );
-										
+										String code = son.getString("OFFICE_CODE");
+				        				String name = son.getString("OFFICE_NAME");
+				        				
+				        				int purCost = son.getInt("PUR_COST");
 										int rSell = son.getInt("TSell_Pri") - (son.getInt("TSell_RePri") + son.getInt("ProFit_Pri"));
 										
-										map.put("R_SELL", String.format("%d", rSell));
-																				
-										fillMaps.add(map);
-									}	
+				        				boolean isExist = false;
+				        				               		
+				                		for ( int j = 0; j < lSpListCode.size(); j++ )
+				                		{
+				                			if ( lSpListCode.get(j).toString().equals(code) == true )
+				                			{
+				                				Integer pCost = lSpListPurCost.get(j).intValue() + purCost;
+				                				Integer rsell = lSpListRSell.get(j).intValue() + rSell;
+				                				
+				                				lSpListPurCost.set(j, pCost);
+				                				lSpListRSell.set(j, rsell);
+				                				
+				                				isExist = true;
+				                				break;
+				                			}
+				                		}
+				                		
+				                		if ( isExist == false )
+				                		{
+				                			Integer pCost = purCost;
+			                				Integer rsell = rSell;
+			                				
+				            				lSpListCode.add(code);
+				            				lSpListName.add(name);
+				            				lSpListPurCost.add(pCost);
+				            				lSpListRSell.add(rsell);
+				                		}
+									}
 									
 									if ( m_queryCount3 == 0 )
 									{
+										
+										// create the grid item mapping
+							 			String[] from = new String[] {"OFFICE_CODE", "OFFICE_NAME", "PUR_COST", "R_SELL"};
+							 			int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
+							 			
+										for(int i = 0; i < lSpListCode.size() ; i++)
+										{
+											
+											HashMap<String, String> map = new HashMap<String, String>();
+											
+											map.put("OFFICE_CODE", lSpListCode.get(i) );
+											map.put("OFFICE_NAME", lSpListName.get(i) );
+											map.put("PUR_COST", m_numberFormat.format( lSpListPurCost.get(i)) );
+											map.put("R_SELL", m_numberFormat.format( lSpListRSell.get(i)) );
+											
+											fillMaps.add(map);
+										}	
+										
 										// fill in the grid_item layout
 										SimpleAdapter adapter = new SimpleAdapter(PurchasePaymentStatusActivity.this, 
 												fillMaps, R.layout.activity_listview_product_list, 
@@ -654,11 +767,16 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 										
 										m_listPurchaseTab3.setAdapter(adapter);
 										Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
- 								
+										dialog.cancel();
 									}
  								}
+								else 
+								{
+									dialog.cancel();
+								}
 				    		} catch (JSONException e) {
 				    			e.printStackTrace();
+				    			dialog.cancel();
 				    		}
 							
 						}
