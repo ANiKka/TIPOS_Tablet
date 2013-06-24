@@ -98,6 +98,10 @@
             android:layout_marginLeft="5dp"
             android:textColor="#000000"
 		    android:singleLine="true"
+	        android:clickable="false" 
+		    android:cursorVisible="false" 
+		    android:focusable="false" 
+		    android:focusableInTouchMode="false"
 		    android:lines="1"
             android:background="@drawable/white_text_box_small"
             android:textSize="14sp"
@@ -153,7 +157,8 @@
             android:text="상품명"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="#ffffff"
-            android:textSize="14sp"  />
+            android:textSize="14sp" 
+            />
 
          <EditText
 	        android:id="@+id/editTextProductName"
@@ -163,7 +168,11 @@
 	        android:ems="10"
 	        android:textColor="#000000"
 		    android:singleLine="true"
-		    android:lines="1"
+		    android:lines="1"		    
+	        android:clickable="false" 
+		    android:cursorVisible="false" 
+		    android:focusable="false" 
+		    android:focusableInTouchMode="false"
             android:background="@drawable/white_text_box_small"
 	        android:textSize="14sp" />       
     
@@ -288,7 +297,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:layout_below="@+id/linearLayout5"
-        android:orientation="horizontal" >
+        android:orientation="horizontal"
+        android:gravity="center" >
         
 	    <Button
 	        android:id="@+id/buttonSave"

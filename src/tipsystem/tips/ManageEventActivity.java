@@ -224,6 +224,19 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 			}			
 		});
 		
+		// 바코드 입력 후 포커스 딴 곳을 옮길 경우
+		m_textBarcode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			//@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+			    if(!hasFocus){
+			    	String barcode = null; 
+			    	barcode = m_textBarcode.getText().toString();
+			    	if(!barcode.equals("")) // 입력한 Barcode가 값이 있을 경우만
+			    		doQueryWithBarcode();	    	
+			    }
+			}
+		});
+		
 		changeInputMode(0);
 		getSeq();
 	}
@@ -866,47 +879,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 
 			startDetailView(arg2);
-/*
-			
-			m_selectedListIndex = arg2;
-			
-			EditText eventName = (EditText)findViewById(R.id.editTextEventName);
-			
-			TextView barcode = (TextView)findViewById(R.id.editTextBarcode);
-			TextView productName = (TextView)findViewById(R.id.editTextProductName);
-			TextView purchasePrice = (TextView)findViewById(R.id.editTextPurchasePrice);
-			TextView salePrice = (TextView)findViewById(R.id.editTextSalePrice);
-			TextView evtPurValue = (TextView)findViewById(R.id.editTextAmount);
-			TextView evtSaleValue = (TextView)findViewById(R.id.editTextProfitRatio);
-			
-//	    	String Name = eventName.getText().toString();
-//			String period1 = m_period1.getText().toString();
-//			String period2 = m_period2.getText().toString();    
-//			String section = m_spinEvent.getSelectedItem().toString();
-			
-	        eventName.setText(m_evtList.get(arg2).get("Evt_Name").toString());
-	        
-	        if ( m_evtList.get(arg2).get("Evt_Gubun").toString().equals("기간행사") == true)
-	        {
-	        	m_spinEvent.setSelection(0);
-	        	
-	        	m_period1.setText(m_evtList.get(arg2).get("Evt_SDate").toString());
-	        	m_period2.setText(m_evtList.get(arg2).get("Evt_EDate").toString());
-	        }
-	        else 
-	        {
-	        	m_spinEvent.setSelection(1);
-	        	m_period1.setText(m_evtList.get(arg2).get("Evt_STime").toString());
-	        	m_period2.setText(m_evtList.get(arg2).get("Evt_ETime").toString());
-	        }
-	        
-	        barcode.setText(m_evtList.get(arg2).get("BarCode").toString());
-	        productName.setText(m_evtList.get(arg2).get("G_Name").toString());
-	        purchasePrice.setText(m_evtList.get(arg2).get("Pur_Pri").toString());
-	        salePrice.setText(m_evtList.get(arg2).get("Sell_Pri").toString());
-	        evtPurValue.setText(m_evtList.get(arg2).get("Sale_Pur").toString());
-	        evtSaleValue.setText(m_evtList.get(arg2).get("Sale_Sell").toString());
-	        */     
+
 		}
 	};
 }

@@ -172,6 +172,19 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 				m_selectedListIndex = -1;				
 			}			
 		});
+		
+		// 바코드 입력 후 포커스 딴 곳을 옮길 경우
+		m_textBarcode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			//@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+			    if(!hasFocus){
+			    	String barcode = null; 
+			    	barcode = m_textBarcode.getText().toString();
+			    	if(!barcode.equals("")) // 입력한 Barcode가 값이 있을 경우만
+			    		doQueryWithBarcode();	    	
+			    }
+			}
+		});
 
 		changeInputMode(0);
 		getSeq();

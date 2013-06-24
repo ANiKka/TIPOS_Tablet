@@ -320,7 +320,8 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	}	
 
 	public void clearInputBox () {
-
+		m_customerCode.setText("");
+		m_customerName.setText("");
 		m_textBarcode.setText("");
 		m_textProductName.setText("");
 		m_bt_barcodeSearch.setText("");

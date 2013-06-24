@@ -90,8 +90,6 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 	ProgressDialog dialog;
 	NumberFormat m_numberFormat;
 	
-	
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -156,8 +154,6 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
      
         m_tabHost.setCurrentTab(0);
 
-       
-        
         Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
         TextView textView = (TextView) findViewById(R.id.textView2);
         textView.setTypeface(typeface);
@@ -836,7 +832,6 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
     		} catch (JSONException e) {
     			e.printStackTrace();
     		}
-    		 
     	}
     	else {
     		
@@ -958,6 +953,5 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 				}
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
-	}
-    
+	}    
 }

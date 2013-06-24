@@ -166,7 +166,32 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         //m_tabHost.getCurrentTab();
         
         m_calendar = (CalendarView)findViewById(R.id.calendarView1);
-        m_calendar.setOnDateChangeListener(this);        
+        m_calendar.setOnDateChangeListener(this);
+        
+     // 바코드 입력 후 포커스 딴 곳을 옮길 경우
+        m_barCode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+ 			//@Override
+ 			public void onFocusChange(View v, boolean hasFocus) {
+ 			    if(!hasFocus){
+ 			    	String barcode = null; 
+ 			    	barcode = m_barCode.getText().toString();
+ 			    	if(!barcode.equals("")) // 입력한 Barcode가 값이 있을 경우만
+ 			    		doQueryWithBarcode();
+ 			    }
+ 			}
+ 		});
+
+ 		// 거래처 코드 입력 후 포커스 딴 곳을 옮길 경우
+        m_customerCode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+ 			//@Override
+ 			public void onFocusChange(View v, boolean hasFocus) {
+ 			    if(!hasFocus){
+ 			    	String customerCode = m_customerCode.getText().toString();
+ 			    	if(!customerCode.equals("")) // 입력한 customerCode가 값이 있을 경우만
+ 			    		fillBusNameFromBusCode(customerCode);	    	
+ 			    }
+ 			}
+ 		});	
 	}
 	
 	private void setTabList1(List<HashMap<String, String>> fillMaps)
@@ -327,6 +352,14 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		
 	}
 	
+
+	public void OnClickRenew(View v) {
+
+		m_barCode.setText("");
+		m_productName.setText("");
+		m_customerCode.setText("");
+		m_customerName.setText("");
+	}
 
 	public void OnClickSearch(View v) {
 		//Toast.makeText(this, "Search Click.", Toast.LENGTH_SHORT).show();		
@@ -1104,82 +1137,40 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
 	}
 	
-	/*
-	class CustomerList {
-		CustomerList(String Office_Code, String Office_Name, String rSale, String ProFit_Pri){
+	// 거래처 코드로 거래처명 자동 완성
+		private void fillBusNameFromBusCode(String customerCode) {
+			// TODO Auto-generated method stub
+			// 로딩 다이알로그 
+	    	dialog = new ProgressDialog(this);
+	 		dialog.setMessage("Loading....");
+	 		dialog.setCancelable(false);
+	 		dialog.show();
+	 		
+			// TODO Auto-generated method stub
+			String query = "";
 			
-			this.Office_Code = Office_Code;
-			this.Office_Name = Office_Name;
-			this.rSale = rSale;
-			this.ProFit_Pri = ProFit_Pri;
-			
-		}	
-		
-		String Office_Code;
-		String Office_Name;
-		String rSale;
-		String ProFit_Pri;
-		
-	}
-	
-	
-	class CustomerListAdapter extends BaseAdapter 
-	{
+			query = "SELECT Office_Name From Office_Manage WHERE Office_Code = '" + customerCode + "';";
+		    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
-		Context ctx;
-		LayoutInflater Inflater;
-		ArrayList<CustomerList> arr_Customers;
-		int itemLayout;
-		
-		public CustomerListAdapter(Context actx, int aitemLayout, ArrayList<CustomerList> aarr_Customers)
-		{
-			ctx = actx;
-			Inflater = (LayoutInflater)actx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			arr_Customers = aarr_Customers;
-			itemLayout = aitemLayout;
+				@Override
+				public void onRequestCompleted(JSONArray results) {
+					dialog.dismiss();
+					dialog.cancel();
+					if (results.length() > 0) {
+						try {
+							JSONObject json = results.getJSONObject(0);
+							String bus_name = json.getString("Office_Name");
+							m_customerName.setText(bus_name);
+						} catch (JSONException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+			            Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
+					}
+					else {
+			            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();					
+					}
+				}
+		    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 		}
-
-		@Override
-		public int getCount() {
-			return arr_Customers.size();
-		}
-		@Override
-		public String getItem(int position) {
-			return arr_Customers.get(position).Office_Code;
-		}
-		@Override
-		public long getItemId(int position) {
-
-			return position;
-		}
-		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
-			final int pos = position;
-			
-			if (convertView == null) {
-				convertView = Inflater.inflate(itemLayout, parent, false);
-			} 
-			
-			TextView office_code = (TextView)convertView.findViewById(R.id.item1);
-			TextView office_name = (TextView)convertView.findViewById(R.id.item2);
-			TextView rSale = (TextView)convertView.findViewById(R.id.item3);
-			TextView ProFit_Pri = (TextView)convertView.findViewById(R.id.item4);
-			
-			
-			office_code.setText(arr_Customers.get(position).Office_Code);
-			office_name.setText(arr_Customers.get(position).Office_Name);
-			rSale.setText(arr_Customers.get(position).rSale);
-			ProFit_Pri.setText(arr_Customers.get(position).ProFit_Pri);
-
-			if(position == size-3){
-				index = size;
-				size = size * 2;
-				
-				//doSearch(index, size);
-			}
-			return convertView;
-		}
-	}*/
-	
-	
 }

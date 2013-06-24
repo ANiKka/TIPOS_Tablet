@@ -50,6 +50,8 @@ import com.dm.zbar.android.scanner.ZBarScannerActivity;
 public class ManageProductActivity extends Activity{
 	private static final int ZBAR_SCANNER_REQUEST = 0;
 	private static final int ZBAR_QR_SCANNER_REQUEST = 1;
+	private static final int BARCODE_MANAGER_REQUEST = 2;
+	private static final int CUSTOMER_MANAGER_REQUEST = 3;
 	
 	JSONObject m_shop;
 	String m_ip = "122.49.118.102";
@@ -120,27 +122,6 @@ public class ManageProductActivity extends Activity{
 		Button modifyButton = (Button) findViewById(R.id.buttonProductModify);
 		Button buttonBarcode = (Button) findViewById(R.id.buttonBarcode);
 		
-		// 바코드 검색 버튼 클릭시 나오는 목록 셋팅
-		final String[] option = new String[] { "목록", "카메라"};
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, option);
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("Select Option");
-		
-		// ManageProductListActivity연결 intent 객체 생성
-		final Intent intent = new Intent(this, ManageProductListActivity.class);
-		// 목록 선택시 이벤트 처리
-		builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int which) {
-                // TODO Auto-generated method stub
-				if(which == 0){ // 목록으로 조회할 경우
-			    	startActivityForResult(intent, 1);
-				} else { // 스캔할 경우
-					Intent intent = new Intent(ManageProductActivity.this, ZBarScannerActivity.class);
-			    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);				
-				}
-          }
-		}); 
-		
 		//조회 버튼 클릭
 		searchButton.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) { 
@@ -168,14 +149,6 @@ public class ManageProductActivity extends Activity{
 	        }
 		});
 
-		final AlertDialog listDialog = builder.create();
-		// 검색 버튼 클릭시 다이얼로그 박스 보여줌
-		buttonBarcode.setOnClickListener(new OnClickListener() {
-	        public void onClick(View v) {
-	        	listDialog.show();
-	        }
-		}); 
-		
 		// 바코드 입력 후 포커스 딴 곳을 옮길 경우
 		m_textBarcode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 			//@Override
@@ -184,7 +157,7 @@ public class ManageProductActivity extends Activity{
 			    	String barcode = null; 
 			    	barcode = m_textBarcode.getText().toString();
 			    	if(!barcode.equals("")) // 입력한 Barcode가 값이 있을 경우만
-			    		doQuery(0);	    	
+			    		doQueryWithBarcode();	    	
 			    }
 			}
 		});
@@ -309,59 +282,47 @@ public class ManageProductActivity extends Activity{
 		
 		if(!productArray.isEmpty()) productArray.clear();
 		switch(requestCode){
-			// 카메라 스캔을 통한 바코드 검색
-			case 0 :
-				if (resultCode == RESULT_OK) 
-			    {
-			        // Scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT)
-			        // Type of the scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE)
-			        Toast.makeText(this, "Scan Result = " + data.getStringExtra(ZBarConstants.SCAN_RESULT), Toast.LENGTH_SHORT).show();
-			        Toast.makeText(this, "Scan Result Type = " + data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE), Toast.LENGTH_SHORT).show();
-			        // The value of type indicates one of the symbols listed in Advanced Options below.
-			       
-			        String barcode = data.getStringExtra(ZBarConstants.SCAN_RESULT);
-					m_textBarcode.setText(barcode);
-					doQuery(0);
-					
-			    } else if(resultCode == RESULT_CANCELED) {
-			        Toast.makeText(this, "Camera unavailable", Toast.LENGTH_SHORT).show();
-			    }
-				break;
-			// 목록 검색을 통한 바코드 검색				
-			case 1 :
-				if(resultCode == RESULT_OK && data != null) {
-					
-		        	ArrayList<String> fillMaps = data.getStringArrayListExtra("fillmaps");		        	
-		        	ProductList pl = new ProductList(fillMaps.get(0),
-								    				fillMaps.get(1),
-								    				fillMaps.get(2),
-								    				fillMaps.get(3),
-								    				fillMaps.get(4),
-								    				fillMaps.get(5),
-								    				fillMaps.get(6),
-								    				fillMaps.get(7),
-								    				fillMaps.get(8),
-								    				fillMaps.get(9),
-								    				fillMaps.get(10),
-								    				fillMaps.get(11),
-								    				fillMaps.get(12),
-								    				fillMaps.get(13),
-								    				fillMaps.get(14),
-								    				fillMaps.get(15),
-								    				fillMaps.get(16),
-								    				fillMaps.get(17),
-								    				fillMaps.get(18));
-		    		productArray.add(pl);
-		    		fillCustomerFormFromArray(productArray, 0);
-		        }
-		        // 수행을 제대로 하지 못한 경우
-		        else if(resultCode == RESULT_CANCELED)
-		        {
-		        	
-		        }
-				break;
-			}
-	     
+		// 카메라 스캔을 통한 바코드 검색
+		case ZBAR_SCANNER_REQUEST :
+			if (resultCode == RESULT_OK) {
+		        // Scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT)
+		        // Type of the scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE)
+		        Toast.makeText(this, "Scan Result = " + data.getStringExtra(ZBarConstants.SCAN_RESULT), Toast.LENGTH_SHORT).show();
+		        Toast.makeText(this, "Scan Result Type = " + data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE), Toast.LENGTH_SHORT).show();
+		        // The value of type indicates one of the symbols listed in Advanced Options below.
+
+		        String barcode = data.getStringExtra(ZBarConstants.SCAN_RESULT);
+		        m_textBarcode.setText(barcode);
+		        doQueryWithBarcode();
+				
+		    } else if(resultCode == RESULT_CANCELED) {
+		        Toast.makeText(this, "Camera unavailable", Toast.LENGTH_SHORT).show();
+		    }
+			break;
+		// 목록 검색을 통한 바코드 검색				
+		case BARCODE_MANAGER_REQUEST :
+			if(resultCode == RESULT_OK && data != null) {
+				
+	        	ArrayList<String> fillMaps = data.getStringArrayListExtra("fillmaps");		        	
+	        	m_textBarcode.setText(fillMaps.get(0));
+	        	doQueryWithBarcode();
+	        }
+			break;
+		case CUSTOMER_MANAGER_REQUEST :
+			if(resultCode == RESULT_OK && data != null) {
+				String result = data.getStringExtra("result");
+				try {
+					JSONObject json = new JSONObject(result);
+					m_textCustomerCode.setText(json.getString("Office_Code"));
+					m_textCustomerName.setText(json.getString("Office_Name"));
+		        	//m_textBarcode.setText(fillMaps.get(0));
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+	        }
+			break;
+		}
+		
 	}
 
 	
@@ -379,6 +340,37 @@ public class ManageProductActivity extends Activity{
 		String salesPrice = Float.toString(f_salesPrice);
 		m_textSalesPrice.setText(salesPrice);
     }
+	
+
+	public void onCustomerSearch(View view)
+	{
+		Intent intent = new Intent(this, ManageCustomerListActivity.class);
+    	startActivityForResult(intent, CUSTOMER_MANAGER_REQUEST);
+	}
+	
+	public void onBarcodeSearch(View view)
+	{
+		// 바코드 검색 버튼 클릭시 나오는 목록 셋팅
+		final String[] option = new String[] { "목록", "카메라"};
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, option);
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("Select Option");
+		
+		// 목록 선택시 이벤트 처리
+		builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+
+				if(which == 0){ // 목록으로 조회할 경우
+					Intent intent = new Intent(ManageProductActivity.this, ManageProductListActivity.class);
+			    	startActivityForResult(intent, BARCODE_MANAGER_REQUEST);
+				} else { // 스캔할 경우
+					Intent intent = new Intent(ManageProductActivity.this, ZBarScannerActivity.class);
+			    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);				
+				}
+			}
+		}); 
+		builder.show();
+	}
 
 	// 거래처 코드로 거래처명 자동 완성
 	private void fillBusNameFromBusCode(String customerCode) {
@@ -417,7 +409,45 @@ public class ManageProductActivity extends Activity{
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
 
+	
 	// SQL QUERY 실행
+	public void doQueryWithBarcode () {
+		
+		String query = "";
+		String barcode = m_textBarcode.getText().toString();
+		query = "SELECT * FROM Goods WHERE Barcode = '" + barcode + "';";
+	
+		if (barcode.equals("")) return;
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+
+	    // 콜백함수와 함께 실행
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				
+				if (results.length() > 0) {
+					try {						
+						fillCustomerFormFromJSONObject(results.getJSONObject(0));
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				else {
+					Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+				}
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
+	}
+	
+	
 	public void doQuery(final int code){
 		
 		String query = "";
@@ -585,7 +615,6 @@ public class ManageProductActivity extends Activity{
 	}
 
 	public void onAlert(int code) {
-		// TODO Auto-generated method stub
 		// super.onBackPressed(); //지워야 실행됨
 		
 		AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
@@ -657,10 +686,49 @@ public class ManageProductActivity extends Activity{
 		firstPosition = m_listProduct.getFirstVisiblePosition();
 		m_listProduct.setAdapter(ProductList);
 		m_listProduct.setSelection(firstPosition);
-
 	}
 
     // 입력 폼 채우기
+    public void fillCustomerFormFromJSONObject(JSONObject object){
+
+		try {
+			m_textProductName.setText(object.getString("G_Name"));
+			m_textCustomerCode.setText(object.getString("Bus_Code"));
+			m_textCustomerName.setText(object.getString("Bus_Name"));
+			m_textStandard.setText(object.getString("Std_Size"));
+			m_textAcquire.setText(object.getString("Obtain"));
+			m_textPurchasePrice.setText(object.getString("Pur_Pri"));
+			m_textSalesPrice.setText(object.getString("Sell_Pri"));
+			m_textPurchasePriceOriginal.setText(object.getString("Pur_Cost"));
+			m_textDifferentRatio.setText(object.getString("Profit_Rate"));
+			
+			String class1 = "[" + object.getString("L_Code") + "]" + "" + "[" + object.getString("L_Name") + "]";
+			String class2 = "[" + object.getString("M_Code") + "]" + "" + "[" + object.getString("M_Name") + "]";
+			String class3 = "[" + object.getString("S_Code") + "]" + "" + "[" + object.getString("S_Name") + "]";
+			m_textCustomerClassification1.setText(class1);
+			m_textCustomerClassification2.setText(class2);
+			m_textCustomerClassification3.setText(class3);
+			
+			if(object.getString("Tax_YN").equals("0")) {
+				m_spinTaxation.setSelection(1);
+			} else {
+				m_spinTaxation.setSelection(0);
+			}
+			if(object.getString("Add_Tax").equals("0")){
+				m_checkSurtax.setChecked(false);
+			} else {
+				m_checkSurtax.setChecked(true);
+			}
+			
+			if(object.getString("G_grade").equals("0"))
+				m_spinGroup.setSelection(0);
+			else if(object.getString("G_grade").equals("A"))
+				m_spinGroup.setSelection(1);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+    }
+    
     public void fillCustomerFormFromArray(ArrayList<ProductList> productArray1, int position){
 
 		m_textBarcode.setText(productArray1.get(position).Barcode);
@@ -694,8 +762,6 @@ public class ManageProductActivity extends Activity{
 			m_spinGroup.setSelection(0);
 		else if(productArray1.get(position).G_grade.equals("A"))
 			m_spinGroup.setSelection(1);
-			
-
     }
 	
     // 새로 입력

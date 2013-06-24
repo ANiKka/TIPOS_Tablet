@@ -121,6 +121,10 @@
             android:background="@drawable/white_text_box_small"
 	        android:textSize="14sp"
 	        android:inputType="text"
+	        android:clickable="false" 
+		    android:cursorVisible="false" 
+		    android:focusable="false" 
+		    android:focusableInTouchMode="false"
 	        android:singleLine="true" />
         
     </LinearLayout>
@@ -175,6 +179,10 @@
             android:textSize="14sp"
             android:inputType="text"
             android:ems="10"
+	        android:clickable="false" 
+		    android:cursorVisible="false" 
+		    android:focusable="false" 
+		    android:focusableInTouchMode="false"
             android:singleLine="true" />
     </LinearLayout>
         
@@ -198,6 +206,16 @@
             android:scaleY="0.8"
 	        android:background="@drawable/basic_inquiry_btn"
 	        android:onClick="OnClickSearch"/>
+        
+       <Button
+	        android:id="@+id/buttonRenew"
+	        style="?android:attr/buttonStyleSmall"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="10dip"
+	        android:scaleY="0.8"
+	        android:background="@drawable/replace_btn"
+	        android:onClick="OnClickRenew" />
 			
     </LinearLayout>
     
