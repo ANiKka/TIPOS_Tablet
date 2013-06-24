@@ -58,7 +58,7 @@
              android:scaleX="0.8"
              android:scaleY="0.8"
              android:background="@drawable/arrowbox_02"
-             android:onClick="onClickSetNext" />
+             android:onClick="onClickSetDateNext" />
      
     </LinearLayout>
     
@@ -87,7 +87,7 @@
             android:layout_weight="1"
             android:textColor="#ffffff"
             android:textSize="16sp"
-            android:text="000,000,0000"
+            android:text="0"
             android:gravity="right"
             android:textAppearance="?android:attr/textAppearanceSmall" />
         
@@ -96,20 +96,20 @@
             android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="0.6"
-            android:layout_marginLeft="10dp"
             android:textColor="#ffffff"
             android:textSize="16sp"
-            android:text="객수 : "
+            android:text="객수 :"
+            android:gravity="right"
             android:textAppearance="?android:attr/textAppearanceSmall" />
         
         <TextView
             android:id="@+id/textViewKNumber"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="0.85"
             android:textColor="#ffffff"
             android:textSize="16sp"
-            android:text="000,000"
+            android:text="0"
             android:gravity="center"
             android:textAppearance="?android:attr/textAppearanceSmall" />
          
@@ -140,7 +140,7 @@
             android:layout_weight="1"
             android:textColor="#ffffff"
             android:textSize="16sp"
-            android:text="000,000,000"
+            android:text="0"
             android:gravity="right"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -151,7 +151,8 @@
             android:layout_weight="0.7"
             android:textColor="#ffffff"
             android:textSize="16sp"
-            android:text="객단가 : "
+            android:text="객단가 :"
+            android:gravity="right"
             android:textAppearance="?android:attr/textAppearanceSmall" />
         
         <TextView
@@ -161,7 +162,7 @@
             android:layout_weight="1"
             android:textColor="#ffffff"
             android:textSize="16sp"
-            android:text="000,000"
+            android:text="0"
             android:gravity="right"
             android:textAppearance="?android:attr/textAppearanceSmall" />
         
@@ -193,7 +194,7 @@
             android:layout_weight="1"
             android:textColor="#ffffff"
             android:textSize="16sp"
-            android:text="000,000,000"
+            android:text="0"
             android:gravity="right"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -201,10 +202,10 @@
             android:id="@+id/textView8"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
-            android:layout_weight="0.6"
+            android:layout_weight="0.58"
             android:textColor="#ffffff"
             android:textSize="16sp"
-            android:text="카드 : "
+            android:text="카드 :"
             android:gravity="right"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -212,10 +213,10 @@
             android:id="@+id/textViewCard"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="0.8"
             android:textColor="#ffffff"
             android:textSize="16sp"
-            android:text="000,000,000"
+            android:text="0"
             android:gravity="right"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -246,7 +247,7 @@
             android:layout_weight="1"
             android:textColor="#ffffff"
             android:textSize="16sp"
-            android:text="000,000,000"
+            android:text="0"
             android:gravity="right"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -257,7 +258,7 @@
             android:layout_weight="0.6"
             android:textColor="#ffffff"
             android:textSize="16sp"
-            android:text="기타 : "
+            android:text="기타 :"
             android:gravity="right"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -265,10 +266,10 @@
             android:id="@+id/textViewOther"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="0.8"
             android:textColor="#ffffff"
             android:textSize="16sp"
-            android:text="000,000,000"
+            android:text="0"
             android:gravity="right"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 

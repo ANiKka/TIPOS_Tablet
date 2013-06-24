@@ -4,18 +4,23 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import tipsystem.utils.MSSQL;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
@@ -29,6 +34,11 @@ public class CustomerProductDetailInNewsActivity extends Activity {
 
 	ListView m_listPurchaseDetail;
 	
+	String m_ip = "122.49.118.102";
+	String m_port = "18971";
+	NumberFormat m_numberFormat;
+	ProgressDialog dialog;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -38,6 +48,7 @@ public class CustomerProductDetailInNewsActivity extends Activity {
 		
 		m_listPurchaseDetail= (ListView)findViewById(R.id.listviewCustomerProductDetailInNews);
 		
+		m_numberFormat = NumberFormat.getInstance();
 		
 		Intent intent = getIntent();
 		
@@ -45,8 +56,14 @@ public class CustomerProductDetailInNewsActivity extends Activity {
 		String customerCode = intent.getExtras().getString("OFFICE_CODE");
 		String customerName = intent.getExtras().getString("OFFICE_NAME");
 		
-		new MyAsyncTask().execute(period1, customerCode, customerName);
-		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+		executeQuery(period1, customerCode, customerName);
+
 	}
 
 	/**
@@ -105,152 +122,105 @@ public class CustomerProductDetailInNewsActivity extends Activity {
 		m_listPurchaseDetail.setAdapter(adapter);
 	}
 	
-	class MyAsyncTask extends AsyncTask<String, Integer, String>{
-
-        ArrayList<JSONObject> CommArray=new ArrayList<JSONObject>();
-        
-        int m_tabIndex = 0;
-        
-        protected String doInBackground(String... urls) 
-        {
-        	Log.i("Android"," MSSQL Connect Example.");
-        	Connection conn = null;
-        	ResultSet reset =null;
-        	
-        	try {
-        	    Class.forName("net.sourceforge.jtds.jdbc.Driver").newInstance();
-        	    Log.i("Connection","MSSQL driver load");
-
-        	    conn = DriverManager.getConnection("jdbc:jtds:sqlserver://122.49.118.102:18971/TIPS","sa","tips");
-        	   // conn = DriverManager.getConnection("jdbc:jtds:sqlserver://172.30.1.18:1433/TIPS","sa","tips");
-        	    Log.i("Connection","MSSQL open");
-        	    Statement stmt = conn.createStatement();
-   
-        	    String period1 = urls[0];
-        		String customerCode = urls[1];
-        		String customerName = urls[2];
-        		
-        		String query = "";
-        	    
-        		int year1 = Integer.parseInt(period1.substring(0, 4));
-        		int month1 = Integer.parseInt(period1.substring(5, 7));
-        		
-        		
-        		String tableName = null;
-        		String constraint = "";
-        		
-        		tableName = String.format("SaD_%04d%02d", year1, month1);
-        				
-				if ( customerCode.equals("") != true )
-				{
-					constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
-				}
+	private void executeQuery(String... urls)
+	{
+	    String period1 = urls[0];
+		String customerCode = urls[1];
+		String customerName = urls[2];
+		
+		String query = "";
+	    
+		int year1 = Integer.parseInt(period1.substring(0, 4));
+		int month1 = Integer.parseInt(period1.substring(5, 7));
+		
+		
+		String tableName = null;
+		String constraint = "";
+		
+		tableName = String.format("SaD_%04d%02d", year1, month1);
 				
-				if ( customerName.equals("") != true)
-				{
-					constraint = setConstraint(constraint, "Office_Name", "=", customerName);
-				}
-				
-    			query = "select Barcode, G_Name, Sale_Count, TSell_Pri, TSell_RePri, DC_Pri from " + tableName;
-    			query = query + " where Sale_Date = '" + period1 + "'";
-   			
-    			if ( constraint.equals("") != true )
-    			{
-    				query = query + " and " + constraint;
-    			}
+		if ( customerCode.equals("") != true )
+		{
+			constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
+		}
+		
+		if ( customerName.equals("") != true)
+		{
+			constraint = setConstraint(constraint, "Office_Name", "=", customerName);
+		}
+		
+		query = "select Barcode, G_Name, Sale_Count, TSell_Pri, TSell_RePri, DC_Pri from " + tableName;
+		query = query + " where Sale_Date = '" + period1 + "'";
+	
+		if ( constraint.equals("") != true )
+		{
+			query = query + " and " + constraint;
+		}
+		
+		query = query + ";";
     			
-    			Log.e("HTTPJSON","query: " + query );
-            	reset = stmt.executeQuery(query);
-	        	    		
-        	    while(reset.next()){
-					Log.w("HTTPJSON:",reset.getString(1));
+			
+		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				try {
 					
-					JSONObject Obj = new JSONObject();
-				    // original part looks fine:
-				    Obj.put("Barcode",reset.getString(1).trim());
-				    Obj.put("G_Name",reset.getString(2).trim());
-				    Obj.put("Sale_Count",reset.getInt(3));
-				    Obj.put("TSell_Pri",reset.getInt(4));
-				    Obj.put("TSell_RePri",reset.getInt(5));
-				    Obj.put("DC_Pri",reset.getInt(6));
-				    
-				    CommArray.add(Obj);
-				}
-                    	    
-              
-        		
-        	    conn.close();
-        	
-        	 } catch (Exception e)
-        	 {
-        	    Log.w("Error connection","" + e.getMessage());		   
-        	 }
-        	 
-        	 // onProgressUpdate에서 0이라는 값을 받아서 처리
-        	 publishProgress(0);
-        	 return null;       	 
-        }
+					if ( results.length() > 0 )
+					{
+						String[] from = new String[] {"Barcode", "G_Name", "Sale_Count", "rSale"};
+				        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
+				        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+			 			
+						for(int i = 0; i < results.length() ; i++)
+						{
+							JSONObject son = results.getJSONObject(i);
+							
+		    				int tSell = son.getInt("TSell_Pri");
+		    				int tRSell = son.getInt("TSell_RePri");
+		    				int dcPri = son.getInt("DC_Pri");
+		    				String saleCount = m_numberFormat.format(son.getInt("Sale_Count"));
+		    				String rSale = m_numberFormat.format(tSell - (tRSell + dcPri));
+							
+							HashMap<String, String> map = new HashMap<String, String>();
+							map.put("Barcode", son.getString("Barcode") );
+							map.put("G_Name", son.getString("G_Name"));
+							map.put("Sale_Count", saleCount);
+							map.put("rSale", rSale );
+							fillMaps.add(map);
+						}	
+						
+						setTabList1(fillMaps);
+						
+						Toast.makeText(getApplicationContext(), "조회 완료" + results.length(), Toast.LENGTH_SHORT).show();
+						dialog.cancel();
+					
+					}
+					else 
+					{
+						dialog.cancel();
+					}
+					
+	    		} catch (JSONException e) {
+	    			e.printStackTrace();
+	    			dialog.cancel();
+	    		}
+				
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+		
+	}
 
-        protected void onProgressUpdate(Integer[] values) {
-            Log.e("HTTPJSON", "onProgressUpdate" );
-        }
-
-        protected void onPostExecute(String result) {
-        	super.onPostExecute(result);
-        	
-
-    		String[] from = new String[] {"Barcode", "G_Name", "Sale_Count", "rSale"};
-	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-	        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-	 	        		
-        	Iterator<JSONObject> iterator = CommArray.iterator();
-    		while (iterator.hasNext()) {
-            	JSONObject json = iterator.next();
-            	
-            	try {
-            		
-    				String code = json.getString("Barcode");
-    				String name = json.getString("G_Name");
-    				int tSell = json.getInt("TSell_Pri");
-    				int tRSell = json.getInt("TSell_RePri");
-    				int dcPri = json.getInt("DC_Pri");
-    				String saleCount = String.format("%d", json.getInt("Sale_Count"));
-    				
-    				String rSale = String.format("%d", tSell - (tRSell + dcPri));
-    				
-    				// prepare the list of all records
-		            HashMap<String, String> map = new HashMap<String, String>();
-		            map.put("Barcode", code);
-		            map.put("G_Name", name);
-		            map.put("Sale_Count", saleCount);
-		            map.put("rSale", rSale);
-		            fillMaps.add(map);
-    		 
-    			} catch (JSONException e) {
-    				// TODO Auto-generated catch block
-    				e.printStackTrace();
-    			}
-    		}
-    		
-    		Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
-    		
-    		if ( CommArray.size() > 0 )
-    		{
-    			setTabList1(fillMaps);
-    		}
-
-        }
-        
-        private String setConstraint(String str, String field, String op, String value)
-        {
-        	if ( str.equals("") != true )
-        	{
-        		str = str + " and ";
-        	}
-        	
-        	str = str + field + " " + op + " '" + value + "'";
-        	
-        	return str;
-        }
+    private String setConstraint(String str, String field, String op, String value)
+    {
+    	if ( str.equals("") != true )
+    	{
+    		str = str + " and ";
+    	}
+    	
+    	str = str + field + " " + op + " '" + value + "'";
+    	
+    	return str;
     }
+    
 }

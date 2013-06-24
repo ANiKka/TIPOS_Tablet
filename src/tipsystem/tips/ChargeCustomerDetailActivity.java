@@ -13,7 +13,7 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import tipsystem.tips.CustomerProductDetailViewActivity.MyAsyncTask;
+//import tipsystem.tips.CustomerProductDetailViewActivity.MyAsyncTask;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;

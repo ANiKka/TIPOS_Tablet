@@ -296,8 +296,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
  		dialog.setCancelable(false);
  		dialog.show();
  		
- 		
-		
 		if ( arg0.getId() == m_spinClassification1.getId() )
 		{
 			String typeL = m_spinClassification1.getItemAtPosition(arg2).toString();
@@ -341,6 +339,32 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		m_buttonSetDate.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
 		
 		m_dateCalender2.add(Calendar.DAY_OF_MONTH, -1);
+		
+		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
+		
+		String period1 = m_buttonSetDate.getText().toString();
+		String period2 = m_dateFormatter.format(m_dateCalender2.getTime());
+		
+		//Toast.makeText(getApplicationContext(), period1 + " , " + period2, Toast.LENGTH_SHORT).show();
+		
+  		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(SalesNewsActivity.this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+		
+		new MyAsyncTask ().execute("10", period1, period2, "", "", "");
+		new MyAsyncTask ().execute("11", period1, period2, "", "", "");
+		
+		if ( m_tabHost.getCurrentTab() == 2 )
+		{
+			new MyAsyncTask ().execute("12", period1, period2, "", "", "");
+		}
+		else
+		{
+			new MyAsyncTask ().execute(tabIndex, period1, period2, "", "", "");
+		}
+		
 	}
 	
 	public void onClickSetDateNext(View view)
@@ -349,6 +373,32 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		m_buttonSetDate.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
 		
 		m_dateCalender2.add(Calendar.DAY_OF_MONTH, 1);
+		
+		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
+		
+		String period1 = m_buttonSetDate.getText().toString();
+		String period2 = m_dateFormatter.format(m_dateCalender2.getTime());
+		
+		//Toast.makeText(getApplicationContext(), period1 + " , " + period2, Toast.LENGTH_SHORT).show();
+		
+  		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(SalesNewsActivity.this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+		new MyAsyncTask ().execute("10", period1, period2, "", "", "");
+		new MyAsyncTask ().execute("11", period1, period2, "", "", "");
+		
+		if ( m_tabHost.getCurrentTab() == 2 )
+		{
+			new MyAsyncTask ().execute("12", period1, period2, "", "", "");
+		}
+		else
+		{
+			new MyAsyncTask ().execute(tabIndex, period1, period2, "", "", "");
+		}
+		
 	}
 	
 	@Override
@@ -649,7 +699,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         			tableName = String.format("SaD_%04d%02d", year1, month1);
         			
         			query = "select Office_Code, Office_Name, TSell_Pri, TSell_RePri, DC_Pri, ProFit_Pri from " + tableName;
-        			query = query + " where Sale_Date = '" + period1 + "'";
+        			query = query + " where Sale_Date = '" + period1 + "';";
         			
         			Log.e("HTTPJSON","query: " + query );
                 	reset = stmt.executeQuery(query);
@@ -777,20 +827,18 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         			}
         		}
         		
-        		if ( CommArray.size() > 0 )
-        		{
-        			
-        			m_realSales.setText(m_numberFormat.format(tSellPri));
-        			
-        			m_viewKNumber.setText(m_numberFormat.format(saleNum));
-        			//m_viewRealSalesYesterday.setText(String.format("%d", tSellPri));
-        			m_viewPrice.setText(m_numberFormat.format(salePri));
-        			m_viewCash.setText(m_numberFormat.format(cashPri));
-        			m_viewCard.setText(m_numberFormat.format(cardPri));
-        			m_viewCredit.setText(m_numberFormat.format(decPri));
-        			
-        			m_viewOther.setText(m_numberFormat.format(0));
-        		}
+ 
+    			m_realSales.setText(m_numberFormat.format(tSellPri));
+    			
+    			m_viewKNumber.setText(m_numberFormat.format(saleNum));
+    			//m_viewRealSalesYesterday.setText(String.format("%d", tSellPri));
+    			m_viewPrice.setText(m_numberFormat.format(salePri));
+    			m_viewCash.setText(m_numberFormat.format(cashPri));
+    			m_viewCard.setText(m_numberFormat.format(cardPri));
+    			m_viewCredit.setText(m_numberFormat.format(decPri));
+    			
+    			m_viewOther.setText(m_numberFormat.format(0));
+  
         		
         		//Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
         		
@@ -812,10 +860,9 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         			}
         		}
         		
-        		if ( CommArray.size() > 0 )
-        		{
-        			m_viewRealSalesYesterday.setText(m_numberFormat.format(tSellPri));
-        		}
+
+        		m_viewRealSalesYesterday.setText(m_numberFormat.format(tSellPri));
+        		
         		
         		//Toast.makeText(getApplicationContext(), "조회 완료: " + CommArray.size(), Toast.LENGTH_SHORT).show();
         		

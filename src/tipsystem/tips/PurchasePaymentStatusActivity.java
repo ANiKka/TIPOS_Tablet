@@ -403,6 +403,11 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
  			// prepare the list of all records
  			final List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
  			
+ 			final ArrayList<String> lSpListInNum = new ArrayList<String>();
+ 			final ArrayList<String> lSpListInDate = new ArrayList<String>();
+ 			final ArrayList<String> lSpListName = new ArrayList<String>();
+ 			final ArrayList<Integer> lSpListInPri = new ArrayList<Integer>();
+ 			
  			m_queryCount1 = 0;
  			
 	 		for ( int y = year1; y <= year2; y++ )
@@ -441,7 +446,7 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
          				query = query + " and " + constraint;
          			}
          			
-         			
+         			query = query + ";";
          			
          			m_queryCount1 = m_queryCount1 + 1;
          		// 콜백함수와 함께 실행
@@ -455,24 +460,58 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 								
 								if ( results.length() > 0 )
  								{
-									// create the grid item mapping
-						 			String[] from = new String[] {"In_Num", "In_Date", "Office_Name", "In_Pri"};
-						 			int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
-						 			
 									for(int i = 0; i < results.length() ; i++)
 									{
 										JSONObject son = results.getJSONObject(i);
 										
-										HashMap<String, String> map = new HashMap<String, String>();
-										map.put("In_Num", son.getString("In_Num") );
-										map.put("In_Date", son.getString("In_Date"));
-										map.put("Office_Name", son.getString("Office_Name"));
-										map.put("In_Pri", String.format("%d", son.getInt("In_Pri")) );
-										fillMaps.add(map);
-									}	
+										String code = son.getString("In_Num");
+				        				String date = son.getString("In_Date");
+				        				String name = son.getString("Office_Name");
+				        				int inPri = son.getInt("In_Pri");
+				        				
+				        				boolean isExist = false;
+				        				               		
+				                		for ( int j = 0; j < lSpListName.size(); j++ )
+				                		{
+				                			if ( lSpListName.get(j).toString().equals(name) == true
+				                					&& lSpListInDate.get(j).toString().equals(date) == true)
+				                			{
+				                				Integer sInPri = lSpListInPri.get(j).intValue() + inPri;
+
+				                				lSpListInPri.set(j, sInPri);
+				                				isExist = true;
+				                				break;
+				                			}
+				                		}
+				                		
+				                		if ( isExist == false )
+				                		{
+				                			Integer sInPri = inPri;
+			                				
+				                			lSpListInNum.add(code);
+				                			lSpListName.add(name);
+				                			lSpListInDate.add(date);
+				                			lSpListInPri.add(sInPri);
+				                		}
+									}
 									
 									if ( m_queryCount1 == 0 )
 									{
+										// create the grid item mapping
+							 			String[] from = new String[] {"In_Num", "In_Date", "Office_Name", "In_Pri"};
+							 			int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
+							 			
+										for(int i = 0; i < lSpListName.size() ; i++)
+										{
+											HashMap<String, String> map = new HashMap<String, String>();
+											
+											map.put("In_Num", lSpListInNum.get(i) );
+											map.put("In_Date", lSpListInDate.get(i) );
+											map.put("Office_Name", lSpListName.get(i) );
+											map.put("In_Pri", m_numberFormat.format( lSpListInPri.get(i) ));
+											fillMaps.add(map);
+										}	
+										
 										// fill in the grid_item layout
 										SimpleAdapter adapter = new SimpleAdapter(PurchasePaymentStatusActivity.this, 
 												fillMaps, R.layout.activity_listview_product_list, 
