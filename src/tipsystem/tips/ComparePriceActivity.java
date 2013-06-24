@@ -11,21 +11,28 @@ import org.json.JSONObject;
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 
+import tipsystem.tips.ManageProductActivity.ProductList;
+import tipsystem.tips.ManageProductActivity.ProductListAdapter;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.MSSQL2;
 
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -48,6 +55,13 @@ public class ComparePriceActivity extends Activity{
 	private ProgressDialog dialog;
 	
 	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();	
+	ArrayList<ProductList> productArray = new ArrayList<ProductList>();
+	int index = 0;
+	int size = 30;
+	int firstPosition = 0; 
+	
+	String m_ip = "122.49.118.102";
+	String m_port = "18971";
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -88,7 +102,7 @@ public class ComparePriceActivity extends Activity{
 		
 		searchButton.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) { 
-	        	doSearch();
+	        	doSearchInMarket();
 	        }
 		});
 		
@@ -244,20 +258,20 @@ public class ComparePriceActivity extends Activity{
 	}
 	
 	private void sendDataFromList(int position){
-		String Barcode = mfillMaps.get(position).get("barcode");
-		String G_Name = mfillMaps.get(position).get("gName");
 		
 		ArrayList<String> sendArr = new ArrayList<String>();
-		sendArr.add(Barcode);
-		sendArr.add(G_Name);
+		sendArr.add(productArray.get(position).Barcode);
+		sendArr.add(productArray.get(position).G_Name);
+		sendArr.add(productArray.get(position).Pur_Pri);
+		sendArr.add(productArray.get(position).Sell_Pri);
 		
 		Intent intent = new Intent(this, ComparePriceDetailActivity.class);
 		intent.putExtra("fillMaps", sendArr);
     	startActivity(intent);
 	}
 
-	public void doSearch(){
-		
+	public void doSearchInMarket(){
+
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
@@ -299,27 +313,185 @@ public class ComparePriceActivity extends Activity{
 	 		}
 	 		query += ";";
 	    } else {
-	    	query = "SELECT TOP 2000 * FROM Goods WHERE BarCode NOT IN(SELECT TOP 1 BarCode FROM Goods);";
+	    	query = "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods) A JOIN (SELECT TOP " + size + " * FROM Goods WHERE BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods)) B ON A.BarCode = B.BarCode;";
 	    }
 	    
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+	    // 콜백함수와 함께 실행
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
 				dialog.dismiss();
 				dialog.cancel();
-				if (results.length() > 0) {
-					updateListView(results);
-		            Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
-				}
-				else {
-		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();					
-				}
+
+				settingArray(results);
+				//doSearchInTail();
+				//Toast.makeText(getApplicationContext(), "전송완료.", Toast.LENGTH_SHORT).show();
 			}
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
-		
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				Toast.makeText(getApplicationContext(), "전송실패("+String.valueOf(code)+"):" + msg, Toast.LENGTH_SHORT).show();
+			}
+			
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
 	
+	// 리스트뷰 띄우기
+    public void settingArray(JSONArray results){
+		
+    	//productArray.clear();
+		ProductList pl;
+		for(int i = 0; i < size-index; i++){
+			JSONObject json;
+			try {
+				json = results.getJSONObject(i);
+				pl = new ProductList(json.getString("BarCode"),
+									json.getString("G_Name"),
+									json.getString("Pur_Pri"),
+									json.getString("Sell_Pri"),
+									json.getString("Bus_Code"),
+									json.getString("Bus_Name"),
+									json.getString("Tax_YN"),
+									json.getString("Std_Size"),
+									json.getString("Obtain"),
+									json.getString("Pur_Cost"),
+									json.getString("Profit_Rate"),
+									json.getString("L_Code"),
+									json.getString("M_Code"),
+									json.getString("S_Code"),
+									json.getString("L_Name"),
+									json.getString("M_Name"),
+									json.getString("S_Name"),
+									json.getString("VAT_CHK"),
+									json.getString("G_grade"),
+									"0",
+									"0");
+					productArray.add(pl);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		//compareQuery();
+		showListView();
+    }
+    
+    // 리스트뷰 보이기
+    public void showListView (){
+    	ProductListAdapter ProductList = new ProductListAdapter(this, R.layout.activity_listview_compare_list, productArray);
+		ListView m_listPriceSearch = (ListView)findViewById(R.id.listviewCustomerList);
+		
+		firstPosition = m_listPriceSearch.getFirstVisiblePosition();
+		m_listPriceSearch.setAdapter(ProductList);
+		m_listPriceSearch.setSelection(firstPosition);
+	}
+
+    public void doSearchInTail(){
+    	
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+    	Log.w("MSSQL", "comparePrice() IN");
+    	String query1 = "";
+    	for(int i = index; i < size-index; i++) {
+    		    		
+    		query1 += "SELECT isNull(AVG(Pur_Pri), 0) AS Pur_Pri , isNull(AVG(Sell_Pri), 0) AS Sell_Pri FROM Goods WHERE BarCode = '" + productArray.get(i).Barcode + "' ";
+    		if(i<size-index-1)
+    			query1 += "union all ";
+    		else
+    			query1 += ";";
+   			
+    	}	
+    	
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+
+				comparePrice(results);
+				Toast.makeText(getApplicationContext(), "전송완료.", Toast.LENGTH_SHORT).show();
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				Toast.makeText(getApplicationContext(), "전송실패("+String.valueOf(code)+"):" + msg, Toast.LENGTH_SHORT).show();
+			}
+			
+	    }).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query1);
+    }
+    
+    // 가격비교
+    public void comparePrice(JSONArray results){
+    	
+    	Log.w("MSSQL", "comparePrice IN");
+
+    	
+    	
+    	HashMap<String, String> map = new HashMap<String, String>();
+    	for(int i = index; i < size - index; i++){
+    		JSONObject json;
+    		try{
+	    		json = results.getJSONObject(i);
+	    		map.put("Pur_Pri", json.getString("Pur_Pri"));
+	    		map.put("Sell_Pri", json.getString("Sell_Pri"));
+	    		mfillMaps.add(map);
+    		} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}	
+    	}
+    	
+    	comparePrice2();
+    	
+    	
+    }
+    
+    public void comparePrice2(){
+    	float Pur_Pri1;
+    	float Pur_Pri2;
+    	float Sell_Pri1;
+    	float Sell_Pri2;
+    	
+    	Log.w("MSSQL", "pur_pri : " + mfillMaps.get(0).get("Pur_Pri"));
+    	Log.w("MSSQL", "pur_pri : " + productArray.get(0).Pur_Pri);
+
+    	//for(int i = index; i < size - index; i++){
+    	ProductList pl = new ProductList("0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","1","0");
+		Pur_Pri1 = Float.parseFloat(productArray.get(29).Pur_Pri);
+		Pur_Pri2 = Float.parseFloat(mfillMaps.get(0).get("Pur_Pri"));
+		Sell_Pri1 = Float.parseFloat(productArray.get(29).Sell_Pri);
+		Sell_Pri2 = Float.parseFloat(mfillMaps.get(0).get("Sell_Pri"));
+		
+		Log.w("MSSQL", "compare_pur : " + productArray.get(0).Compare_Pur);
+		if (Pur_Pri1 > Pur_Pri2){
+			Log.w("MSSQL", "compare_pur change");
+			productArray.set(0, pl);
+			Log.w("MSSQL", "compare_pur : " + productArray.get(0).Compare_Pur);
+		}else if (Pur_Pri1 == Pur_Pri2){
+			productArray.set(0, null).Compare_Pur = "같" +
+					"음";
+		}
+		if (Sell_Pri1 > Sell_Pri2){
+			productArray.set(0, null).Compare_Sell = "1";
+		}else if (Sell_Pri1 == Sell_Pri2){
+			productArray.set(0, null).Compare_Pur = "같음";
+		}
+    	
+		
+    	showListView();
+    	
+    }
+
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{    
 	    if (resultCode == RESULT_OK) 
@@ -345,61 +517,111 @@ public class ComparePriceActivity extends Activity{
     	Intent intent = new Intent(ComparePriceActivity.this, ZBarScannerActivity.class);
     	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
 	}
-	
-	public void updateListView(JSONArray results) {
-		
-		String[] from = new String[] {"barcode", "gName", "purPri", "sellPri"};
-        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
-        
-        if (!mfillMaps.isEmpty()) mfillMaps.clear();
-        
-        for (int i = 0; i < results.length(); i++) {
-        	Log.w("test", "4");	
-        	try {
-            	JSONObject json = results.getJSONObject(i);
-				String barcode = json.getString("BarCode");
-				String gName = json.getString("G_Name");
-				String purPri = json.getString("Pur_Pri");
-				String sellPri = json.getString("Sell_Pri");
-				/*
-				String busCode = json.getString("Bus_Code");
-				String busName = json.getString("Bus_Name");
-				String taxYN = json.getString("Tax_YN");
-				String stdSize = json.getString("Std_Size");
-				String obtain = json.getString("Obtain");
-				String purCost = json.getString("Pur_Cost");
-				String profitRate = json.getString("Profit_Rate");
-				String L_Code = json.getString("L_Code");
-				String M_Code = json.getString("M_Code");
-				String S_Code = json.getString("S_Code");
-				String surtax = json.getString("Add_Tax");*/
 
-				// prepare the list of all records
-	            HashMap<String, String> map = new HashMap<String, String>();
-	            map.put("barcode", barcode);
-	            map.put("gName", gName);
-	            map.put("purPri", purPri);
-	            map.put("sellPri", sellPri);
-	            /*map.put("busCode", busCode);
-	            map.put("busName", busName);
-	            map.put("taxYN", taxYN);
-	            map.put("stdSize", stdSize);
-	            map.put("obtain", obtain);
-	            map.put("purCost", purCost);
-	            map.put("profitRate", profitRate);
-	            map.put("L_Code", L_Code);
-	            map.put("M_Code", M_Code);
-	            map.put("S_Code", S_Code);
-	            map.put("surtax", surtax);	      */    
-	            Log.w("test", "6");
-	            mfillMaps.add(map);
-		 
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
+	class ProductList {
+		ProductList(String aBarcode, String aG_Name, String aPur_Pri, String aSell_Pri, String aBusCode, String aBusName,
+					String ataxYN, String astdSize, String aobtain, String apurCost, String aprofitRate, String aL_Code,
+					String aM_Code, String aS_Code, String aL_Name, String aM_Name, String aS_Name, String asurtax,
+					String ag_grade, String acompare_Pur, String acompare_Sell){
+			Barcode = aBarcode;
+			G_Name = aG_Name;
+			Pur_Pri = aPur_Pri;
+			Sell_Pri = aSell_Pri;
+			Bus_Code = aBusCode;
+			Bus_Name= aBusName;
+			taxYN = ataxYN;
+			stdSize = astdSize;
+			Obtain = aobtain;
+			purCost = apurCost;
+			profitRate = aprofitRate;
+			L_Code = aL_Code;
+			M_Code = aM_Code;
+			S_Code = aS_Code;
+			L_Name = aL_Name;
+			M_Name = aM_Name;
+			S_Name = aS_Name;			
+			surtax = asurtax;
+			G_grade = ag_grade;
+			Compare_Pur = acompare_Pur;
+			Compare_Sell = acompare_Sell;
+			}	
+		String Barcode;
+		String G_Name;
+		String Pur_Pri;
+		String Sell_Pri;
+		String Bus_Code;
+		String Bus_Name;
+		String taxYN;
+		String stdSize;
+		String Obtain;
+		String purCost;
+		String profitRate;
+		String L_Code;
+		String M_Code;
+		String S_Code;
+		String L_Name;
+		String M_Name;
+		String S_Name;
+		String surtax;		
+		String G_grade;
+		String Compare_Pur;
+		String Compare_Sell;
+	}
+	
+	class ProductListAdapter extends BaseAdapter 
+	{
+
+		Context ctx;
+		LayoutInflater Inflater;
+		ArrayList<ProductList> arr_Goods;
+		int itemLayout;
+		
+		public ProductListAdapter(Context actx, int aitemLayout, ArrayList<ProductList> aarr_Goods)
+		{
+			ctx = actx;
+			Inflater = (LayoutInflater)actx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			arr_Goods = aarr_Goods;
+			itemLayout = aitemLayout;
 		}
-        // fill in the grid_item layout
-        SimpleAdapter adapter = new SimpleAdapter(ComparePriceActivity.this, mfillMaps, R.layout. activity_listview_compare_list, from, to);
-        m_listPriceSearch.setAdapter(adapter);
-    }
+
+		@Override
+		public int getCount() {
+			return arr_Goods.size();
+		}
+		@Override
+		public String getItem(int position) {
+			return arr_Goods.get(position).Barcode;
+		}
+		@Override
+		public long getItemId(int position) {
+			return position;
+		}
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			final int pos = position;
+			
+			if (convertView == null) {
+				convertView = Inflater.inflate(itemLayout, parent, false);
+			} 
+			
+			TextView barcode = (TextView)convertView.findViewById(R.id.item1);
+			TextView g_name = (TextView)convertView.findViewById(R.id.item2);
+			TextView sell_pri = (TextView)convertView.findViewById(R.id.item3);
+			TextView pur_pri = (TextView)convertView.findViewById(R.id.item4);
+			
+			
+			barcode.setText(arr_Goods.get(position).Barcode);
+			g_name.setText(arr_Goods.get(position).G_Name);
+			sell_pri.setText(arr_Goods.get(position).Pur_Pri + " : " + arr_Goods.get(position).Compare_Pur);
+			pur_pri.setText(arr_Goods.get(position).Sell_Pri + " : " + arr_Goods.get(position).Compare_Sell);
+
+			if(position == size-3){
+				index = size;
+				size = size * 2;
+				doSearchInMarket();
+			}
+			return convertView;
+		}
+	}
+
 }

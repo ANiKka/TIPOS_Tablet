@@ -30,6 +30,8 @@ public class ComparePriceDetailActivity extends Activity {
 	ListView m_listPriceDetail;
 	TextView m_barcodeTxt;
 	TextView m_gNameTxt;
+	TextView m_purPriTxt;
+	TextView m_sellPriTxt;
 	
 	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();	
 	
@@ -47,23 +49,32 @@ public class ComparePriceDetailActivity extends Activity {
 		ArrayList<String> fillMaps = intent.getStringArrayListExtra("fillMaps");
 		String BarCode = fillMaps.get(0);
 		String G_Name = fillMaps.get(1);
+		String Pur_Pri = fillMaps.get(2);
+		String Sell_Pri = fillMaps.get(3);
 		
 		m_listPriceDetail= (ListView)findViewById(R.id.listviewPriceDetailList);
 
 		Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
 		TextView textView = (TextView) findViewById(R.id.textView1);
 		textView.setTypeface(typeface);
-       
+		textView = (TextView) findViewById(R.id.textView3);
+		textView.setTypeface(typeface);
+		      
 		m_barcodeTxt = (TextView) findViewById(R.id.textView2);
 		m_barcodeTxt.setTypeface(typeface);
 		m_barcodeTxt.setText(BarCode);
-       
-		textView = (TextView) findViewById(R.id.textView3);
-		textView.setTypeface(typeface);
-       
+		
 		m_gNameTxt = (TextView) findViewById(R.id.textView4);
 		m_gNameTxt.setTypeface(typeface);
 		m_gNameTxt.setText(G_Name);
+		
+		m_purPriTxt = (TextView) findViewById(R.id.textView6);
+		m_purPriTxt.setTypeface(typeface);
+		m_purPriTxt.setText(Pur_Pri);
+		
+		m_sellPriTxt = (TextView) findViewById(R.id.textView8);
+		m_sellPriTxt.setTypeface(typeface);
+		m_sellPriTxt.setText(Sell_Pri);
 		
 		comparePrice(BarCode, G_Name);
 	}

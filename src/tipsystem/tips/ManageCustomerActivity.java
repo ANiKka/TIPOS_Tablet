@@ -8,13 +8,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.graphics.Typeface;
 import android.util.Log;
 import android.view.Menu;
@@ -34,10 +35,6 @@ import android.support.v4.app.NavUtils;
 
 public class ManageCustomerActivity extends Activity{
 
-	JSONObject m_shop;
-	String m_ip = "122.49.118.102";
-	String m_port = "18971";
-	
 	Spinner m_spin;
 	ListView m_cusList;
 	
@@ -57,15 +54,6 @@ public class ManageCustomerActivity extends Activity{
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
-		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
-	       
-        try {
-			m_ip = m_shop.getString("SHOP_IP");
-	        m_port = m_shop.getString("SHOP_PORT");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-        
 		//m_spin = (Spinner)findViewById(R.id.spinnerCustomerCodeType);
 		//m_spin.setOnItemSelectedListener(this);
 		m_cusList= (ListView)findViewById(R.id.listviewCustomerList);
@@ -83,15 +71,21 @@ public class ManageCustomerActivity extends Activity{
 		
 		Button searchButton = (Button) findViewById(R.id.buttonCustomerSearch);
 		Button registButton = (Button) findViewById(R.id.buttonCustomerRegist);
+		Button renewButton = (Button) findViewById(R.id.buttonCustomerRenew);
 		
 		searchButton.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) { 
-	        	doSearch();
+	        	doQuery(1);
 	        }
 		});
         registButton.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) { 
-	        	doRegister();
+	        	doQuery(2);
+	        }
+		});
+        renewButton.setOnClickListener(new OnClickListener() {
+	        public void onClick(View v) { 
+	        	doClear();
 	        }
 		});
         
@@ -160,8 +154,7 @@ public class ManageCustomerActivity extends Activity{
 		}
 		return super.onOptionsItemSelected(item);
 	}
-	
-	
+		
 	public void onItemSelected(AdapterView<?> parent, View v, int position, long id)
 	{
 		//TextView text1 = (TextView)m_spin.getSelectedView();
@@ -182,95 +175,77 @@ public class ManageCustomerActivity extends Activity{
 		Log.w("Log", "section : " + StringSection);
 		m_customerCode.setText(code);
 		m_customerName.setText(name);
-		if(StringSection.equals("매입거래처")) section = 0;
-		else if(StringSection.equals("매출거래처")) section = 1;
-		else section = 2;
-			
+		if(StringSection.equals("매입거래처")) section = 1;
+		else if(StringSection.equals("매출거래처")) section = 2;
+		else section = 3;
 		m_customerSection.setSelection(section);
 	}
 	
-	// 조회 실행 함수 
-    public void doSearch() {
+    public void doQuery(final int code){
+ 		
+    	//입력된 코드 가져오기
+    	String customerCode = m_customerCode.getText().toString();
+	    String customerName = m_customerName.getText().toString();
+	    String customerSection = String.valueOf(m_customerSection.getSelectedItemPosition());
 
+	    String query =  "";
+	    switch(code){
+	    // 등록
+	    case 0 :
+		    if (customerCode.equals("") || customerName.equals("")  || customerSection.equals("0")) {
+		    	Toast.makeText(getApplicationContext(), "비어있는 필드가 있습니다", Toast.LENGTH_SHORT).show();
+		    	return;
+		    }
+		    
+	    	query += "insert into Office_Manage(Office_Code, Office_Name, Office_Sec)" +
+	    			"values('" + customerCode + "', '" + customerName + "', '" + customerSection + "');";
+		    query += "select * from Office_Manage WHERE Office_Code = '" + customerCode + "';";
+		    break;
+		//조회
+	    case 1 :
+	    	query += "select * from Office_Manage ";
+		    
+		    if (!customerCode.equals("") || !customerName.equals("") || !customerSection.equals("0")){
+		    	query += " WHERE";
+		    }
+		    
+		    boolean added =false;
+		    if (!customerCode.equals("")){
+		    	query += " Office_Code = '" + customerCode + "'";
+		    	added = true;
+		    }
+		    
+		    if (!customerName.equals("")){
+		    	if (added) query += " AND ";
+		    	
+		    	query += " Office_Name = '" + customerName  + "'";
+		    	added = true;
+		    }
+		    
+		    if (!customerSection.equals("0")){
+		    	if (added) query += " AND ";
+		    	
+		    	query += " Office_Sec = '" + customerSection  + "'";
+		    	added = true;
+		    }
+		    query += ";";
+		    break;
+	    
+	    case 2 :
+		    if (customerCode.equals("") || customerName.equals("")  || customerSection.equals("0")) {
+		    	Toast.makeText(getApplicationContext(), "비어있는 필드가 있습니다", Toast.LENGTH_SHORT).show();
+		    	return;
+		    }
+	    	query = "select * from Office_Manage WHERE Office_Code = '" + customerCode + "' or Office_Name = '" + customerName + "';";
+	    	break;	    	
+	    }
+    	
     	// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
  		dialog.setCancelable(false);
  		dialog.show();
  		
- 		// 입력된 코드 가져오기
-    	String code = m_customerCode.getText().toString();
-	    String name = m_customerName.getText().toString();
-	    String section = String.valueOf(m_customerSection.getSelectedItemPosition()+1);
-	    
-    	// 쿼리 작성하기
-	    String query =  "";
-    	query += "select * from Office_Manage ";
-	    
-	    if (!code.equals("") || !name.equals("") || !section.equals("")){
-	    	query += " WHERE";
-	    }
-	    
-	    boolean added =false;
-	    if (!code.equals("")){
-	    	query += " Office_Code = '" + code + "'";
-	    	added = true;
-	    }
-	    
-	    if (!name.equals("")){
-	    	if (added) query += " AND ";
-	    	
-	    	query += " Office_Name = '" + name  + "'";
-	    	added = true;
-	    }
-	    
-	    if (!section.equals("")){
-	    	if (added) query += " AND ";
-	    	
-	    	query += " Office_Sec = '" + section  + "'";
-	    	added = true;
-	    }
-	    query += ";";
-	    
-	    // 콜백함수와 함께 실행
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-			@Override
-			public void onRequestCompleted(JSONArray results) {
-				dialog.dismiss();
-				dialog.cancel();
-				updateListView(results);
-		    	Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
-			}
-	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-    }
-
-	// 등록 실행 함수 
-    public void doRegister() {
- 		
- 		// 입력된 코드 가져오기
-    	String code = m_customerCode.getText().toString();
-	    String name = m_customerName.getText().toString();
-	    String section = String.valueOf(m_customerSection.getSelectedItemPosition()+1);
-	    
-	    if (code.equals("") || name.equals("")) {
-	    	Toast.makeText(getApplicationContext(), "비어있는 필드가 있습니다", Toast.LENGTH_SHORT).show();
-	    	return;
-	    }
-
-    	// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
- 		
-    	// 쿼리 작성하기
-	    String query =  "";
-	    query += "insert into Office_Manage(Office_Code, Office_Name, Office_Sec) values('" + code + "', '" + name + "', '" + section + "');";
-	    query += "select * from Office_Manage";
-	    query += ";";
-	    
-	    // 콜백함수와 함께 실행
 	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
 			@Override
@@ -278,14 +253,34 @@ public class ManageCustomerActivity extends Activity{
 				dialog.dismiss();
 				dialog.cancel();
 				if (results.length() > 0) {
-					updateListView(results);
-		            Toast.makeText(getApplicationContext(), "등록 완료", Toast.LENGTH_SHORT).show();
+					if(code == 0) {
+						onAlert();
+						updateListView(results);
+					} else if (code == 1) {
+						Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
+						updateListView(results);
+					} else {
+						Toast.makeText(getApplicationContext(), "이미 존재하는 거래처입니다.", Toast.LENGTH_SHORT).show();
+					}
 				}
 				else {
-		            Toast.makeText(getApplicationContext(), "등록 실패", Toast.LENGTH_SHORT).show();					
+					if(code == 0)
+						Toast.makeText(getApplicationContext(), "등록 실패", Toast.LENGTH_SHORT).show();
+					else if(code == 1)
+						Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+					else
+						doQuery(0);					
 				}
 			}
-	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+	    
+	    
+    }
+    
+    public void doClear() {
+    	m_customerCode.setText("");
+    	m_customerName.setText("");
+    	m_customerSection.setSelection(0);
     }
     
     public void updateListView(JSONArray results) {
@@ -308,9 +303,11 @@ public class ManageCustomerActivity extends Activity{
 	            map.put("Office_Code", code);
 	            map.put("Office_Name", name);
 	            
+	    	    Log.w("test", "customerSection1 : " + section );
+	    	    
 	            if(section.equals("1")) section = "매입거래처";
 	            else if(section.equals("2")) section = "매출거래처";
-	            else section = "수수료거래처";
+	            else if(section.equals("3")) section = "수수료거래처";
 	            
 	            map.put("Office_Sec", section);
 	            mfillMaps.add(map);
@@ -323,4 +320,20 @@ public class ManageCustomerActivity extends Activity{
         SimpleAdapter adapter = new SimpleAdapter(ManageCustomerActivity.this, mfillMaps, R.layout. activity_listview_customer_list, from, to);
         m_cusList.setAdapter(adapter);
     }
+    
+    public void onAlert() {
+		// TODO Auto-generated method stub
+		
+		AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);		
+		alertDialog.setMessage("정상적으로 등록되었습니다.");
+		
+		alertDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+				// process전체 종료
+				dialog.cancel();
+			}
+		});
+		alertDialog.show();
+	} 
+
 }

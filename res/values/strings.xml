@@ -76,6 +76,7 @@
 
     <string name="choose_default_group_type">거래처구분</string>
     <string-array name="group_type">
+        <item> </item>
         <item>A</item>
         <item>B</item>
         <item>C</item>
