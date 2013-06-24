@@ -15,7 +15,6 @@ import org.json.JSONObject;
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 
-import tipsystem.tips.ManageSalesActivity.MyAsyncTask;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
@@ -28,8 +27,6 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -101,6 +98,15 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		setContentView(R.layout.activity_purchase_payment_status);
 		// Show the Up button in the action bar.
 		setupActionBar();
+		
+		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
+	       
+        try {
+			m_ip = m_shop.getString("SHOP_IP");
+	        m_port = m_shop.getString("SHOP_PORT");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 		
 		m_period1 = (Button) findViewById(R.id.buttonSetDate1); 
 		m_period2 = (Button) findViewById(R.id.buttonSetDate2);
@@ -488,7 +494,7 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 				    		}
 							
 						}
-				    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+				    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 						         			
          		}
  			}
@@ -643,7 +649,7 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 				    		}
 							
 						}
-				    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+				    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 						         			
          		}
  			}
@@ -794,7 +800,7 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 				    		}
 							
 						}
-				    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+				    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 						         			
          		}
  			}

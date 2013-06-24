@@ -1,7 +1,6 @@
 package tipsystem.tips;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -21,7 +20,7 @@ import org.json.JSONObject;
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 
-import tipsystem.tips.ManageProductListActivity.ProductList;
+import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
 import android.os.AsyncTask;
@@ -31,32 +30,23 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.CalendarView.OnDateChangeListener;
 import android.widget.DatePicker;
-import android.widget.DatePicker.OnDateChangedListener;
 import android.widget.TabHost.OnTabChangeListener;
 import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TabHost;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.support.v4.app.NavUtils;
@@ -115,6 +105,15 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		setContentView(R.layout.activity_manage_sales);
 		// Show the Up button in the action bar.
 		setupActionBar();
+		
+		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
+	       
+        try {
+			m_ip = m_shop.getString("SHOP_IP");
+	        m_port = m_shop.getString("SHOP_PORT");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 		
 		m_period1 = (Button) findViewById(R.id.buttonSetDate1); 
 		m_period2 = (Button) findViewById(R.id.buttonSetDate2);
@@ -433,7 +432,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         	    Class.forName("net.sourceforge.jtds.jdbc.Driver").newInstance();
         	    Log.i("Connection","MSSQL driver load");
 
-        	    conn = DriverManager.getConnection("jdbc:jtds:sqlserver://122.49.118.102:18971/TIPS","sa","tips");
+        	    conn = DriverManager.getConnection("jdbc:jtds:sqlserver://"+m_ip+":"+m_port+"/TIPS","sa","tips");
         	   // conn = DriverManager.getConnection("jdbc:jtds:sqlserver://172.30.1.18:1433/TIPS","sa","tips");
         	    Log.i("Connection","MSSQL open");
         	    Statement stmt = conn.createStatement();
