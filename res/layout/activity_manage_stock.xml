@@ -356,7 +356,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dip"
-            android:text="전체삭제"/>
+            android:background="@drawable/clear_all_btn"/>
 
         <Button
             android:id="@+id/buttonDelete"

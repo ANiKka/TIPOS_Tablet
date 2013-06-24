@@ -1,9 +1,5 @@
 package tipsystem.tips;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -165,8 +161,6 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		btn_Send.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v) {
-				// 전체 삭제 기능으로 대체 
-				// TODO: 아이콘 바꾸어야함
 				clearInputBox();
 				deleteListAll();
 			}			
@@ -591,7 +585,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		// 쿼리 작성하기
 		String query =  "";
 		for ( int i = 0; i < m_purList.size(); i++ ) {
-			//TODO: 새로운 전표생성
+			
 	        makeJunPyo();
 	        
 		    query +=  "insert into " + tableName + "(In_Num, In_BarCode, In_Date, BarCode, In_Seq, Office_Code, Office_Name, In_Count, Pur_Pri, Sell_Pri, Profit_Rate) " 
@@ -640,8 +634,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 			
 	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
 	}
-	
-	
+		
 	//전표갯수를 구함
 	public void getSeq() {
 
@@ -682,117 +675,4 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 			
 	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
 	}
-
-	
-	
-	
-	class MyAsyncTask extends AsyncTask<String, Integer, String>{
-
-        ArrayList<JSONObject> CommArray=new ArrayList<JSONObject>();
-        
-        protected String doInBackground(String... urls) {
-        	Log.i("Android"," MSSQL Connect Example.");
-        	Connection conn = null;
-        	ResultSet reset =null;
-        	String type = urls[0];
-        	int i = 0;
-        	
-        	try {
-        		
-        	    Class.forName("net.sourceforge.jtds.jdbc.Driver").newInstance();
-        	    Log.i("Connection","MSSQL driver load");
-
-        	    conn = DriverManager.getConnection("jdbc:jtds:sqlserver://122.49.118.102:18971/TIPS","sa","tips");
-        	   // conn = DriverManager.getConnection("jdbc:jtds:sqlserver://172.30.1.18:1433/TIPS","sa","tips");
-        	    Log.i("Connection","MSSQL open");
-        	    Statement stmt = conn.createStatement();
-        	    Log.i("Connection","Button Click type is " + type);
-        	    
-        		
-        	    String customerCode = urls[1];
-        	    String customerName = urls[2];
-        	    String purchaseDate = urls[3];
-        	    
-        	    String immediatePayment = urls[4];
-        	    String barcode = urls[5];
-        	    String productName = urls[6];
-        	    String purchasePrice = urls[7];
-        	    String salePrice = urls[8];
-        	    String amount = urls[9];
-        	    String profitRatio = urls[10];
-        	            	    
-        	    String query = "";
-        	    
-
-        	    //query = "insert into InD_201209(In_Date, BarCode, Office_Code, Office_Name, Pur_Pri, Sell_Pri, In_Count, Add_Tax) values('" 
-        	    //+ purchaseDate + "', '" + barcode + "', '"+ customerCode + "', '" + customerName + "', '" + taxation + "', '" + standard + "', '" + acquire + "', '" + purchasePrice + "', '" + purchasePriceOriginal + "', '" + salesPrice + "', '" + ratio + "'); select BarCode, G_Name, Pur_Pri, Sell_Pri from Goods where BarCode = '" + barcode + "'and G_Name = '" + productName + "'and Bus_Name = '" + customerName + "';";
-
-        	    
-                Log.e("HTTPJSON","query: " + query );
-    	    	reset = stmt.executeQuery(query);    
-        	    while(reset.next()){
-					
-					JSONObject Obj = new JSONObject();
-				    // original part looks fine:
-				    Obj.put("barcode",reset.getString(1).trim());
-				    Obj.put("productName",reset.getString(2).trim());
-				    Obj.put("showPurchasePrice",reset.getString(3).trim());
-				    Obj.put("showSellPrice",reset.getString(4).trim());
-				    CommArray.add(Obj);
-				}
-        	    
-        	    conn.close();
-        	
-        	 } catch (Exception e)
-        	 {
-        	    Log.w("Error connection","" + e.getMessage());		   
-        	 }
-        	 
-        	 // onProgressUpdate에서 0이라는 값을 받아서 처리
-        	 publishProgress(0);
-        	 return type;        	 
-        }
-
-        protected void onProgressUpdate(Integer[] values) {
-            Log.e("HTTPJSON", "onProgressUpdate" );
-        }
-
-        protected void onPostExecute(String result) {
-        	super.onPostExecute(result);
-        	
-			String[] from = new String[] {"barcode", "productName", "showPurchasePrice", "showSellPrice"};
-	        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-	        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-	 	        		
-        	Iterator<JSONObject> iterator = CommArray.iterator();
-    		while (iterator.hasNext()) {
-            	JSONObject json = iterator.next();
-            	
-            	try {
-    				String barcode = json.getString("barcode");
-    				String productName = json.getString("productName");
-    				String showPurchasePrice = json.getString("showPurchasePrice");
-    				String showSellPrice = json.getString("showSellPrice");
-    				
-    				// prepare the list of all records
-		            HashMap<String, String> map = new HashMap<String, String>();
-		            map.put("barcode", barcode);
-		            map.put("productName", productName);
-		            map.put("showPurchasePrice", showPurchasePrice);
-		            map.put("showSellPrice", showSellPrice);
-		            fillMaps.add(map);
-    		 
-    			} catch (JSONException e) {
-    				// TODO Auto-generated catch block
-    				e.printStackTrace();
-    			}
-    		}
-
-	        // fill in the grid_item layout
-	        //SimpleAdapter adapter = new SimpleAdapter(ManageProductActivity.this, fillMaps, R.layout. activity_listview_product_list, from, to);
-	        //m_listProduct.setAdapter(adapter);
-	        
-            Toast.makeText(getApplicationContext(), "조회 완료", 0).show();
-        }
-    };
 }

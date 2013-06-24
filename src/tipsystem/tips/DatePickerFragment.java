@@ -47,6 +47,5 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
 	public int getDay()
 	{
 		return m_day;
-	}
-	
+	}	
 }

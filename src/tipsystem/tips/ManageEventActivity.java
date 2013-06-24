@@ -37,9 +37,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
@@ -153,7 +151,6 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		
 		m_evtList = new ArrayList<HashMap<String, String>>();
 
-		
 		btn_Register.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v){
@@ -756,8 +753,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	};
 	
 	public void onClickSetDate2(View v) {
-		if ( m_spinnerMode == 0 )
-		{
+		if ( m_spinnerMode == 0 ) {
 			DatePickerDialog newDlg = new DatePickerDialog(this, this, 
 					m_dateCalender2.get(Calendar.YEAR),
 					m_dateCalender2.get(Calendar.MONTH),
@@ -765,8 +761,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 			
 			newDlg.show();
 		}
-		else if ( m_spinnerMode == 1 ) 
-		{
+		else if ( m_spinnerMode == 1 ) {
 			TimePickerDialog newDlg = new TimePickerDialog(this, this,
 					m_dateCalender2.get(Calendar.HOUR_OF_DAY),
 					m_dateCalender2.get(Calendar.MINUTE), true);
@@ -791,8 +786,53 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 			m_period2.setText(m_dateFormatter.format(m_dateCalender2.getTime()));
 		}
 		
-		m_dateMode = 0;
+		m_dateMode = 0;		
+	}
+	
+	public void startDetailView (int position) {
+
+		Intent intent = new Intent(ManageEventActivity.this, EventDetailViewActivity.class);
 		
+		String period = null;
+		
+		if ( m_evtList.get(position).get("Evt_Gubun").toString().equals("기간행사") == true) {
+        	period = m_evtList.get(position).get("Evt_SDate").toString() + " ~ "
+        			+ m_evtList.get(position).get("Evt_EDate").toString();
+        }
+        else  {
+        	period = m_evtList.get(position).get("Evt_STime").toString() + " ~ "
+        			+ m_evtList.get(position).get("Evt_ETime").toString();
+        }
+		
+
+		String Evt_Name = fillMaps.get(position).get("Evt_Name");
+		String Evt_Gubun = fillMaps.get(position).get("Evt_Gubun");
+		String Evt_Date = fillMaps.get(position).get("Evt_Date");
+		Iterator<HashMap<String, String>> iterator = m_evtList.iterator();	
+		
+		JSONArray array = new JSONArray();
+		
+	    while (iterator.hasNext()) {
+			 HashMap<String, String> element = iterator.next();
+	         String eEvt_Name = element.get("Evt_Name");
+	         
+	         if (eEvt_Name.equals(Evt_Name)) {
+	        	 JSONObject object = new JSONObject(element);
+	        	 array.put(object);
+	         }
+	    }
+
+		intent.putExtra("data", array.toString());
+		intent.putExtra("Evt_Name", Evt_Name);
+		intent.putExtra("Evt_Gubun", Evt_Gubun);
+		intent.putExtra("Evt_Period", Evt_Date);
+		
+		intent.putExtra("BarCode", m_evtList.get(position).get("BarCode").toString());
+		intent.putExtra("G_Name", m_evtList.get(position).get("G_Name").toString());
+		intent.putExtra("Sale_Pur", m_evtList.get(position).get("Sale_Pur").toString());
+		intent.putExtra("Sale_Sell", m_evtList.get(position).get("Sale_Sell").toString());
+		
+		startActivity(intent);
 	}
 	
 	@Override
@@ -815,35 +855,8 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	}
 	
 	@Override
-	public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int arg2,
+	public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int position,
 			long arg3) {
-		// TODO Auto-generated method stub
-		
-		Intent intent = new Intent(ManageEventActivity.this, EventDetailViewActivity.class);
-		
-		String period = null;
-		
-		if ( m_evtList.get(arg2).get("Evt_Gubun").toString().equals("기간행사") == true)
-        {
-        	period = m_evtList.get(arg2).get("Evt_SDate").toString() + " ~ "
-        			+ m_evtList.get(arg2).get("Evt_EDate").toString();
-        }
-        else 
-        {
-        	period = m_evtList.get(arg2).get("Evt_STime").toString() + " ~ "
-        			+ m_evtList.get(arg2).get("Evt_ETime").toString();
-        }
-		
-		intent.putExtra("Evt_Name", m_evtList.get(arg2).get("Evt_Name").toString());
-		intent.putExtra("Evt_Gubun", m_evtList.get(arg2).get("Evt_Gubun").toString());
-		intent.putExtra("Evt_Period", period);
-		
-		intent.putExtra("BarCode", m_evtList.get(arg2).get("BarCode").toString());
-		intent.putExtra("G_Name", m_evtList.get(arg2).get("G_Name").toString());
-		intent.putExtra("Sale_Pur", m_evtList.get(arg2).get("Sale_Pur").toString());
-		intent.putExtra("Sale_Sell", m_evtList.get(arg2).get("Sale_Sell").toString());
-		
-		startActivity(intent);
 		
 		return false;
 	}
@@ -851,7 +864,9 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	private AdapterView.OnItemClickListener mItemClickListener = new AdapterView.OnItemClickListener() {
 		@Override
 		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-			// TODO Auto-generated method stub
+
+			startDetailView(arg2);
+/*
 			
 			m_selectedListIndex = arg2;
 			
@@ -891,7 +906,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	        salePrice.setText(m_evtList.get(arg2).get("Sell_Pri").toString());
 	        evtPurValue.setText(m_evtList.get(arg2).get("Sale_Pur").toString());
 	        evtSaleValue.setText(m_evtList.get(arg2).get("Sale_Sell").toString());
-	                 
+	        */     
 		}
 	};
 }

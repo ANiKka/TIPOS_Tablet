@@ -91,6 +91,14 @@
             android:singleLine="true"
             android:ems="10"/>
 
+         <Button
+	        android:id="@+id/buttonCustomer"
+	        android:layout_width="28dp"
+	        android:layout_height="28dp"
+	        android:layout_marginLeft="5dp"
+	        android:background="@drawable/search_btn"
+            android:onClick="onCustomerSearch" />
+         
         <EditText
             android:id="@+id/editTextCustomerName"
             android:layout_width="0dip"
@@ -135,6 +143,14 @@
              android:singleLine="true"
              android:background="@drawable/white_text_box_small" />
 
+         <Button
+	        android:id="@+id/buttonBarcode"
+	        android:layout_width="28dp"
+	        android:layout_height="28dp"
+	        android:layout_marginLeft="5dp"
+	        android:background="@drawable/search_btn"
+            android:onClick="onBarcodeSearch" />
+         
         <TextView
             android:id="@+id/textView5"
             android:layout_width="0dip"

@@ -450,7 +450,7 @@
             android:layout_gravity="center"
             android:scaleX="0.8"
             android:scaleY="0.8"
-            android:text="전체삭제"/>
+            android:background="@drawable/clear_all_btn"/>
         
         <Button
             android:id="@+id/buttonDelete"

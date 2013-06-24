@@ -12,6 +12,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.dm.zbar.android.scanner.ZBarConstants;
+import com.dm.zbar.android.scanner.ZBarScannerActivity;
+
 import tipsystem.tips.ManageSalesActivity.MyAsyncTask;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
@@ -19,8 +22,10 @@ import tipsystem.utils.MSSQL;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.util.Log;
@@ -29,6 +34,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.DatePicker;
@@ -47,6 +53,14 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 																		OnDateChangeListener,
 																		OnTabChangeListener,
 																		DatePickerDialog.OnDateSetListener{
+
+	private static final int ZBAR_SCANNER_REQUEST = 0;
+	private static final int BARCODE_MANAGER_REQUEST = 2;
+	private static final int CUSTOMER_MANAGER_REQUEST = 3;
+
+	JSONObject m_shop;
+	String m_ip = "122.49.118.102";
+	String m_port = "18971";
 	
 	TabHost m_tabHost;
 	
@@ -819,5 +833,122 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
     		
     	}
     }
+    
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{    
+		super.onActivityResult(requestCode, resultCode, data);
+		
+		switch(requestCode){
+			// 카메라 스캔을 통한 바코드 검색
+			case ZBAR_SCANNER_REQUEST :
+				if (resultCode == RESULT_OK) {
+			        // Scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT)
+			        // Type of the scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE)
+			        Toast.makeText(this, "Scan Result = " + data.getStringExtra(ZBarConstants.SCAN_RESULT), Toast.LENGTH_SHORT).show();
+			        Toast.makeText(this, "Scan Result Type = " + data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE), Toast.LENGTH_SHORT).show();
+			        // The value of type indicates one of the symbols listed in Advanced Options below.
+			       
+			        String barcode = data.getStringExtra(ZBarConstants.SCAN_RESULT);
+			        m_barCode.setText(barcode);
+					doQueryWithBarcode();
+					
+			    } else if(resultCode == RESULT_CANCELED) {
+			        Toast.makeText(this, "Camera unavailable", Toast.LENGTH_SHORT).show();
+			    }
+				break;
+			// 목록 검색을 통한 바코드 검색				
+			case BARCODE_MANAGER_REQUEST :
+				if(resultCode == RESULT_OK && data != null) {
+					
+		        	ArrayList<String> fillMaps = data.getStringArrayListExtra("fillmaps");		        	
+		        	m_barCode.setText(fillMaps.get(0));
+					doQueryWithBarcode(); 
+		        }
+				break;
+			case CUSTOMER_MANAGER_REQUEST :
+				if(resultCode == RESULT_OK && data != null) {
+					String result = data.getStringExtra("result");
+					try {
+						JSONObject json = new JSONObject(result);
+						m_customerCode.setText(json.getString("Office_Code"));
+						m_customerName.setText(json.getString("Office_Name"));
+			        	//m_textBarcode.setText(fillMaps.get(0));
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+		        }
+				break;
+			}
+	}
+	
+	public void onCustomerSearch(View view)
+	{
+		Intent intent = new Intent(this, ManageCustomerListActivity.class);
+    	startActivityForResult(intent, CUSTOMER_MANAGER_REQUEST);
+	}
+	
+	public void onBarcodeSearch(View view)
+	{
+		// 바코드 검색 버튼 클릭시 나오는 목록 셋팅
+		final String[] option = new String[] { "목록", "카메라"};
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, option);
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("Select Option");
+		
+		// 목록 선택시 이벤트 처리
+		builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+
+				if(which == 0){ // 목록으로 조회할 경우
+					Intent intent = new Intent(PurchasePaymentStatusActivity.this, ManageProductListActivity.class);
+			    	startActivityForResult(intent, BARCODE_MANAGER_REQUEST);
+				} else { // 스캔할 경우
+					Intent intent = new Intent(PurchasePaymentStatusActivity.this, ZBarScannerActivity.class);
+			    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);				
+				}
+			}
+		}); 
+		builder.show();
+	}
+	
+
+	// MSSQL
+	// SQL QUERY 실행
+	public void doQueryWithBarcode () {
+		
+		String query = "";
+		String barcode = m_barCode.getText().toString();
+		query = "SELECT * FROM Goods WHERE Barcode = '" + barcode + "';";
+	
+		if (barcode.equals("")) return;
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+
+	    // 콜백함수와 함께 실행
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				
+				if (results.length() > 0) {
+					try {						
+						m_productName.setText(results.getJSONObject(0).getString("G_Name"));
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				else {
+					Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+				}
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
+	}
     
 }

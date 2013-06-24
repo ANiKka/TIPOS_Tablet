@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -32,7 +36,6 @@ public class EventDetailViewActivity extends Activity {
 		TextView evtGubun = (TextView)findViewById(R.id.textView9);
 		
 		
-		
 		Intent intent = getIntent();
 		
 		evtName.setText(intent.getExtras().getString("Evt_Name"));
@@ -43,6 +46,7 @@ public class EventDetailViewActivity extends Activity {
 		String[] from = new String[] {"BarCode", "G_Name", "Sale_Pur", "Sale_Sell"};
 		int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
 		
+		/*
 		// prepare the list of all records
 		List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
 		
@@ -54,12 +58,33 @@ public class EventDetailViewActivity extends Activity {
 	    fillMaps.add(map);
 	
 				
+		*/
+
+		// prepare the list of all records
+		List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();		
+		String data = getIntent().getStringExtra("data");
+		try {
+			JSONArray jsons = new JSONArray(data);
+			
+			for(int i = 0; i < jsons.length(); i++){
+				JSONObject obj = jsons.getJSONObject(i);
+			    HashMap<String, String> map = new HashMap<String, String>();
+			    map.put("BarCode", obj.getString("BarCode"));
+				map.put("G_Name", obj.getString("G_Name"));
+				map.put("Sale_Pur", obj.getString("Pur_Pri"));
+				map.put("Sale_Sell", obj.getString("Sell_Pri"));
+			    fillMaps.add(map);
+			}
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
 		// fill in the grid_item layout
 		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
 				from, to);
 		
 		m_listDetailView.setAdapter(adapter);
-		
 	}
 
 	/**
