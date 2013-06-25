@@ -13,6 +13,7 @@ import com.dm.zbar.android.scanner.ZBarScannerActivity;
 
 import tipsystem.tips.ManageProductActivity.ProductList;
 import tipsystem.tips.ManageProductActivity.ProductListAdapter;
+import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
 
@@ -64,7 +65,8 @@ public class ComparePriceActivity extends Activity{
 	int index = 0;
 	int size = 30;
 	int firstPosition = 0; 
-	
+
+	JSONObject m_shop;
 	String m_ip = "122.49.118.102";
 	String m_port = "18971";
 	
@@ -75,6 +77,15 @@ public class ComparePriceActivity extends Activity{
 		// Show the Up button in the action bar.
 		setupActionBar();
 
+		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
+	       
+        try {
+			m_ip = m_shop.getString("SHOP_IP");
+	        m_port = m_shop.getString("SHOP_PORT");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+        
         Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
         TextView textView = (TextView) findViewById(R.id.textView2);
         textView.setTypeface(typeface);
@@ -94,7 +105,6 @@ public class ComparePriceActivity extends Activity{
 		m_productionName = (TextView)findViewById(R.id.editTextProductionName);
 		m_local = (TextView)findViewById(R.id.editTextLocal);
 		Button searchButton = (Button) findViewById(R.id.buttonPriceSearch);
-		Button buttonBarcode = (Button) findViewById(R.id.buttonBarcode);
 				
 		m_listPriceSearch = (ListView)findViewById(R.id.listviewPriceSearchList);
 		m_listPriceSearch.setOnItemClickListener(new OnItemClickListener() {
@@ -110,14 +120,7 @@ public class ComparePriceActivity extends Activity{
 	        	doSearchInMarket();
 	        }
 		});
-		
-		// 바코드 카메라 기능
-		buttonBarcode.setOnClickListener(new OnClickListener() {
-	        public void onClick(View v) { 
-	        	
-	        }
-		});
-		
+				
 		// 바코드 입력 후 포커스 딴 곳을 옮길 경우
 		m_barcode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 			//@Override
@@ -125,8 +128,8 @@ public class ComparePriceActivity extends Activity{
 			    if(!hasFocus){
 			    	String barcode = null; 
 			    	barcode = m_barcode.getText().toString();
-			    	if(!barcode.equals("")) // 입력한 Barcode가 값이 있을 경우만
-			    		fillGoodNameFromBarcode(barcode);	    	
+			    	if(!barcode.equals("")) // 입력한 Barcode가 값이 있을 경우만			    		
+						doQueryWithBarcode(barcode);   	
 			    }
 			}
 		});
@@ -186,81 +189,6 @@ public class ComparePriceActivity extends Activity{
 		return super.onOptionsItemSelected(item);
 	}
 	
-	private void fillGoodNameFromBarcode(String barcode) {
-		
-		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
- 		
-		// TODO Auto-generated method stub
-		String query = "";
-		
-		query = "SELECT G_Name From Goods WHERE BarCode = '" + barcode + "';";
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-			@Override
-			public void onRequestCompleted(JSONArray results) {
-				dialog.dismiss();
-				dialog.cancel();
-				if (results.length() > 0) {
-					try {
-						JSONObject json = results.getJSONObject(0);
-						String g_name = json.getString("G_Name");
-						m_productionName.setText(g_name);
-						
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-		            //Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
-				}
-				else {
-		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();	
-		            m_productionName.setText("");
-				}
-			}
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
-		
-	}
-
-	private void fillBusNameFromBusCode(String customerCode) {
-		// TODO Auto-generated method stub
-		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
- 		
-		// TODO Auto-generated method stub
-		String query = "";
-		
-		query = "SELECT Office_Name From Office_Manage WHERE Office_Code = '" + customerCode + "';";
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-			@Override
-			public void onRequestCompleted(JSONArray results) {
-				dialog.dismiss();
-				dialog.cancel();
-				if (results.length() > 0) {
-					try {
-						JSONObject json = results.getJSONObject(0);
-						String bus_name = json.getString("Office_Name");
-						m_customerName.setText(bus_name);
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-		            //Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
-				}
-				else {
-		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
-		            m_customerName.setText("");
-				}
-			}
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
-	}
 	
 	private void sendDataFromList(int position){
 		
@@ -621,7 +549,7 @@ public class ComparePriceActivity extends Activity{
 			       
 			        String barcode = data.getStringExtra(ZBarConstants.SCAN_RESULT);
 			        m_barcode.setText(barcode);
-					doQueryWithBarcode();
+					doQueryWithBarcode(barcode);
 					
 			    } else if(resultCode == RESULT_CANCELED) {
 			        Toast.makeText(this, "Camera unavailable", Toast.LENGTH_SHORT).show();
@@ -633,7 +561,7 @@ public class ComparePriceActivity extends Activity{
 					
 		        	ArrayList<String> fillMaps = data.getStringArrayListExtra("fillmaps");		        	
 		        	m_barcode.setText(fillMaps.get(0));
-					doQueryWithBarcode(); 
+					doQueryWithBarcode(fillMaps.get(0)); 
 		        }
 				break;
 			case CUSTOMER_MANAGER_REQUEST :
@@ -685,11 +613,10 @@ public class ComparePriceActivity extends Activity{
 
 	// MSSQL
 	// SQL QUERY 실행
-	public void doQueryWithBarcode () {
+	public void doQueryWithBarcode (String barcode) {
 		
 		String query = "";
-		String barcode = m_barcode.getText().toString();
-		query = "SELECT * FROM Goods WHERE Barcode = '" + barcode + "';";
+		query = "SELECT G_Name FROM Goods WHERE Barcode = '" + barcode + "';";
 	
 		if (barcode.equals("")) return;
 		
@@ -719,5 +646,40 @@ public class ComparePriceActivity extends Activity{
 				}
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
+	}
+	
+
+	private void fillBusNameFromBusCode(String customerCode) {
+		// TODO Auto-generated method stub
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+		String query = "";
+		
+		query = "SELECT Office_Name From Office_Manage WHERE Office_Code = '" + customerCode + "';";
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				if (results.length() > 0) {
+					try {
+						JSONObject json = results.getJSONObject(0);
+						String bus_name = json.getString("Office_Name");
+						m_customerName.setText(bus_name);
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				else {
+		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+		            m_customerName.setText("");
+				}
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
 }

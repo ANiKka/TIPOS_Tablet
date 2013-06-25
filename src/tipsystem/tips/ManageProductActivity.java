@@ -172,7 +172,7 @@ public class ManageProductActivity extends Activity{
 			    		fillBusNameFromBusCode(customerCode);	    	
 			    }
 			}
-		});	
+		});
 		
 		// 매입원가 + 이익률로 판매가
 		m_textDifferentRatio.setOnFocusChangeListener(new View.OnFocusChangeListener() {
