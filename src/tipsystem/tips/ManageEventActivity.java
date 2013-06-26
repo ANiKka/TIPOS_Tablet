@@ -83,6 +83,8 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	Button m_period1;
 	Button m_period2;
 	Button m_bt_barcodeSearch;
+	EditText m_evtPurValue;
+	EditText m_evtSaleValue;
 	
 	int m_spinnerMode = 0;
 	int m_selectedListIndex = -1;
@@ -128,6 +130,9 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		m_et_purchasePrice = (EditText)findViewById(R.id.editTextPurchasePrice);
 		m_et_salePrice = (EditText)findViewById(R.id.editTextSalePrice);
 		m_bt_barcodeSearch = (Button)findViewById(R.id.buttonBarcode);
+
+		m_evtPurValue = (EditText)findViewById(R.id.editTextAmount);
+		m_evtSaleValue = (EditText)findViewById(R.id.editTextProfitRatio);
 		
 		m_period1 = (Button) findViewById(R.id.buttonSetDate1); 
 		m_period2 = (Button) findViewById(R.id.buttonSetDate2);
@@ -169,7 +174,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 				setDataIntoList();
 				m_selectedListIndex = -1;
 				changeInputMode(1);
-			 }			
+			 }
 		});
 		
 		btn_Renew.setOnClickListener(new OnClickListener()
@@ -208,8 +213,6 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		btn_Send.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v) {
-				// 전체 삭제 기능으로 대체 
-				// TODO: 아이콘 바꾸어야함
 				clearInputBox();
 				deleteListAll();
 			}			
@@ -268,9 +271,9 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 			case 1 :
 				if(resultCode == RESULT_OK && data != null) {
 					
-		        	ArrayList<String> fillMaps = data.getStringArrayListExtra("fillmaps");		        	
-		        	m_textBarcode.setText(fillMaps.get(0));
-					doQueryWithBarcode(); 
+					HashMap<String, String> hashMap = (HashMap<String, String>)data.getSerializableExtra("fillmaps");        	
+					m_textBarcode.setText(hashMap.get("BarCode"));
+		        	doQueryWithBarcode();
 		        }
 				break;
 			}
@@ -306,11 +309,20 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 			Toast.makeText(ManageEventActivity.this, "선택된 행사가 없습니다.", Toast.LENGTH_SHORT).show();
 			return;
 		}
-		
+
+		String Evt_Name = fillMaps.get(m_selectedListIndex).get("Evt_Name");
+		Iterator<HashMap<String, String>> iterator = m_evtList.iterator();		
+	    while (iterator.hasNext()) {
+	    	HashMap<String, String> element = iterator.next();
+	    	String eEvt_Name = element.get("Evt_Name");
+	        if (Evt_Name.equals(eEvt_Name)) {
+	        	m_evtList.remove(element);
+	        }	         
+	    }
 		fillMaps.remove(m_selectedListIndex);
 		adapter.notifyDataSetChanged();
-		m_evtList.remove(m_selectedListIndex);
 		m_selectedListIndex = -1;
+		changeInputMode(0);
 	}
 	
 	public void deleteListAll() {
@@ -320,6 +332,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		adapter.notifyDataSetChanged();		
 		m_evtList.removeAll(m_evtList);		
 		m_selectedListIndex = -1;
+		changeInputMode(0);
 	}	
 
 	public void clearInputBox () {
@@ -328,6 +341,8 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		m_textProductName.setText("");
 		m_et_purchasePrice.setText("");
 		m_et_salePrice.setText("");
+		m_evtSaleValue.setText("");
+		m_evtPurValue.setText(""); 
 	}
 	
 	public void changeInputMode (int mode) {

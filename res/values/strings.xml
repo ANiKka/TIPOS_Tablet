@@ -58,6 +58,7 @@
     <string name="title_activity_manage_customer">ManageCustomerActivity</string>
 
     <string-array name="customer_code_type">
+        <item>전체</item>
         <item>매입거래처</item>
         <item>매출거래처</item>
         <item>수수료거래처</item>

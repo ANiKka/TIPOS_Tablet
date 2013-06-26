@@ -61,8 +61,12 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	private static final int CUSTOMER_MANAGER_REQUEST = 3;
 
 	JSONObject m_shop;
+	JSONObject m_userProfile;
 	String m_ip = "122.49.118.102";
 	String m_port = "18971";
+	String m_APP_USER_GRADE;
+	String m_OFFICE_CODE;	// 수수료매장일때 고정될 오피스코드
+	String m_OFFICE_NAME;	// 수수료매장일때 고정될 오피스코드
 	
 	TabHost m_tabHost;
 	
@@ -107,14 +111,18 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		setupActionBar();
 		
 		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
-	       
+		m_userProfile = LocalStorage.getJSONObject(this, "userProfile"); 
+		
         try {
 			m_ip = m_shop.getString("SHOP_IP");
 	        m_port = m_shop.getString("SHOP_PORT");
+			m_APP_USER_GRADE =m_userProfile.getString("APP_USER_GRADE");
+			m_OFFICE_CODE = m_userProfile.getString("OFFICE_CODE");
+			m_OFFICE_NAME = m_userProfile.getString("OFFICE_NAME");
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		
+
 		m_period1 = (Button) findViewById(R.id.buttonSetDate1); 
 		m_period2 = (Button) findViewById(R.id.buttonSetDate2);
 		m_barCode = (TextView) findViewById(R.id.editTextBarcode);
@@ -158,17 +166,15 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         spec = m_tabHost.newTabSpec("tag4");
         spec.setContent(R.id.tab4);
         spec.setIndicator("달력매출");
-        m_tabHost.addTab(spec);
-        
-        m_tabHost.setOnTabChangedListener(this);
-     
+        m_tabHost.addTab(spec);        
+        m_tabHost.setOnTabChangedListener(this);     
         m_tabHost.setCurrentTab(0);
         //m_tabHost.getCurrentTab();
         
         m_calendar = (CalendarView)findViewById(R.id.calendarView1);
         m_calendar.setOnDateChangeListener(this);
         
-     // 바코드 입력 후 포커스 딴 곳을 옮길 경우
+        // 바코드 입력 후 포커스 딴 곳을 옮길 경우
         m_barCode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
  			//@Override
  			public void onFocusChange(View v, boolean hasFocus) {
@@ -192,6 +198,16 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
  			    }
  			}
  		});	
+        
+        //수수료매장의 경우 오피스코드 고정
+        if (m_APP_USER_GRADE.equals("2")) {
+        	Button buttonCustomer = (Button) findViewById(R.id.buttonCustomer);
+        	buttonCustomer.setEnabled(false);
+        	m_customerCode.setEnabled(false);
+        	m_customerCode.setText(m_OFFICE_CODE); 
+        	m_customerName.setText(m_OFFICE_NAME); 
+	    	//fillBusNameFromBusCode(m_OFFICE_CODE);	    	      	
+        }
 	}
 	
 	private void setTabList1(List<HashMap<String, String>> fillMaps)
@@ -264,7 +280,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		actionbar.setTitle("매출관리");
 		
 		getActionBar().setDisplayHomeAsUpEnabled(false);
-
 	}
 
 	@Override
@@ -352,13 +367,14 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		
 	}
 	
-
 	public void OnClickRenew(View v) {
 
+        if (!m_APP_USER_GRADE.equals("2")) {
+    		m_customerCode.setText("");
+    		m_customerName.setText("");        	
+        }
 		m_barCode.setText("");
 		m_productName.setText("");
-		m_customerCode.setText("");
-		m_customerName.setText("");
 	}
 
 	public void OnClickSearch(View v) {
@@ -646,7 +662,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
                 		}
                 		else if ( m_tabIndex == 3 ) // 달력매출
                 		{
-                			
                 			tableName = String.format("DF_%04d%02d", y, m);
                 			
                 			query = "select TSell_Pri, Sale_Num, Sale_Pri, TPur_Pri from " + tableName;

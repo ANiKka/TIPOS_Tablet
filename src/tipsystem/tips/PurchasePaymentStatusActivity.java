@@ -135,6 +135,7 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		
 		m_tabHost = (TabHost) findViewById(R.id.tabhostPurchasePaymentStatus);
         m_tabHost.setup();
+        m_tabHost.setOnTabChangedListener(this);
              
         TabHost.TabSpec spec = m_tabHost.newTabSpec("tag1");
         
@@ -291,28 +292,21 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
  		dialog.show();
  		
 		executeQuery(tabIndex, period1, period2, barCode, productName, customerCode, customerName);
-
 	};
 
 
 	@Override
 	public void onTabChanged(String tabId) {
-		// TODO Auto-generated method stub
-		//Toast.makeText(this, "Tab Click.", Toast.LENGTH_SHORT).show();
-		
 		
 		String period1 = m_period1.getText().toString();
 		String period2 = m_period2.getText().toString();
 		String barCode = m_barCode.getText().toString();
 		String productName = m_productName.getText().toString();
 		String customerCode = m_customerCode.getText().toString();
-		String customerName = m_customerName.getText().toString();
-		
+		String customerName = m_customerName.getText().toString();		
 		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
 		
-		
-		//executeQuery(tabIndex, period1, period2, barCode, productName, customerCode, customerName);
-	
+		executeQuery(tabIndex, period1, period2, barCode, productName, customerCode, customerName);
 	}
 
 	public void onClickSetDate1(View v) {
@@ -328,7 +322,7 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 	};
 	
 	public void onClickSetDate2(View v) {
-		// TODO Auto-generated method stub
+
 		DatePickerDialog newDlg = new DatePickerDialog(this, this, 
 				m_dateCalender2.get(Calendar.YEAR),
 				m_dateCalender2.get(Calendar.MONTH),
@@ -342,7 +336,6 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 	@Override
 	public void onDateSet(DatePicker view, int year, int monthOfYear,
 			int dayOfMonth) {
-		// TODO Auto-generated method stub
 		
 		if ( m_dateMode == 1 )
 		{
@@ -367,13 +360,10 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
 		
 		//new MyAsyncTask().execute(tabIndex, period1, period1 , "", "", "", "");
-		
 	}
 
-	
 	private void executeQuery(String... urls)
 	{
-		
 		String tabIndex = urls[0];
  	    
  	    String period1 = urls[1];
@@ -519,7 +509,7 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 										
 										m_listPurchaseTab1.setAdapter(adapter);
 										Toast.makeText(getApplicationContext(), "조회 완료" + results.length(), Toast.LENGTH_SHORT).show();
-										dialog.cancel();
+										//dialog.cancel();
 									}
  								}
 								else 
@@ -674,16 +664,16 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 										
 										m_listPurchaseTab2.setAdapter(adapter);
 										Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
-										dialog.cancel();
+										//dialog.cancel();
 									}
  								}
 								else 
 								{
-									dialog.cancel();
+									//dialog.cancel();
 								}
 				    		} catch (JSONException e) {
 				    			e.printStackTrace();
-				    			dialog.cancel();
+				    			//dialog.cancel();
 				    		}
 							
 						}
@@ -825,16 +815,16 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 										
 										m_listPurchaseTab3.setAdapter(adapter);
 										Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
-										dialog.cancel();
+										//dialog.cancel();
 									}
  								}
 								else 
 								{
-									dialog.cancel();
+									//dialog.cancel();
 								}
 				    		} catch (JSONException e) {
 				    			e.printStackTrace();
-				    			dialog.cancel();
+				    			//dialog.cancel();
 				    		}
 							
 						}
@@ -903,23 +893,16 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 			// 목록 검색을 통한 바코드 검색				
 			case BARCODE_MANAGER_REQUEST :
 				if(resultCode == RESULT_OK && data != null) {
-					
-		        	ArrayList<String> fillMaps = data.getStringArrayListExtra("fillmaps");		        	
-		        	m_barCode.setText(fillMaps.get(0));
-					doQueryWithBarcode(); 
+					HashMap<String, String> hashMap = (HashMap<String, String>)data.getSerializableExtra("fillmaps");        	
+					m_barCode.setText(hashMap.get("BarCode"));
+		        	doQueryWithBarcode();
 		        }
 				break;
 			case CUSTOMER_MANAGER_REQUEST :
 				if(resultCode == RESULT_OK && data != null) {
-					String result = data.getStringExtra("result");
-					try {
-						JSONObject json = new JSONObject(result);
-						m_customerCode.setText(json.getString("Office_Code"));
-						m_customerName.setText(json.getString("Office_Name"));
-			        	//m_textBarcode.setText(fillMaps.get(0));
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
+					HashMap<String, String> hashMap = (HashMap<String, String>)data.getSerializableExtra("fillmaps");     	
+					m_customerCode.setText(hashMap.get("Office_Code"));
+					m_customerName.setText(hashMap.get("Office_Name"));
 		        }
 				break;
 			}

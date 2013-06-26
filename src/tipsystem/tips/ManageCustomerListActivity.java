@@ -8,8 +8,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.MSSQL2;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -20,12 +22,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class ManageCustomerListActivity extends Activity{
@@ -36,10 +40,34 @@ public class ManageCustomerListActivity extends Activity{
 	String m_port = "18971";
 	
 	ListView m_cusList;
+	SimpleAdapter m_adapter; 
 	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
-	
+
     // loading bar
-    public ProgressDialog dialog; 
+	private ProgressDialog dialog;
+
+    // loading more in listview
+    int currentVisibleItemCount;
+    private boolean isEnd = false;
+    private OnScrollListener customScrollListener = new OnScrollListener() {
+        @Override
+        public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+
+            currentVisibleItemCount = visibleItemCount;
+
+            if((firstVisibleItem + visibleItemCount) == totalItemCount && firstVisibleItem != 0) 
+            	isEnd = true;            
+            else 
+            	isEnd = false;
+        }
+
+        @Override
+        public void onScrollStateChanged(AbsListView view, int scrollState) {
+			if (isEnd && currentVisibleItemCount > 0 && scrollState == OnScrollListener.SCROLL_STATE_IDLE) {
+				doSearch();
+		    }
+        }
+    };
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -65,25 +93,84 @@ public class ManageCustomerListActivity extends Activity{
             }
         });
 		
+		m_cusList.setOnScrollListener(customScrollListener);
+
+		String[] from = new String[] {"Office_Code", "Office_Name", "Office_Sec"};
+        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
+        m_adapter = new SimpleAdapter(this, mfillMaps, R.layout. activity_listview_customer_list, from, to);
+        m_cusList.setAdapter(m_adapter);
+        
 		doSearch();
 	}
-	
+
 	private void returnResultData(int position) {
 
 		Intent intent = new Intent();
-		
-		try {
-			JSONObject result = m_results.getJSONObject(position);
-			
-			intent.putExtra("result", result.toString());			
-		} catch (JSONException e) {			
-			e.printStackTrace();
-		}
-
+		intent.putExtra("fillmaps", mfillMaps.get(position)); //HashMap<String, String> hashMap = (HashMap<String, String>)intent.getSerializableExtra("fillmaps");
 		this.setResult(RESULT_OK, intent);
 		finish();
 	}
 
+	private void updateListView(JSONArray results) {
+        
+        for (int i = 0; i < results.length(); i++) {
+        	
+        	try {
+            	JSONObject json = results.getJSONObject(i);
+            	HashMap<String, String> map = JsonHelper.toStringHashMap(json);
+	            String section = map.get("Office_Sec");	            
+	            if(section.equals("1")) section = "매입거래처";
+	            else if(section.equals("2")) section = "매출거래처";
+	            else if(section.equals("3")) section = "수수료거래처";
+	            map.put("Office_Sec", section);
+	            
+	            mfillMaps.add(map);
+		 
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+        m_adapter.notifyDataSetChanged();
+    }
+	// 조회 실행 함수 
+    public void doSearch() {
+
+    	// 쿼리 작성하기
+    	String index = String.valueOf(mfillMaps.size());
+		String query = "";
+    	query = "SELECT TOP 50 * FROM Office_Manage WHERE Office_Code NOT IN(SELECT TOP " + index + " Office_Code FROM Office_Manage);";
+
+    	// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.show();
+ 		
+	    // 콜백함수와 함께 실행
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				if (results.length() > 0) {
+					updateListView(results);
+		            Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
+				}
+				else {
+					Toast.makeText(getApplicationContext(), "결과가 없습니다", Toast.LENGTH_SHORT).show();							
+				}
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();	
+				
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+    }
+    
 	/**
 	 * Set up the {@link android.app.ActionBar}.
 	 */
@@ -123,78 +210,4 @@ public class ManageCustomerListActivity extends Activity{
 		}
 		return super.onOptionsItemSelected(item);
 	}
-	
-	
-	public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
-	}
-	
-	public void onNothingSelected(AdapterView<?> parent) {
-	}
-	
-	
-	// 조회 실행 함수 
-    public void doSearch() {
-
-    	// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
- 		
-    	// 쿼리 작성하기
-	    String query =  "";
-    	query += "select * from Office_Manage ;";
-	    
-	    // 콜백함수와 함께 실행
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-			@Override
-			public void onRequestCompleted(JSONArray results) {
-				dialog.dismiss();
-				dialog.cancel();
-				updateListView(results);
-		    	Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
-			}
-	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-    }
-    
-    public void updateListView(JSONArray results) {
-
-		String[] from = new String[] {"Office_Code", "Office_Name", "Office_Sec"};
-        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
-
-        if (results.length() ==0)  	return;
-        
-        m_results = results;        
-        
-        if (!mfillMaps.isEmpty()) mfillMaps.clear();
-        
-        for (int i = 0; i < results.length(); i++) {
-        	
-        	try {
-            	JSONObject json = results.getJSONObject(i);
-				String code = json.getString("Office_Code");
-				String name = json.getString("Office_Name");
-				String section = json.getString("Office_Sec");
-				
-				// prepare the list of all records
-	            HashMap<String, String> map = new HashMap<String, String>();
-	            map.put("Office_Code", code);
-	            map.put("Office_Name", name);
-	            
-	            if(section.equals("1")) section = "매입거래처";
-	            else if(section.equals("2")) section = "매출거래처";
-	            else section = "수수료거래처";
-	            
-	            map.put("Office_Sec", section);
-	            mfillMaps.add(map);
-		 
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-		}
-        // fill in the grid_item layout
-        SimpleAdapter adapter = new SimpleAdapter(this, mfillMaps, R.layout. activity_listview_customer_list, from, to);
-        m_cusList.setAdapter(adapter);
-    }
 }

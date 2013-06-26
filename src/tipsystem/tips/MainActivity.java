@@ -196,7 +196,7 @@ public class MainActivity extends Activity {
 	    		+"  from APP_USER inner join V_OFFICE_USER " 
 	    		+ " on APP_USER.OFFICE_CODE = V_OFFICE_USER.Sto_CD " 
 	    		+ " JOIN APP_SETTLEMENT on APP_USER.OFFICE_CODE = APP_SETTLEMENT.OFFICE_CODE " 
-	    		+ " where APP_HP =" + phoneNumber + "AND DEL_YN = 0;"; 
+	    		+ " where APP_HP =" + phoneNumber + "AND DEL_YN = 0;";
 
 	    // 콜백함수와 함께 실행
 	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {

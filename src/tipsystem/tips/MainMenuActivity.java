@@ -37,6 +37,8 @@ public class MainMenuActivity extends Activity {
 	JSONObject m_shop;
 	JSONObject m_userProfile;
 	String m_APP_USER_GRADE;
+	String m_ip = "122.49.118.102";
+	String m_port = "18971";
 	// loading bar
 	private ProgressDialog dialog; 
 	
@@ -50,8 +52,8 @@ public class MainMenuActivity extends Activity {
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
-		m_shop = LocalStorage.getJSONObject(MainMenuActivity.this, "currentShopData"); 
-		m_userProfile = LocalStorage.getJSONObject(MainMenuActivity.this, "userProfile"); 
+		m_shop = LocalStorage.getJSONObject(this, "currentShopData"); 
+		m_userProfile = LocalStorage.getJSONObject(this, "userProfile"); 
 		
         Log.i("currentShopData", m_shop.toString() );
         Log.i("userProfile", m_userProfile.toString() );
@@ -89,7 +91,7 @@ public class MainMenuActivity extends Activity {
             }
         });
         
-		fetchNotices("122.49.118.102","18971",OFFICE_CODE);
+		fetchNotices(m_ip,m_port,OFFICE_CODE);
 	}
 
 	/**

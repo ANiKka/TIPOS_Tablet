@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.utils.JsonHelper;
 import tipsystem.utils.MSSQL;
 
 import android.os.Bundle;
@@ -46,11 +47,11 @@ public class ComparePriceDetailActivity extends Activity {
 		setupActionBar();
 
 		Intent intent = getIntent();
-		ArrayList<String> fillMaps = intent.getStringArrayListExtra("fillMaps");
-		String BarCode = fillMaps.get(0);
-		String G_Name = fillMaps.get(1);
-		String Pur_Pri = fillMaps.get(2);
-		String Sell_Pri = fillMaps.get(3);
+		HashMap<String, String> hashMap = (HashMap<String, String>)intent.getSerializableExtra("fillMaps");   
+		String BarCode = hashMap.get("BarCode");
+		String G_Name = hashMap.get("G_Name");
+		String Pur_Pri = hashMap.get("Pur_Pri");
+		String Sell_Pri = hashMap.get("Sell_Pri");
 		
 		m_listPriceDetail= (ListView)findViewById(R.id.listviewPriceDetailList);
 
@@ -60,11 +61,11 @@ public class ComparePriceDetailActivity extends Activity {
 		textView = (TextView) findViewById(R.id.textView3);
 		textView.setTypeface(typeface);
 		      
-		m_barcodeTxt = (TextView) findViewById(R.id.textView2);
+		m_barcodeTxt = (TextView) findViewById(R.id.textView4);
 		m_barcodeTxt.setTypeface(typeface);
 		m_barcodeTxt.setText(BarCode);
 		
-		m_gNameTxt = (TextView) findViewById(R.id.textView4);
+		m_gNameTxt = (TextView) findViewById(R.id.textView2);
 		m_gNameTxt.setTypeface(typeface);
 		m_gNameTxt.setText(G_Name);
 		
@@ -131,7 +132,7 @@ public class ComparePriceDetailActivity extends Activity {
  		dialog.show();
  		
  		String query = "";
- 		query = "SELECT * FROM Goods WHERE Barcode = '" + BarCode + "' and G_Name = '" + G_Name + "';";
+ 		query = "SELECT * FROM Goods WHERE BarCode = '" + BarCode + "' and G_Name = '" + G_Name + "';";
  		Log.w("MSSQL", "Query : " + query);
  		
  		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
@@ -152,36 +153,25 @@ public class ComparePriceDetailActivity extends Activity {
  		
 	}
 	
-public void updateListView(JSONArray results) {
+	public void updateListView(JSONArray results) {
 		
-		String[] from = new String[] {"barcode", "gName", "purPri", "sellPri"};
-        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
-        
         if (!mfillMaps.isEmpty()) mfillMaps.clear();
         
         for (int i = 0; i < results.length(); i++) {
         	try {
             	JSONObject json = results.getJSONObject(i);
-				String barcode = json.getString("Barcode");
-				String gName = json.getString("G_Name");
-				String purPri = json.getString("Pur_Pri");
-				String sellPri = json.getString("Sell_Pri");
-	
+            	HashMap<String, String> map = JsonHelper.toStringHashMap(json);
 
-				// prepare the list of all records
-	            HashMap<String, String> map = new HashMap<String, String>();
-	            map.put("barcode", barcode);
-	            map.put("gName", gName);
-	            map.put("purPri", purPri);
-	            map.put("sellPri", sellPri);
-
-	            Log.w("test", "6");
 	            mfillMaps.add(map);
 		 
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 		}
+        
+		String[] from = new String[] {"Barcode", "G_Name", "Pur_Pri", "Sell_Pri"};
+        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
+        
         // fill in the grid_item layout
         SimpleAdapter adapter = new SimpleAdapter(ComparePriceDetailActivity.this, mfillMaps, R.layout. activity_listview_compare_detail_list, from, to);
         m_listPriceDetail.setAdapter(adapter);

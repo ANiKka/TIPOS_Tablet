@@ -8,10 +8,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import tipsystem.tips.ManageProductListActivity.ProductList;
-import tipsystem.tips.ManageProductListActivity.ProductListAdapter;
+import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.MSSQL2;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -30,7 +30,9 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
@@ -74,15 +76,36 @@ public class ManageProductActivity extends Activity{
 	CheckBox m_checkSurtax;
 	Spinner m_spinGroup;
 	ListView m_listProduct;
-    
-	int index = 0;
-	int size = 100;
-	int firstPosition = 0; 
-		
-    ArrayList<ProductList> productArray = new ArrayList<ProductList>();
-    
+	SimpleAdapter m_adapter; 
 
-	private ProgressDialog dialog;
+	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
+
+    // loading bar
+    public ProgressDialog dialog; 
+	
+    // loading more in listview
+    int currentVisibleItemCount;
+    private boolean isEnd = false;
+    private OnScrollListener customScrollListener = new OnScrollListener() {
+        @Override
+        public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+        	
+            currentVisibleItemCount = visibleItemCount;
+
+            if((firstVisibleItem + visibleItemCount) == totalItemCount && firstVisibleItem != 0) 
+            	isEnd = true;            
+            else 
+            	isEnd = false;
+        }
+
+        @Override
+        public void onScrollStateChanged(AbsListView view, int scrollState) {
+			if (isEnd && currentVisibleItemCount > 0 && scrollState == OnScrollListener.SCROLL_STATE_IDLE) {
+				doSearch();
+		    }
+        }
+    };
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -116,29 +139,47 @@ public class ManageProductActivity extends Activity{
 		m_textSalesPrice = (TextView)findViewById(R.id.editTextSalesPrice);
 		m_textDifferentRatio = (TextView)findViewById(R.id.editTextDifferentRatio);
 		m_listProduct = (ListView)findViewById(R.id.listviewProductList);
+		m_listProduct.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            	fillCustomerForm(position);
+            }
+        });
+		m_listProduct.setOnScrollListener(customScrollListener);
+
+		String[] from = new String[] {"BarCode", "G_Name", "Pur_Pri", "Sell_Pri"};
+        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
+        
+        // fill in the grid_item layout
+        m_adapter = new SimpleAdapter(this, mfillMaps, R.layout. activity_listview_product_list, from, to);
+        m_listProduct.setAdapter(m_adapter);
+        
 		Button searchButton = (Button) findViewById(R.id.buttonProductSearch);
 		Button registButton = (Button) findViewById(R.id.buttonProductRegist);
 		Button renewButton = (Button) findViewById(R.id.buttonProductRenew);
 		Button modifyButton = (Button) findViewById(R.id.buttonProductModify);
-		Button buttonBarcode = (Button) findViewById(R.id.buttonBarcode);
 		
 		//조회 버튼 클릭
 		searchButton.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) { 
-	        	doQuery(1);
+	        	deleteListViewAll();
+	        	doSearch();
 	        }
 		});
+		
 		//등록 버튼 클릭		
 		registButton.setOnClickListener(new OnClickListener() {
-	        public void onClick(View v) { 
-	        	doQuery(2);
+	        public void onClick(View v) {
+	        	deleteListViewAll();
+	        	doRegister();
 	        }
 		});
 		
 		// 수정 버튼 클릭
 		modifyButton.setOnClickListener(new OnClickListener() {
-	        public void onClick(View v) { 
-	        	doQuery(3);
+	        public void onClick(View v) {
+	        	deleteListViewAll();
+	        	doModify();
 	        }
 		});
 
@@ -225,13 +266,6 @@ public class ManageProductActivity extends Activity{
 			    }
 			}
 		});
-		
-		m_listProduct.setOnItemClickListener(new OnItemClickListener() {
-	        @Override
-	        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-	    		fillCustomerFormFromArray(productArray, position);
-	        }
-	    });
 	}
 
 	/**
@@ -239,9 +273,7 @@ public class ManageProductActivity extends Activity{
 	 */
 	private void setupActionBar() {
 
-		ActionBar actionbar = getActionBar();         
-//		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-//		actionbar.setCustomView(custom_action_bar);
+		ActionBar actionbar = getActionBar();        
 
 		actionbar.setDisplayShowHomeEnabled(false);
 		actionbar.setDisplayShowTitleEnabled(true);
@@ -275,58 +307,7 @@ public class ManageProductActivity extends Activity{
 		return super.onOptionsItemSelected(item);
 	}
 
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
-	{    
-		super.onActivityResult(requestCode, resultCode, data);
-		
-		if(!productArray.isEmpty()) productArray.clear();
-		switch(requestCode){
-		// 카메라 스캔을 통한 바코드 검색
-		case ZBAR_SCANNER_REQUEST :
-			if (resultCode == RESULT_OK) {
-		        // Scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT)
-		        // Type of the scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE)
-		        Toast.makeText(this, "Scan Result = " + data.getStringExtra(ZBarConstants.SCAN_RESULT), Toast.LENGTH_SHORT).show();
-		        Toast.makeText(this, "Scan Result Type = " + data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE), Toast.LENGTH_SHORT).show();
-		        // The value of type indicates one of the symbols listed in Advanced Options below.
 
-		        String barcode = data.getStringExtra(ZBarConstants.SCAN_RESULT);
-		        m_textBarcode.setText(barcode);
-		        doQueryWithBarcode();
-				
-		    } else if(resultCode == RESULT_CANCELED) {
-		        Toast.makeText(this, "Camera unavailable", Toast.LENGTH_SHORT).show();
-		    }
-			break;
-		// 목록 검색을 통한 바코드 검색				
-		case BARCODE_MANAGER_REQUEST :
-			if(resultCode == RESULT_OK && data != null) {
-				
-	        	ArrayList<String> fillMaps = data.getStringArrayListExtra("fillmaps");		        	
-	        	m_textBarcode.setText(fillMaps.get(0));
-	        	doQueryWithBarcode();
-	        }
-			break;
-		case CUSTOMER_MANAGER_REQUEST :
-			if(resultCode == RESULT_OK && data != null) {
-				String result = data.getStringExtra("result");
-				try {
-					JSONObject json = new JSONObject(result);
-					m_textCustomerCode.setText(json.getString("Office_Code"));
-					m_textCustomerName.setText(json.getString("Office_Name"));
-		        	//m_textBarcode.setText(fillMaps.get(0));
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
-	        }
-			break;
-		}
-		
-	}
-
-	
-	
 	private void fillRatioFromSalePriceAndPurchasePrice(float salesPrice, float purchasePrice) {
 		// TODO Auto-generated method stub
 		float f_ratio = (salesPrice - purchasePrice) / purchasePrice;
@@ -341,6 +322,374 @@ public class ManageProductActivity extends Activity{
 		m_textSalesPrice.setText(salesPrice);
     }
 	
+
+	// private methods
+	public void updateListView(JSONArray results) {
+        
+        for (int i = 0; i < results.length(); i++) {
+        	
+        	try {
+            	JSONObject json = results.getJSONObject(i);
+            	HashMap<String, String> map = JsonHelper.toStringHashMap(json);
+            	
+	            mfillMaps.add(map);
+		 
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+        m_adapter.notifyDataSetChanged();
+    }
+	
+	public void deleteListViewAll() {
+		if (mfillMaps.isEmpty()) return;
+        
+		mfillMaps.removeAll(mfillMaps);
+		m_adapter.notifyDataSetChanged();
+	}
+	
+    // 입력 폼 채우기
+    public void fillCustomerForm(int position){
+    	HashMap<String, String> object = mfillMaps.get(position);
+
+		m_textBarcode.setText(object.get("BarCode"));
+		m_textProductName.setText(object.get("G_Name"));
+		m_textCustomerCode.setText(object.get("Bus_Code"));
+		m_textCustomerName.setText(object.get("Bus_Name"));
+		m_textStandard.setText(object.get("Std_Size"));
+		m_textAcquire.setText(object.get("Obtain"));
+		m_textPurchasePrice.setText(object.get("Pur_Pri"));
+		m_textSalesPrice.setText(object.get("Sell_Pri"));
+		m_textPurchasePriceOriginal.setText(object.get("Pur_Cost"));
+		m_textDifferentRatio.setText(object.get("Profit_Rate"));
+		
+		String class1 = "[" + object.get("L_Code") + "]" + "" + "[" + object.get("L_Name") + "]";
+		String class2 = "[" + object.get("M_Code") + "]" + "" + "[" + object.get("M_Name") + "]";
+		String class3 = "[" + object.get("S_Code") + "]" + "" + "[" + object.get("S_Name") + "]";
+		m_textCustomerClassification1.setText(class1);
+		m_textCustomerClassification2.setText(class2);
+		m_textCustomerClassification3.setText(class3);
+		
+		if(object.get("Tax_YN").equals("0")) {
+			m_spinTaxation.setSelection(1);
+		} else {
+			m_spinTaxation.setSelection(0);
+		}
+		if(object.get("Add_Tax").equals("0")){
+			m_checkSurtax.setChecked(false);
+		} else {
+			m_checkSurtax.setChecked(true);
+		}
+		
+		if(object.get("G_grade").equals("0"))
+			m_spinGroup.setSelection(0);
+		else if(object.get("G_grade").equals("A"))
+			m_spinGroup.setSelection(1);
+    }
+    
+    // 입력 폼 채우기
+    public void fillCustomerFormFromJSONObject(JSONObject object){
+
+		try {
+			m_textProductName.setText(object.getString("G_Name"));
+			m_textCustomerCode.setText(object.getString("Bus_Code"));
+			m_textCustomerName.setText(object.getString("Bus_Name"));
+			m_textStandard.setText(object.getString("Std_Size"));
+			m_textAcquire.setText(object.getString("Obtain"));
+			m_textPurchasePrice.setText(object.getString("Pur_Pri"));
+			m_textSalesPrice.setText(object.getString("Sell_Pri"));
+			m_textPurchasePriceOriginal.setText(object.getString("Pur_Cost"));
+			m_textDifferentRatio.setText(object.getString("Profit_Rate"));
+			
+			String class1 = "[" + object.getString("L_Code") + "]" + "" + "[" + object.getString("L_Name") + "]";
+			String class2 = "[" + object.getString("M_Code") + "]" + "" + "[" + object.getString("M_Name") + "]";
+			String class3 = "[" + object.getString("S_Code") + "]" + "" + "[" + object.getString("S_Name") + "]";
+			m_textCustomerClassification1.setText(class1);
+			m_textCustomerClassification2.setText(class2);
+			m_textCustomerClassification3.setText(class3);
+			
+			if(object.getString("Tax_YN").equals("0")) {
+				m_spinTaxation.setSelection(1);
+			} else {
+				m_spinTaxation.setSelection(0);
+			}
+			if(object.getString("Add_Tax").equals("0")){
+				m_checkSurtax.setChecked(false);
+			} else {
+				m_checkSurtax.setChecked(true);
+			}
+			
+			if(object.getString("G_grade").equals("0"))
+				m_spinGroup.setSelection(0);
+			else if(object.getString("G_grade").equals("A"))
+				m_spinGroup.setSelection(1);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+    }
+	
+    // 새로 입력
+    public void doClear(){
+    	
+		m_textBarcode.setText("");
+		m_textProductName.setText("");
+		m_textCustomerCode.setText("");
+		m_textCustomerName.setText("");
+		m_textStandard.setText("");
+		m_textAcquire.setText("");
+		m_textPurchasePrice.setText(""); // 매입가
+		m_textSalesPrice.setText(""); //판매가
+		m_textPurchasePriceOriginal.setText(""); //매입원가
+		m_textDifferentRatio.setText(""); // 이의율
+		m_textCustomerClassification1.setText("");
+		m_textCustomerClassification2.setText("");
+		m_textCustomerClassification3.setText("");
+		m_spinTaxation.setSelection(0);
+		m_checkSurtax.setChecked(false);
+	}
+	
+
+	public void doRegister(){
+
+		String query = "";
+		String barcode = m_textBarcode.getText().toString();
+	    String productName = m_textProductName.getText().toString();
+	    String customerCode = m_textCustomerCode.getText().toString();
+	    String customerName = m_textCustomerName.getText().toString();
+	    String customerClass1 = m_textCustomerClassification1.getText().toString();
+	    String customerClass2 = m_textCustomerClassification2.getText().toString();
+	    String customerClass3 = m_textCustomerClassification3.getText().toString();
+	    String taxation = m_spinTaxation.getSelectedItem().toString();
+		String group = m_spinGroup.getSelectedItem().toString();
+		String standard = m_textStandard.getText().toString();
+		String acquire = m_textAcquire.getText().toString();
+		String purchasePrice = m_textPurchasePrice.getText().toString();
+		String purchasePriceOriginal = m_textPurchasePriceOriginal.getText().toString();
+		String salesPrice = m_textSalesPrice.getText().toString();
+		String ratio = m_textDifferentRatio.getText().toString();
+		String surtax = null;
+		
+		if(m_checkSurtax.isChecked())
+			surtax = "1";
+		else
+			surtax = "0";
+		
+		if(taxation.equals("면세"))
+			taxation = "0";
+		else
+			taxation = "1";
+		
+		if (barcode.equals("") || productName.equals("") || customerCode.equals("") || customerName.equals("") ||
+			customerClass1.equals("") || customerClass2.equals("") || customerClass3.equals("") || standard.equals("") || acquire.equals("") ||
+			purchasePrice.equals("") || purchasePriceOriginal.equals("") || salesPrice.equals("") || ratio.equals("")) {
+			Toast.makeText(getApplicationContext(), "비어있는 필드가 있습니다", Toast.LENGTH_SHORT).show();
+			return;
+    	}
+		
+    	query += "insert into Goods(BarCode, G_Name, Bus_Code, Bus_Name, Tax_YN, Std_Size, Obtain, Pur_Pri, Pur_Cost," +
+    			" Sell_Pri, Profit_Rate, L_Code, M_Code, S_Code, VAT_CHK, G_grade) values('" + barcode + "', '" + productName + "'," +
+    			"'"+ customerCode + "', '" + customerName + "', '" + taxation + "', '" + standard + "', '" + acquire + "'," +
+    			"'" + purchasePrice + "', '" + purchasePriceOriginal + "', '" + salesPrice + "', '" + ratio + "'," +
+    			"'" + customerClass1 + "', '" + customerClass2 + "', '" + customerClass3 + "', '" + surtax + "', ";
+    	if(group.equals(""))
+    		query += "NULL);";
+    	else
+    		query += "'" + group + "');";
+    	query += "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods WHERE BarCode = '" +
+    			  barcode + "') A JOIN (SELECT * FROM Goods WHERE BarCode = '" + barcode + "') B ON A.BarCode = B.BarCode;";
+    	
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.show();
+
+	    // 콜백함수와 함께 실행
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				if (results.length() > 0) {
+					updateListView(results);
+					
+					AlertDialog.Builder alertDialog = new AlertDialog.Builder(getApplicationContext());
+					alertDialog.setMessage("정상적으로 등록되었습니다..");
+					alertDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+						}
+					});
+					alertDialog.show();
+				}
+				else {
+					Toast.makeText(getApplicationContext(), "결과가 없습니다", Toast.LENGTH_SHORT).show();					
+				}
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				Toast.makeText(getApplicationContext(), "등록 실패", Toast.LENGTH_SHORT).show();	
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	}
+	
+	public void doModify(){
+
+		String query = "";
+		String barcode = m_textBarcode.getText().toString();
+	    String productName = m_textProductName.getText().toString();
+	    String customerCode = m_textCustomerCode.getText().toString();
+	    String customerName = m_textCustomerName.getText().toString();
+	    String customerClass1 = m_textCustomerClassification1.getText().toString();
+	    String customerClass2 = m_textCustomerClassification2.getText().toString();
+	    String customerClass3 = m_textCustomerClassification3.getText().toString();
+	    String taxation = m_spinTaxation.getSelectedItem().toString();
+		String group = m_spinGroup.getSelectedItem().toString();
+		String standard = m_textStandard.getText().toString();
+		String acquire = m_textAcquire.getText().toString();
+		String purchasePrice = m_textPurchasePrice.getText().toString();
+		String purchasePriceOriginal = m_textPurchasePriceOriginal.getText().toString();
+		String salesPrice = m_textSalesPrice.getText().toString();
+		String ratio = m_textDifferentRatio.getText().toString();
+		String surtax = null;
+		
+		String class1 = "";
+		String class2 = "";
+		String class3 = "";
+		int stringLoc1 = customerClass1.indexOf("]");
+		int stringLoc2 = customerClass2.indexOf("]");
+		int stringLoc3 = customerClass3.indexOf("]");
+		class1 = customerClass1.substring(1, stringLoc1);
+		class2 = customerClass2.substring(1, stringLoc2);
+		class3 = customerClass3.substring(1, stringLoc3);
+		
+		if(m_checkSurtax.isChecked())
+		surtax = "1";
+		else
+			surtax = "0";
+		
+		if(taxation.equals("면세"))
+			taxation = "0";
+		else
+			taxation = "1";
+		
+		if (barcode.equals("") || productName.equals("") || customerCode.equals("") || customerName.equals("") ||
+			customerClass1.equals("") || customerClass2.equals("") || customerClass3.equals("") || standard.equals("") || acquire.equals("") ||
+			purchasePrice.equals("") || purchasePriceOriginal.equals("") || salesPrice.equals("") || ratio.equals("")) {
+			Toast.makeText(getApplicationContext(), "비어있는 필드가 있습니다", Toast.LENGTH_SHORT).show();
+			return;
+    	}
+		
+    	query += "Update Goods Set BarCode = '" + barcode + "', G_Name = '" + productName + "', Bus_Code = '" + customerCode + "', " +
+    			  "Bus_Name = '" + customerName + "', Tax_YN = '" + taxation + "', Std_Size = '" + standard + "', Obtain = '" + acquire + "', " +
+    			  "Pur_Pri = '" + purchasePrice + "', Pur_Cost = '" + purchasePriceOriginal + "', Sell_Pri = '" + salesPrice + "', " + 
+    			  "Profit_Rate = '" + ratio + "', L_Code = '" + class1 + "', M_Code = '" + class2 + "', S_Code = '" + class3 +
+    			  "', VAT_CHK = '" + surtax + "' WHERE BarCode = '" + barcode + "';"; 
+    	//query += "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods) A JOIN (SELECT TOP 50 * FROM Goods WHERE BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods)) B ON A.BarCode = B.BarCode;";
+    	query += "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods WHERE BarCode = '" +
+  			  barcode + "') A JOIN (SELECT * FROM Goods WHERE BarCode = '" + barcode + "') B ON A.BarCode = B.BarCode;";
+  	
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.show();
+
+	    // 콜백함수와 함께 실행
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				if (results.length() > 0) {
+					updateListView(results);
+					
+					AlertDialog.Builder alertDialog = new AlertDialog.Builder(getApplicationContext());
+					alertDialog.setMessage("정상적으로 수정되었습니다..");
+					alertDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+						}
+					});
+					alertDialog.show();
+				}
+				else {
+					Toast.makeText(getApplicationContext(), "결과가 없습니다", Toast.LENGTH_SHORT).show();					
+				}
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				Toast.makeText(getApplicationContext(), "수정 실패", Toast.LENGTH_SHORT).show();	
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	}
+		
+	
+	public void doSearch(){
+
+    	String index = String.valueOf(mfillMaps.size());  
+		String query = "";
+		String barcode = m_textBarcode.getText().toString();
+	    String productName = m_textProductName.getText().toString();
+	    String customerCode = m_textCustomerCode.getText().toString();
+	    String customerName = m_textCustomerName.getText().toString();
+		
+		query += "select * from Goods ";
+	    
+	    if (!barcode.equals("") || !customerCode.equals("")){
+	    	query += " WHERE";
+		        
+		    boolean added = false;
+		    if (!barcode.equals("")){
+		    	query += " Barcode = '" + barcode + "'";
+		    	added = true;
+		    }
+		    				    
+		    if (!customerCode.equals("")){
+		    	if (added) query += " AND ";
+		    	
+		    	query += " Bus_Code = '" + customerCode  + "'";
+		    	added = true;
+		    }
+		    query += ";";
+	    } else {
+	    	query = "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods) A "
+	    			+ " JOIN (SELECT TOP 50 * FROM Goods WHERE BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods)) B ON A.BarCode = B.BarCode;";
+	    }
+
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.show();
+
+	    // 콜백함수와 함께 실행
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				if (results.length() > 0) {
+					Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
+					updateListView(results);
+				}
+				else {
+					Toast.makeText(getApplicationContext(), "결과가 없습니다", Toast.LENGTH_SHORT).show();					
+				}
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();	
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	}
 
 	public void onCustomerSearch(View view)
 	{
@@ -370,6 +719,47 @@ public class ManageProductActivity extends Activity{
 			}
 		}); 
 		builder.show();
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{    
+		super.onActivityResult(requestCode, resultCode, data);
+		
+		switch(requestCode){
+		// 카메라 스캔을 통한 바코드 검색
+		case ZBAR_SCANNER_REQUEST :
+			if (resultCode == RESULT_OK) {
+		        // Scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT)
+		        // Type of the scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE)
+		        Toast.makeText(this, "Scan Result = " + data.getStringExtra(ZBarConstants.SCAN_RESULT), Toast.LENGTH_SHORT).show();
+		        Toast.makeText(this, "Scan Result Type = " + data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE), Toast.LENGTH_SHORT).show();
+		        // The value of type indicates one of the symbols listed in Advanced Options below.
+
+		        String barcode = data.getStringExtra(ZBarConstants.SCAN_RESULT);
+		        m_textBarcode.setText(barcode);
+		        doQueryWithBarcode();
+				
+		    } else if(resultCode == RESULT_CANCELED) {
+		        Toast.makeText(this, "Camera unavailable", Toast.LENGTH_SHORT).show();
+		    }
+			break;
+		// 목록 검색을 통한 바코드 검색				
+		case BARCODE_MANAGER_REQUEST :
+			if(resultCode == RESULT_OK && data != null) {
+				HashMap<String, String> hashMap = (HashMap<String, String>)data.getSerializableExtra("fillmaps");        	
+				m_textBarcode.setText(hashMap.get("BarCode"));
+	        	doQueryWithBarcode();
+	        }
+			break;
+		case CUSTOMER_MANAGER_REQUEST :
+			if(resultCode == RESULT_OK && data != null) {
+				HashMap<String, String> hashMap = (HashMap<String, String>)data.getSerializableExtra("fillmaps");     	
+				m_textCustomerCode.setText(hashMap.get("Office_Code"));
+				m_textCustomerName.setText(hashMap.get("Office_Name"));
+	        }
+			break;
+		}
 	}
 
 	// 거래처 코드로 거래처명 자동 완성
@@ -445,462 +835,5 @@ public class ManageProductActivity extends Activity{
 				}
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
-	}
-	
-	
-	public void doQuery(final int code){
-		
-		String query = "";
-		String barcode = m_textBarcode.getText().toString();
-	    String productName = m_textProductName.getText().toString();
-	    String customerCode = m_textCustomerCode.getText().toString();
-	    String customerName = m_textCustomerName.getText().toString();
-	    String customerClass1 = m_textCustomerClassification1.getText().toString();
-	    String customerClass2 = m_textCustomerClassification2.getText().toString();
-	    String customerClass3 = m_textCustomerClassification3.getText().toString();
-	    String taxation = m_spinTaxation.getSelectedItem().toString();
-		String group = m_spinGroup.getSelectedItem().toString();
-		String standard = m_textStandard.getText().toString();
-		String acquire = m_textAcquire.getText().toString();
-		String purchasePrice = m_textPurchasePrice.getText().toString();
-		String purchasePriceOriginal = m_textPurchasePriceOriginal.getText().toString();
-		String salesPrice = m_textSalesPrice.getText().toString();
-		String ratio = m_textDifferentRatio.getText().toString();
-		String surtax = null;
-				
-		switch(code){
-		
-			case 0 :
-				query = "SELECT * FROM Goods WHERE Barcode = '" + m_textBarcode.getText().toString() + "';";
-				break;
-				
-			case 1 :
-		    	query += "select * from Goods ";
-			    
-			    if (!barcode.equals("") || !productName.equals("") || !customerName.equals("")){
-			    	query += " WHERE";
-				        
-				    boolean added = false;
-				    if (!barcode.equals("")){
-				    	query += " Barcode = '" + barcode + "'";
-				    	added = true;
-				    }
-				    
-				    if (!productName.equals("")){
-				    	if (added) query += " AND ";
-				    	
-				    	query += " G_Name = '" + productName  + "'";
-				    	added = true;
-				    }
-				    
-				    if (!customerName.equals("")){
-				    	if (added) query += " AND ";
-				    	
-				    	query += " Bus_Name = '" + customerName  + "'";
-				    	added = true;
-				    }
-				    query += ";";
-			    } else {
-			    	query = "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods) A JOIN (SELECT TOP " + size + " * FROM Goods WHERE BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods)) B ON A.BarCode = B.BarCode;";
-			    }
-			    break;
-			// 등록 
-			case 2 :
-
-				if(m_checkSurtax.isChecked())
-					surtax = "1";
-				else
-					surtax = "0";
-				
-				if(taxation.equals("면세"))
-					taxation = "0";
-				else
-					taxation = "1";
-				
-				if (barcode.equals("") || productName.equals("") || customerCode.equals("") || customerName.equals("") ||
-					customerClass1.equals("") || customerClass2.equals("") || customerClass3.equals("") || standard.equals("") || acquire.equals("") ||
-					purchasePrice.equals("") || purchasePriceOriginal.equals("") || salesPrice.equals("") || ratio.equals("")) {
-					Toast.makeText(getApplicationContext(), "비어있는 필드가 있습니다", Toast.LENGTH_SHORT).show();
-					return;
-		    	}
-				
-		    	query += "insert into Goods(BarCode, G_Name, Bus_Code, Bus_Name, Tax_YN, Std_Size, Obtain, Pur_Pri, Pur_Cost," +
-		    			" Sell_Pri, Profit_Rate, L_Code, M_Code, S_Code, VAT_CHK, G_grade) values('" + barcode + "', '" + productName + "'," +
-		    			"'"+ customerCode + "', '" + customerName + "', '" + taxation + "', '" + standard + "', '" + acquire + "'," +
-		    			"'" + purchasePrice + "', '" + purchasePriceOriginal + "', '" + salesPrice + "', '" + ratio + "'," +
-		    			"'" + customerClass1 + "', '" + customerClass2 + "', '" + customerClass3 + "', '" + surtax + "', ";
-		    	if(group.equals(""))
-		    		query += "NULL);";
-		    	else
-		    		query += "'" + group + "');";
-		    	query += "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods WHERE BarCode = '" +
-		    			  barcode + "') A JOIN (SELECT * FROM Goods WHERE BarCode = '" + barcode + "') B ON A.BarCode = B.BarCode;";
-		    	
-		    	break;
-		    // 수정
-			case 3 :
-				
-				String class1 = "";
-				String class2 = "";
-				String class3 = "";
-				int stringLoc1 = customerClass1.indexOf("]");
-				int stringLoc2 = customerClass2.indexOf("]");
-				int stringLoc3 = customerClass3.indexOf("]");
-				class1 = customerClass1.substring(1, stringLoc1);
-				class2 = customerClass2.substring(1, stringLoc2);
-				class3 = customerClass3.substring(1, stringLoc3);
-				
-				if(m_checkSurtax.isChecked())
-				surtax = "1";
-				else
-					surtax = "0";
-				
-				if(taxation.equals("면세"))
-					taxation = "0";
-				else
-					taxation = "1";
-				
-				if (barcode.equals("") || productName.equals("") || customerCode.equals("") || customerName.equals("") ||
-					customerClass1.equals("") || customerClass2.equals("") || customerClass3.equals("") || standard.equals("") || acquire.equals("") ||
-					purchasePrice.equals("") || purchasePriceOriginal.equals("") || salesPrice.equals("") || ratio.equals("")) {
-					Toast.makeText(getApplicationContext(), "비어있는 필드가 있습니다", Toast.LENGTH_SHORT).show();
-					return;
-		    	}
-				
-		    	query += "Update Goods Set BarCode = '" + barcode + "', G_Name = '" + productName + "', Bus_Code = '" + customerCode + "', " +
-		    			  "Bus_Name = '" + customerName + "', Tax_YN = '" + taxation + "', Std_Size = '" + standard + "', Obtain = '" + acquire + "', " +
-		    			  "Pur_Pri = '" + purchasePrice + "', Pur_Cost = '" + purchasePriceOriginal + "', Sell_Pri = '" + salesPrice + "', " + 
-		    			  "Profit_Rate = '" + ratio + "', L_Code = '" + class1 + "', M_Code = '" + class2 + "', S_Code = '" + class3 +
-		    			  "', VAT_CHK = '" + surtax + "' WHERE BarCode = '" + barcode + "';" +
-		    			  "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods) A JOIN (SELECT TOP " + size + " * FROM Goods WHERE BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods)) B ON A.BarCode = B.BarCode;";
-		    	break;
-				
-		}
-		
-		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
-
-	    // 콜백함수와 함께 실행
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-			@Override
-			public void onRequestCompleted(JSONArray results) {
-				dialog.dismiss();
-				dialog.cancel();
-				if (results.length() > 0) {
-					if(code == 0){  
-						settingArray(results, 0);
-					} else if (code == 1 || code == 2){ // code == 1(조회) || code == 2(등록)
-						settingArray(results, 1);
-						if(code == 1)
-							Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
-						else
-							onAlert(code);
-					} else {
-						settingArray(results, 3);
-						onAlert(code);						
-					}
-				}
-				else {
-					if(code < 2)
-						Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
-					else 
-						Toast.makeText(getApplicationContext(), "등록 실패", Toast.LENGTH_SHORT).show();
-				}
-			}
-	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);				
-	}
-
-	public void onAlert(int code) {
-		// super.onBackPressed(); //지워야 실행됨
-		
-		AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-		if(code == 2)
-			alertDialog.setMessage("정상적으로 등록되었습니다..");
-		else
-			alertDialog.setMessage("정상적으로 수정되었습니다..");
-		alertDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
-
-			public void onClick(DialogInterface dialog, int which) {
-				// process전체 종료
-				dialog.cancel();
-			}
-		});
-		alertDialog.show();
-	} 
-
-	
-	// 리스트뷰 띄우기
-    public void settingArray(JSONArray results, int code){
-		
-    	if(code == 3){
-			productArray.clear();
-    	}
-		ProductList pl;
-		for(int i = 0; i < size-index; i++){
-			JSONObject json;
-			try {
-				json = results.getJSONObject(i);
-				pl = new ProductList(json.getString("BarCode"),
-									json.getString("G_Name"),
-									json.getString("Pur_Pri"),
-									json.getString("Sell_Pri"),
-									json.getString("Bus_Code"),
-									json.getString("Bus_Name"),
-									json.getString("Tax_YN"),
-									json.getString("Std_Size"),
-									json.getString("Obtain"),
-									json.getString("Pur_Cost"),
-									json.getString("Profit_Rate"),
-									json.getString("L_Code"),
-									json.getString("M_Code"),
-									json.getString("S_Code"),
-									json.getString("L_Name"),
-									json.getString("M_Name"),
-									json.getString("S_Name"),
-									json.getString("VAT_CHK"),
-									json.getString("G_grade"));
-					productArray.add(pl);
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-
-		if(code == 0)
-			fillCustomerFormFromArray(productArray, 0);
-		else if (code == 1 || code == 2 || code == 3)
-			showListView();
-    }
-    
-    // 리스트뷰 보이기
-    public void showListView (){
-    	Log.w("asdf", "asdfasdf");
-    	ProductListAdapter ProductList = new ProductListAdapter(this, R.layout.activity_listview_product_list, productArray);
-		ListView m_listProduct = (ListView)findViewById(R.id.listviewProductList);
-		
-		//ProductList.notifyDataSetChanged();
-		firstPosition = m_listProduct.getFirstVisiblePosition();
-		m_listProduct.setAdapter(ProductList);
-		m_listProduct.setSelection(firstPosition);
-	}
-
-    // 입력 폼 채우기
-    public void fillCustomerFormFromJSONObject(JSONObject object){
-
-		try {
-			m_textProductName.setText(object.getString("G_Name"));
-			m_textCustomerCode.setText(object.getString("Bus_Code"));
-			m_textCustomerName.setText(object.getString("Bus_Name"));
-			m_textStandard.setText(object.getString("Std_Size"));
-			m_textAcquire.setText(object.getString("Obtain"));
-			m_textPurchasePrice.setText(object.getString("Pur_Pri"));
-			m_textSalesPrice.setText(object.getString("Sell_Pri"));
-			m_textPurchasePriceOriginal.setText(object.getString("Pur_Cost"));
-			m_textDifferentRatio.setText(object.getString("Profit_Rate"));
-			
-			String class1 = "[" + object.getString("L_Code") + "]" + "" + "[" + object.getString("L_Name") + "]";
-			String class2 = "[" + object.getString("M_Code") + "]" + "" + "[" + object.getString("M_Name") + "]";
-			String class3 = "[" + object.getString("S_Code") + "]" + "" + "[" + object.getString("S_Name") + "]";
-			m_textCustomerClassification1.setText(class1);
-			m_textCustomerClassification2.setText(class2);
-			m_textCustomerClassification3.setText(class3);
-			
-			if(object.getString("Tax_YN").equals("0")) {
-				m_spinTaxation.setSelection(1);
-			} else {
-				m_spinTaxation.setSelection(0);
-			}
-			if(object.getString("Add_Tax").equals("0")){
-				m_checkSurtax.setChecked(false);
-			} else {
-				m_checkSurtax.setChecked(true);
-			}
-			
-			if(object.getString("G_grade").equals("0"))
-				m_spinGroup.setSelection(0);
-			else if(object.getString("G_grade").equals("A"))
-				m_spinGroup.setSelection(1);
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-    }
-    
-    public void fillCustomerFormFromArray(ArrayList<ProductList> productArray1, int position){
-
-		m_textBarcode.setText(productArray1.get(position).Barcode);
-		m_textProductName.setText(productArray1.get(position).G_Name);
-		m_textCustomerCode.setText(productArray1.get(position).Bus_Code);
-		m_textCustomerName.setText(productArray1.get(position).Bus_Name);
-		m_textStandard.setText(productArray1.get(position).stdSize);
-		m_textAcquire.setText(productArray1.get(position).obtain);
-		m_textPurchasePrice.setText(productArray1.get(position).Pur_Pri); // 매입가
-		m_textSalesPrice.setText(productArray1.get(position).Sell_Pri); //판매가
-		m_textPurchasePriceOriginal.setText(productArray1.get(position).purCost); //매입원가
-		m_textDifferentRatio.setText(productArray1.get(position).profitRate); // 이의율
-		String class1 = "[" + productArray1.get(position).L_Code + "]" + "" + "[" + productArray1.get(position).L_Name + "]";
-		String class2 = "[" + productArray1.get(position).M_Code + "]" + "" + "[" + productArray1.get(position).M_Name + "]";
-		String class3 = "[" + productArray1.get(position).S_Code + "]" + "" + "[" + productArray1.get(position).S_Name + "]";
-		m_textCustomerClassification1.setText(class1);
-		m_textCustomerClassification2.setText(class2);
-		m_textCustomerClassification3.setText(class3);
-		if(productArray1.get(position).taxYN.equals("0")) {
-			m_spinTaxation.setSelection(1);
-		} else {
-			m_spinTaxation.setSelection(0);
-		}
-		if(productArray1.get(position).surtax.equals("0")){
-			m_checkSurtax.setChecked(false);
-		} else {
-			m_checkSurtax.setChecked(true);
-		}
-		
-		if(productArray1.get(position).G_grade.equals("0"))
-			m_spinGroup.setSelection(0);
-		else if(productArray1.get(position).G_grade.equals("A"))
-			m_spinGroup.setSelection(1);
-    }
-	
-    // 새로 입력
-    public void doClear(){
-    	
-		m_textBarcode.setText("");
-		m_textProductName.setText("");
-		m_textCustomerCode.setText("");
-		m_textCustomerName.setText("");
-		m_textStandard.setText("");
-		m_textAcquire.setText("");
-		m_textPurchasePrice.setText(""); // 매입가
-		m_textSalesPrice.setText(""); //판매가
-		m_textPurchasePriceOriginal.setText(""); //매입원가
-		m_textDifferentRatio.setText(""); // 이의율
-		m_textCustomerClassification1.setText("");
-		m_textCustomerClassification2.setText("");
-		m_textCustomerClassification3.setText("");
-		m_spinTaxation.setSelection(0);
-		m_checkSurtax.setChecked(false);
-	}
-	
-	protected Dialog onCreateDialog(int id) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage("AlertDialog")
-		       .setCancelable(false)
-		       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-		           public void onClick(DialogInterface dialog, int id) {
-		        	   dialog.cancel();     
-		           }
-		       })
-		       .setNegativeButton("No", new DialogInterface.OnClickListener() {
-		           public void onClick(DialogInterface dialog, int id) {
-		                dialog.cancel();
-		           }
-		       });
-		AlertDialog alert = builder.create();
-		return alert;
-	}
-	
-	class ProductList {
-		ProductList(String aBarcode, String aG_Name, String aPur_Pri, String aSell_Pri, String aBusCode, String aBusName,
-					String ataxYN, String astdSize, String aobtain, String apurCost, String aprofitRate, String aL_Code,
-					String aM_Code, String aS_Code, String aL_Name, String aM_Name, String aS_Name, String asurtax, String ag_grade){
-			Barcode = aBarcode;
-			G_Name = aG_Name;
-			Pur_Pri = aPur_Pri;
-			Sell_Pri = aSell_Pri;
-			Bus_Code = aBusCode;
-			Bus_Name= aBusName;
-			taxYN = ataxYN;
-			stdSize = astdSize;
-			obtain = aobtain;
-			purCost = apurCost;
-			profitRate = aprofitRate;
-			L_Code = aL_Code;
-			M_Code = aM_Code;
-			S_Code = aS_Code;
-			L_Name = aL_Name;
-			M_Name = aM_Name;
-			S_Name = aS_Name;			
-			surtax = asurtax;
-			G_grade = ag_grade;
-			}	
-		String Barcode;
-		String G_Name;
-		String Pur_Pri;
-		String Sell_Pri;
-		String Bus_Code;
-		String Bus_Name;
-		String taxYN;
-		String stdSize;
-		String obtain;
-		String purCost;
-		String profitRate;
-		String L_Code;
-		String M_Code;
-		String S_Code;
-		String L_Name;
-		String M_Name;
-		String S_Name;
-		String surtax;		
-		String G_grade;
-	}
-	
-	class ProductListAdapter extends BaseAdapter 
-	{
-
-		Context ctx;
-		LayoutInflater Inflater;
-		ArrayList<ProductList> arr_Goods;
-		int itemLayout;
-		
-		public ProductListAdapter(Context actx, int aitemLayout, ArrayList<ProductList> aarr_Goods)
-		{
-			ctx = actx;
-			Inflater = (LayoutInflater)actx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			arr_Goods = aarr_Goods;
-			itemLayout = aitemLayout;
-		}
-
-		@Override
-		public int getCount() {
-			return arr_Goods.size();
-		}
-		@Override
-		public String getItem(int position) {
-			return arr_Goods.get(position).Barcode;
-		}
-		@Override
-		public long getItemId(int position) {
-			//returnFillMaps(position);
-			return position;
-		}
-		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
-			final int pos = position;
-			
-			if (convertView == null) {
-				convertView = Inflater.inflate(itemLayout, parent, false);
-			} 
-			
-			TextView barcode = (TextView)convertView.findViewById(R.id.item1);
-			TextView g_name = (TextView)convertView.findViewById(R.id.item2);
-			TextView sell_pri = (TextView)convertView.findViewById(R.id.item3);
-			TextView pur_pri = (TextView)convertView.findViewById(R.id.item4);
-			
-			
-			barcode.setText(arr_Goods.get(position).Barcode);
-			g_name.setText(arr_Goods.get(position).G_Name);
-			sell_pri.setText(arr_Goods.get(position).Pur_Pri);
-			pur_pri.setText(arr_Goods.get(position).Sell_Pri);
-
-			if(position == size-3){
-				index = size;
-				size = size * 2;
-				doQuery(1);
-			}
-			return convertView;
-		}
 	}
 }

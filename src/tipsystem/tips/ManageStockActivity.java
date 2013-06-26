@@ -452,9 +452,9 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 			case 1 :
 				if(resultCode == RESULT_OK && data != null) {
 					
-		        	ArrayList<String> fillMaps = data.getStringArrayListExtra("fillmaps");		        	
-		        	m_textBarcode.setText(fillMaps.get(0));
-					doQueryWithBarcode(); 
+					HashMap<String, String> hashMap = (HashMap<String, String>)data.getSerializableExtra("fillmaps");        	
+					m_textBarcode.setText(hashMap.get("BarCode"));
+		        	doQueryWithBarcode();
 		        }
 				break;
 			}
