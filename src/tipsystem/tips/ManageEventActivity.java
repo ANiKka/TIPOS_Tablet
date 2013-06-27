@@ -1,8 +1,11 @@
 package tipsystem.tips;
 
+import java.text.Collator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -59,8 +62,10 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	private static final int ZBAR_QR_SCANNER_REQUEST = 1;
 
 	JSONObject m_shop;
+	JSONObject m_userProfile;
 	String m_ip = "122.49.118.102";
 	String m_port = "18971";
+	String m_id = "";
 	
 	DatePicker m_datePicker;
 	SimpleDateFormat m_dateFormatter;
@@ -70,6 +75,9 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	Calendar m_dateCalender2;
 	
 	int m_dateMode=0;	
+	int m_inputMode=0;	
+	int  m_junpyoIdx = 0;
+	String  m_junpyo = "";
 	
 	Spinner m_spinEvent;
 	ListView m_listEvent;
@@ -97,8 +105,6 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 
 	private ProgressDialog dialog;
 	
-	String m_junpyo ="";
-	int  m_junpyoIdx = 0;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -108,10 +114,11 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		setupActionBar();
 		
 		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
-	       
+		m_userProfile = LocalStorage.getJSONObject(this, "userProfile"); 	       
         try {
 			m_ip = m_shop.getString("SHOP_IP");
 	        m_port = m_shop.getString("SHOP_PORT");
+	        m_id = m_userProfile.getString("User_ID");
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -171,9 +178,15 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 					return;
 				}
 				
+		    	if (m_inputMode == 0) {
+		    		//새로운 전표 생성
+		    		m_junpyo = makeJunPyo();			        
+		    	}
+		    	
 				setDataIntoList();
 				m_selectedListIndex = -1;
 				changeInputMode(1);
+				clearInputBox();
 			 }
 		});
 		
@@ -243,66 +256,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		changeInputMode(0);
 		getSeq();
 	}
-	
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
-	{    
-		super.onActivityResult(requestCode, resultCode, data);
 		
-		switch(requestCode){
-			// 카메라 스캔을 통한 바코드 검색
-			case 0 :
-				if (resultCode == RESULT_OK) {
-			        // Scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT)
-			        // Type of the scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE)
-			        Toast.makeText(this, "Scan Result = " + data.getStringExtra(ZBarConstants.SCAN_RESULT), Toast.LENGTH_SHORT).show();
-			        Toast.makeText(this, "Scan Result Type = " + data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE), Toast.LENGTH_SHORT).show();
-			        // The value of type indicates one of the symbols listed in Advanced Options below.
-			       
-			        String barcode = data.getStringExtra(ZBarConstants.SCAN_RESULT);
-					m_textBarcode.setText(barcode);
-					doQueryWithBarcode();
-					
-			    } else if(resultCode == RESULT_CANCELED) {
-			        Toast.makeText(this, "Camera unavailable", Toast.LENGTH_SHORT).show();
-			    }
-				break;
-			// 목록 검색을 통한 바코드 검색				
-			case 1 :
-				if(resultCode == RESULT_OK && data != null) {
-					
-					HashMap<String, String> hashMap = (HashMap<String, String>)data.getSerializableExtra("fillmaps");        	
-					m_textBarcode.setText(hashMap.get("BarCode"));
-		        	doQueryWithBarcode();
-		        }
-				break;
-			}
-	}
-	
-	public void onBarcodeSearch(View view)
-	{
-		// 바코드 검색 버튼 클릭시 나오는 목록 셋팅
-		final String[] option = new String[] { "목록", "카메라"};
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, option);
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("Select Option");
-		
-		// 목록 선택시 이벤트 처리
-		builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int which) {
-
-				if(which == 0){ // 목록으로 조회할 경우
-					Intent intent = new Intent(ManageEventActivity.this, ManageProductListActivity.class);
-			    	startActivityForResult(intent, 1);
-				} else { // 스캔할 경우
-					Intent intent = new Intent(ManageEventActivity.this, ZBarScannerActivity.class);
-			    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);				
-				}
-			}
-		}); 
-		builder.show();
-	}
-	
 	public void deleteData(){
 	
 		if ( m_selectedListIndex == -1) {
@@ -345,8 +299,8 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		m_evtPurValue.setText(""); 
 	}
 	
-	public void changeInputMode (int mode) {
-		//m_inputMode = mode;
+	public void changeInputMode (int mode) {		
+		m_inputMode = mode;
 		if (mode==0) {
 			m_eventName.setEnabled(true);
 			m_textBarcode.setEnabled(true);
@@ -371,7 +325,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		}
 	}
 
-	public void makeJunPyo () {
+	public String makeJunPyo () {
 
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 		String currentDate = sdf.format(new Date());
@@ -385,14 +339,16 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 			e.printStackTrace();
 		}
         
-        m_junpyo = currentDate + posID + String.format("%04d", m_junpyoIdx);
+        String junpyo = currentDate + posID + String.format("%03d", m_junpyoIdx);
         m_junpyoIdx++;
+        return junpyo;        
 	}
 
     public void setDataIntoList(){
-    
-		EditText eventName = (EditText)findViewById(R.id.editTextEventName);
+    	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		String currentDate = sdf.format(new Date());
 		
+		EditText eventName = (EditText)findViewById(R.id.editTextEventName);		
 		TextView barcode = (TextView)findViewById(R.id.editTextBarcode);
 		TextView productName = (TextView)findViewById(R.id.editTextProductName);
 		TextView purchasePrice = (TextView)findViewById(R.id.editTextPurchasePrice);
@@ -405,9 +361,22 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		String period2 = m_period2.getText().toString();    
 		String section = m_spinEvent.getSelectedItem().toString();
 		
+        Iterator<HashMap<String, String>> iterator = m_evtList.iterator();		
+	    while (iterator.hasNext()) {
+			HashMap<String, String> element = iterator.next();
+	        String Evt_CD = element.get("Evt_CD");
+	        String BarCode = element.get("BarCode");
+
+	        if (BarCode.equals(barcode.getText().toString()) && Evt_CD.equals(m_junpyo)) {
+	        	Toast.makeText(getApplicationContext(), "같은 품목은 추가할수 없습니다", Toast.LENGTH_SHORT).show();	        	
+	        	return;
+	        }
+	    }
+	    
         HashMap<String, String> rmap = new HashMap<String, String>();
         rmap.put("Evt_Name", Name);
         rmap.put("Evt_Gubun", section);
+        rmap.put("Evt_CD", m_junpyo);
         
         if ( section.equals("기간행사") == true) {
         	rmap.put("Evt_SDate", period1);
@@ -433,6 +402,11 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
         rmap.put("Sale_Pur", evtPurValue.getText().toString());
         rmap.put("Sale_Sell", evtSaleValue.getText().toString());
         
+        rmap.put("Write_Date", currentDate);
+        rmap.put("Edit_Date", currentDate);
+        rmap.put("Writer", m_id);
+        rmap.put("Editor", m_id);
+        
         m_evtList.add(rmap);
         
         // Into ListView
@@ -454,20 +428,17 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	    while (iterator.hasNext()) {
 			boolean isNew = true;
 			HashMap<String, String> element = iterator.next();
+	         String Evt_CD = element.get("Evt_CD");
 	         String Evt_Name = element.get("Evt_Name");
 	        
 	         Iterator<HashMap<String, String>> fm_iterator = fm.iterator();
 	         while (fm_iterator.hasNext()) {
 
 	        	 HashMap<String, String>  fm_element = fm_iterator.next();
-		         String fm_Evt_Name = fm_element.get("Evt_Name");
+		         String fm_Evt_CD = fm_element.get("Evt_CD");
 
-		         if (fm_Evt_Name.equals(Evt_Name)) {
+		         if (fm_Evt_CD.equals(Evt_CD)) {
 		        	 isNew = false;
-		        	 // 같은게 있으면 fm_element에 추가 
-			         String Evt_Gubun = fm_element.get("Evt_Gubun");
-			         String Evt_SDate = fm_element.get("Evt_SDate");
-			         String Evt_EDate = fm_element.get("Evt_EDate");
 		         }
 	         }
 	         
@@ -476,7 +447,8 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		         String Evt_SDate = element.get("Evt_SDate");
 		         String Evt_EDate = element.get("Evt_EDate");
 		     	 HashMap<String, String> map = new HashMap<String, String>();
-		         
+
+		         map.put("Evt_CD", Evt_CD);
 		         map.put("Evt_Name", Evt_Name);
 		         map.put("Evt_Gubun", Evt_Gubun);
 		         map.put("Evt_Date", Evt_SDate + " ~ " + Evt_EDate  );
@@ -490,72 +462,54 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	
 
 	// MSSQL
-	// SQL QUERY 실행
-	public void doQueryWithBarcode () {
-		
-		String query = "";
-		String barcode = m_textBarcode.getText().toString();
-		query = "SELECT * FROM Goods WHERE Barcode = '" + barcode + "';";
-	
-		if (barcode.equals("")) return;
-		
-		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
+	//Comparator 를 만든다.
+	 private final static Comparator<HashMap<String, String>> myComparator= new Comparator<HashMap<String, String>>() {
 
-	    // 콜백함수와 함께 실행
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-			@Override
-			public void onRequestCompleted(JSONArray results) {
-				dialog.dismiss();
-				dialog.cancel();
-				
-				if (results.length() > 0) {
-					try {
-						
-						m_textProductName.setText(results.getJSONObject(0).getString("G_Name"));						
-						m_et_purchasePrice.setText(results.getJSONObject(0).getString("Pur_Pri"));
-						m_et_salePrice.setText(results.getJSONObject(0).getString("Sell_Pri"));
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
-				}
-				else {
-					Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
-				}
-			}
-	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
-	}
+	    private final Collator   collator = Collator.getInstance();
+	  
+		@Override
+		public int compare(HashMap<String, String> lhs, HashMap<String, String> rhs) {
+			String In_Num1 = lhs.get("Evt_CD");
+			String In_Num2 = rhs.get("Evt_CD");
+			
+			return collator.compare(In_Num1, In_Num2);
+		}
+	};
 
 	public void sendAllData(){
 		
 		String tableName = null;
 		String period = m_period1.getText().toString();
-		
+
 		int year = Integer.parseInt(period.substring(0, 4));
 		int month = Integer.parseInt(period.substring(5, 7));
 		
 		tableName = String.format("StD_%04d%02d", year, month);
 
+		Log.i("m_purList", m_evtList.toString());
+
+		// TODO: 소트 데이터
+		Collections.sort(m_evtList, myComparator);
+
+		Log.i("m_purList", m_evtList.toString());
+		
 		// 쿼리 작성하기
 		String query =  "";
 		for ( int i = 0; i < m_evtList.size(); i++ ) {
-			//TODO: 새로운 전표생성
-	        makeJunPyo();
-	        
-		    query +=  "insert into " + tableName + "(Evt_CD, Evt_Name, Evt_Gubun, BarCode, Evt_SDate, Evt_EDate, Sale_Pur, Sale_Sell) " 
-		    		+ " values ("
-		    		+ "'" + m_junpyo + "', "
-				    + "'" + m_evtList.get(i).get("Evt_Name").toString() + "', "
-		    		+ "'" + m_evtList.get(i).get("Evt_Gubun").toString() + "', "
-		    		+ "'" + m_evtList.get(i).get("BarCode").toString() + "', "
-		    		+ "'" + m_evtList.get(i).get("Evt_SDate").toString() + "', "
-		    		+ "'" + m_evtList.get(i).get("Evt_EDate").toString() + "', "
-				    + "'" + m_evtList.get(i).get("Sale_Pur").toString() + "', "
-		    		+ "'" + m_evtList.get(i).get("Sale_Sell").toString() + "');";
+		        
+		    query +=  "insert into " + tableName + "(Evt_CD, Evt_Name, Evt_Gubun, BarCode, Evt_SDate, Evt_EDate, Sale_Pur, Sale_Sell, Write_Date, Edit_Date, Writer, Editor) " 
+		    		+ " values (" 	+ "'" + m_evtList.get(i).get("Evt_CD").toString() + "', "
+								    + "'" + m_evtList.get(i).get("Evt_Name").toString() + "', "
+						    		+ "'" + m_evtList.get(i).get("Evt_Gubun").toString() + "', "
+						    		+ "'" + m_evtList.get(i).get("BarCode").toString() + "', "
+						    		+ "'" + m_evtList.get(i).get("Evt_SDate").toString() + "', "
+						    		+ "'" + m_evtList.get(i).get("Evt_EDate").toString() + "', "
+								    + "'" + m_evtList.get(i).get("Sale_Pur").toString() + "', "
+						    		+ "'" + m_evtList.get(i).get("Sale_Sell").toString() + "', "
+						    		+ "'" + m_evtList.get(i).get("Write_Date").toString() + "', "
+						    		+ "'" + m_evtList.get(i).get("Edit_Date").toString() + "', "
+								    + "'" + m_evtList.get(i).get("Writer").toString() + "', "
+						    		+ "'" + m_evtList.get(i).get("Editor").toString() + "');";
 		}
 
 	    query = " select * from " + tableName + " where St_Num='" + m_junpyo +"';";
@@ -566,7 +520,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
  		dialog.setMessage("Loading....");
  		dialog.setCancelable(false);
  		dialog.show();
- 		
+
 	    // 콜백함수와 함께 실행
 	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
@@ -587,9 +541,8 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 				Toast.makeText(getApplicationContext(), "전송실패("+String.valueOf(code)+"):" + msg, Toast.LENGTH_SHORT).show();
 			}
 			
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
-	
 	
 	//전표갯수를 구함
 	public void getSeq(){
@@ -611,7 +564,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
  		dialog.setMessage("Loading....");
  		dialog.setCancelable(false);
  		dialog.show();
- 		
+
 	    // 콜백함수와 함께 실행
 	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
@@ -629,7 +582,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 				Toast.makeText(getApplicationContext(), "실패("+String.valueOf(code)+"):" + msg, Toast.LENGTH_SHORT).show();
 			}
 			
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
 
 	public void OnClickModify(View v) {
@@ -695,10 +648,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	 */
 	private void setupActionBar() {
 
-		ActionBar actionbar = getActionBar();         
-//		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-//		actionbar.setCustomView(custom_action_bar);
-
+		ActionBar actionbar = getActionBar();      
 		actionbar.setDisplayShowHomeEnabled(false);
 		actionbar.setDisplayShowTitleEnabled(true);
 		actionbar.setDisplayShowCustomEnabled(true);
@@ -894,7 +844,106 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 
 			startDetailView(arg2);
-
 		}
 	};
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{    
+		super.onActivityResult(requestCode, resultCode, data);
+		
+		switch(requestCode){
+			// 카메라 스캔을 통한 바코드 검색
+			case 0 :
+				if (resultCode == RESULT_OK) {
+			        // Scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT)
+			        // Type of the scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE)
+			        Toast.makeText(this, "Scan Result = " + data.getStringExtra(ZBarConstants.SCAN_RESULT), Toast.LENGTH_SHORT).show();
+			        Toast.makeText(this, "Scan Result Type = " + data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE), Toast.LENGTH_SHORT).show();
+			        // The value of type indicates one of the symbols listed in Advanced Options below.
+			       
+			        String barcode = data.getStringExtra(ZBarConstants.SCAN_RESULT);
+					m_textBarcode.setText(barcode);
+					doQueryWithBarcode();
+					
+			    } else if(resultCode == RESULT_CANCELED) {
+			        Toast.makeText(this, "Camera unavailable", Toast.LENGTH_SHORT).show();
+			    }
+				break;
+			// 목록 검색을 통한 바코드 검색				
+			case 1 :
+				if(resultCode == RESULT_OK && data != null) {
+					
+					HashMap<String, String> hashMap = (HashMap<String, String>)data.getSerializableExtra("fillmaps");        	
+					m_textBarcode.setText(hashMap.get("BarCode"));
+		        	doQueryWithBarcode();
+		        }
+				break;
+			}
+	}
+	
+	public void onBarcodeSearch(View view)
+	{
+		// 바코드 검색 버튼 클릭시 나오는 목록 셋팅
+		final String[] option = new String[] { "목록", "카메라"};
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, option);
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("Select Option");
+		
+		// 목록 선택시 이벤트 처리
+		builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+
+				if(which == 0){ // 목록으로 조회할 경우
+					Intent intent = new Intent(ManageEventActivity.this, ManageProductListActivity.class);
+			    	startActivityForResult(intent, 1);
+				} else { // 스캔할 경우
+					Intent intent = new Intent(ManageEventActivity.this, ZBarScannerActivity.class);
+			    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);				
+				}
+			}
+		}); 
+		builder.show();
+	}
+
+	// SQL QUERY 실행
+	public void doQueryWithBarcode () {
+		
+		String query = "";
+		String barcode = m_textBarcode.getText().toString();
+		query = "SELECT * FROM Goods WHERE Barcode = '" + barcode + "';";
+	
+		if (barcode.equals("")) return;
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+
+	    // 콜백함수와 함께 실행
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				
+				if (results.length() > 0) {
+					try {
+						
+						m_textProductName.setText(results.getJSONObject(0).getString("G_Name"));						
+						m_et_purchasePrice.setText(results.getJSONObject(0).getString("Pur_Pri"));
+						m_et_salePrice.setText(results.getJSONObject(0).getString("Sell_Pri"));
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				else {
+					Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+				}
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
+	}
+
 }

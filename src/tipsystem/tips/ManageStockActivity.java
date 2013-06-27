@@ -126,9 +126,8 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		
 		m_stockList = new ArrayList<HashMap<String, String>>();
 
-		btn_Register.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v){
+		btn_Register.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
 
 				m_selectedListIndex = -1;
 				setDataIntoList();
@@ -136,8 +135,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 			 }			
 		});
 		
-		btn_Renew.setOnClickListener(new OnClickListener()
-		{
+		btn_Renew.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				
 				m_selectedListIndex = -1;
@@ -146,16 +144,14 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 			 }			
 		});
 		
-		btn_Delete.setOnClickListener(new OnClickListener()
-		{
+		btn_Delete.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				
 				deleteData();
 			}			
 		});
 		
-		btn_Send.setOnClickListener(new OnClickListener()
-		{
+		btn_Send.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				// 전체 삭제 기능으로 대체 
 				// TODO: 아이콘 바꾸어야함
@@ -164,9 +160,8 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 			}			
 		});
 		
-		btn_SendAll.setOnClickListener(new OnClickListener()
-		{
-			public void onClick(View v){
+		btn_SendAll.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
 				sendSelectedAllData();
 
 				m_selectedListIndex = -1;				
@@ -279,14 +274,15 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		
 		tableName = String.format("StD_%04d%02d", year, month);
 		sttTableName = String.format("StT_%04d%02d", year, month);
-
+		
+		//TODO: 새로운 전표생성
+        makeJunPyo();
+        
 		// 쿼리 작성하기
 		String query =  "";
 		for ( int i = 0; i < m_stockList.size(); i++ ) {
-			//TODO: 새로운 전표생성
-	        makeJunPyo();
-	        
-		    query +=  "insert into " + tableName + "(St_Num, St_BarCode, St_Date, BarCode, Pur_Pri, Sell_Pri, St_Count) " 
+			
+			query +=  "insert into " + tableName + "(St_Num, St_BarCode, St_Date, BarCode, Pur_Pri, Sell_Pri, St_Count) " 
 		    		+ " values ("
 		    		+ "'" + m_junpyo + "', "
 		    		+ "'" + m_junpyo + "', "

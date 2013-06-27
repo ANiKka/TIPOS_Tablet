@@ -1,8 +1,12 @@
 package tipsystem.tips;
 
+import java.text.Collator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -15,6 +19,7 @@ import org.json.JSONObject;
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 
+import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
@@ -89,7 +94,8 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	String[] from = new String[] {"BarCode", "Office_Name", "Pur_Pri", "In_Count"};
     int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
     
-	List<HashMap<String, String>> m_purList = null;
+	List<HashMap<String, String>> m_purList =new ArrayList<HashMap<String, String>>();
+	HashMap<String, String> m_tempProduct =new HashMap<String, String>();
 	
 	private ProgressDialog dialog;
 	
@@ -133,8 +139,6 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		m_dateCalender1 = Calendar.getInstance();
 		m_period.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
 
-		m_purList = new ArrayList<HashMap<String, String>>();
-		
 		// 전송대기목록 뷰에 값 전달
 		Button saveButton = (Button)findViewById(R.id.buttonSave);
 		saveButton.setOnClickListener(new OnClickListener() {
@@ -155,23 +159,20 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		});
 
 
-		btn_Delete.setOnClickListener(new OnClickListener()
-		{
+		btn_Delete.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				deleteData();				
 			}			
 		});
 		
-		btn_Send.setOnClickListener(new OnClickListener()
-		{
+		btn_Send.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				clearInputBox();
 				deleteListAll();
 			}			
 		});
 		
-		btn_SendAll.setOnClickListener(new OnClickListener()
-		{
+		btn_SendAll.setOnClickListener(new OnClickListener() {
 			public void onClick(View v){
 				
 				sendAllData();
@@ -280,13 +281,10 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		getSeq();
 	}
 
-	public void makeJunPyo () {
+	public String makeJunPyo () {
 
-		String period = m_period.getText().toString();
-		
-		String year = period.substring(0, 4);
-		String month = period.substring(5, 7);
-		String day = period.substring(8, 10);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+		String currentDate = sdf.format(new Date());
 		
         // 전표번호 생성 
 		String posID = "P";
@@ -297,9 +295,11 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 			e.printStackTrace();
 		}
         
-        m_junpyo = year + month + day + posID + String.format("%03d", m_junpyoIdx);
+        String junpyo = currentDate + posID + String.format("%03d", m_junpyoIdx);
         m_junpyoIdx++;
+        return junpyo;        
 	}
+	
 
 	public void deleteData() {
 		
@@ -365,6 +365,8 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 
 	// 저장 버튼
 	public void doSendListView(){
+    	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		String currentDate = sdf.format(new Date());
 		
 	    String purchaseDate = m_period.getText().toString();
 		String immediatePayment = "" + m_immediatePayment.isChecked();
@@ -374,8 +376,8 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	    String name = m_customerName.getText().toString();
 		String purchasePrice = m_et_purchasePrice.getText().toString();
 		String salePrice = m_et_salePrice.getText().toString();
-		String amount = m_amount.getText().toString();
-		String profitRatio = m_profitRatio.getText().toString();
+		String amount = m_amount.getText().toString();				
+		String profitRatio = m_profitRatio.getText().toString();	
 		
 		// 비어 있는 값 확인
 	    if(code.equals("") || name.equals("") || purchaseDate.equals("") || barcode.equals("") ||
@@ -385,19 +387,56 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	    	return;
 	    }
 	    
-	    String period = m_period.getText().toString();
-	    
-        HashMap<String, String> rmap = new HashMap<String, String>();
-
+    	//선택된 상품장의 데이터를 꺼내옴
+		String Org_PurPri = m_tempProduct.get("Pur_Pri");		// 원매입가 
+		String Org_SellPri = m_tempProduct.get("Sell_Pri");	// 원매출가
+		String Pur_Cost = m_tempProduct.get("Pur_Cost");	// 매입원가 
+		String Add_Tax = m_tempProduct.get("Add_Tax");	// 부가세
+		String Bot_Pur = m_tempProduct.get("Bot_Pur");	// 공병매입가 
+		String Bot_Sell = m_tempProduct.get("Bot_Sell");	// 공병매출가
+		String Tax_YN = m_tempProduct.get("Tax_YN");		// 과세여부(0:면세,1:과세)
+		//String Tax_Gubun = m_tempProduct.getString("Tax_Gubun");	// 부가세구분(0:별도,1:포함)
+		
+		if (Bot_Pur == null) Bot_Pur = "0";
+		if (Bot_Sell == null) Bot_Sell = "0";
+		
+		double In_Pri = Double.valueOf(purchasePrice)*Double.valueOf(amount);	//총 매입가(공병포함)=매입가x수량
+		double In_SellPri = Double.valueOf(salePrice)*Double.valueOf(amount);	//판매가x수량
+		
+		String period = m_period.getText().toString();
+		    
+        HashMap<String, String> rmap = new HashMap<String, String>();        
+    	rmap.put("In_YN", "1");
+    	rmap.put("In_Gubun", "3");
     	rmap.put("In_Date", period);
-        rmap.put("Office_Code", code);
-        rmap.put("Office_Name", name);
         rmap.put("BarCode", barcode);
         rmap.put("G_Name", productName);
-        rmap.put("Pur_Pri", purchasePrice);
+        rmap.put("Office_Code", code);
+        rmap.put("Office_Name", name);
+        rmap.put("Tax_YN", Tax_YN);
+        //rmap.put("Tax_Gubun", Tax_Gubun);
+        rmap.put("In_Count", amount);			// 수량 
+        rmap.put("Pur_Pri", purchasePrice);		//매입가
+        rmap.put("Org_PurPri", Org_PurPri);
+        rmap.put("Pur_Cost", Pur_Cost);
+        rmap.put("Add_Tax", Add_Tax);
+        rmap.put("TPur_Pri", String.valueOf((Double.valueOf(purchasePrice)-Double.valueOf(Bot_Pur))*Double.valueOf(amount)));		//총 매입가(공병제외)=매입가x수량
+        rmap.put("TPur_Cost", String.valueOf(Double.valueOf(Pur_Cost)*Double.valueOf(amount)));			//매입원가x수량
+        rmap.put("TAdd_Tax", String.valueOf(Double.valueOf(Add_Tax)*Double.valueOf(amount)));			//부가세x수량
+        rmap.put("In_Pri", String.valueOf(In_Pri));		//총 매입가(공병포함)=매입가x수량
         rmap.put("Sell_Pri", salePrice);
-        rmap.put("In_Count", amount);
-        rmap.put("Profit_Rate", profitRatio);
+        rmap.put("Org_SellPri", Org_SellPri);
+        rmap.put("TSell_Pri", String.valueOf((Double.valueOf(salePrice)-Double.valueOf(Bot_Sell))*Double.valueOf(amount)));	//총 판매가(공병제외)=판매가x수량
+        rmap.put("In_SellPri", String.valueOf(In_SellPri));	//판매가x수량
+        rmap.put("Profit_Pri", String.valueOf(In_SellPri-In_Pri));	// 이익금 
+        rmap.put("Profit_Rate", profitRatio);	// 이익률
+        rmap.put("Write_Date", currentDate);
+        rmap.put("Edit_Date", currentDate);
+        rmap.put("Writer", m_id);
+        rmap.put("Editor", m_id);
+        
+        rmap.put("Bot_Pur", Bot_Pur);
+        rmap.put("Bot_Sell", Bot_Sell);
         
         m_purList.add(rmap);
         
@@ -434,7 +473,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 			         String In_Count = element.get("In_Count");
 			         
 			         fm_element.put("Pur_Pri", String.valueOf(Double.valueOf(Pur_Pri) + Double.valueOf(fm_Pur_Pri)));
-			         fm_element.put("In_Count",String.valueOf(Integer.valueOf(In_Count) + Integer.valueOf(fm_In_Count))   );
+			         fm_element.put("In_Count",String.valueOf(Integer.valueOf(In_Count) + Integer.valueOf(fm_In_Count)));
 		         }
 	         }
 	         
@@ -459,6 +498,21 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	}
  	
 
+	//Comparator 를 만든다.
+	 private final static Comparator<HashMap<String, String>> myComparator= new Comparator<HashMap<String, String>>() {
+
+	    private final Collator   collator = Collator.getInstance();
+	  
+		@Override
+		public int compare(HashMap<String, String> lhs, HashMap<String, String> rhs) {
+			String In_Num1 = lhs.get("Office_Code");
+			String In_Num2 = rhs.get("Office_Code");
+			
+			return collator.compare(In_Num1, In_Num2);
+		}
+	};
+
+	 
 	// MSSQL
 	public void sendAllData(){
 		
@@ -470,44 +524,122 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 
 		tableName = String.format("InD_%04d%02d", year, month);
 		tableName2 = String.format("InT_%04d%02d", year, month);
-		Log.i("m_purList", String.valueOf(m_purList.size()));
 		
-		// TODO: 소트 데이터
-		List<HashMap<String, String>> purList = new ArrayList<HashMap<String, String>>();
-		for ( int i = 0; i < m_purList.size(); i++ ) {
-		}
-		 
-	    makeJunPyo();
-		 // 쿼리 작성하기
-		String query =  "";
-		for ( int i = 0; i < m_purList.size(); i++ ) {
+		// 거래처기준으로 정렬
+		Collections.sort(m_purList, myComparator);
+		
+		 // 쿼리 작성하기 (Ind 테이블)
+		String query =  "", prevOffice_Code ="", curOffice_Code ="";
+		String junpyo = makeJunPyo();
+
+		double TTPur_Pri =0, TTAdd_Tax =0, TFPur_Pri =0, In_TPri =0, In_FPri =0, In_Pri =0, In_RePri =0;
+		double TSell_Pri =0, In_SellPri =0, Bot_Pri =0, Bot_SellPri =0, Profit_Pri =0, Profit_Rate =0;
+			    
+		for ( int i = 0, seq=0, tseq=0; i < m_purList.size(); i++, seq++ ) {
+			
+			HashMap<String, String> pur = m_purList.get(i);
+			curOffice_Code = pur.get("Office_Code");
+			// 새로운 거래처이면 새로운 전표 발행
+			if (!prevOffice_Code.equals(curOffice_Code)) {			
+				junpyo = makeJunPyo();
+				seq =0;
+			}
+			prevOffice_Code = pur.get("Office_Code");
 
 		    query +=  "insert into " + tableName 
-		    		+ "(In_Num, In_BarCode, In_YN, In_Gubun, In_Date, BarCode, In_Seq, Office_Code, Office_Name, "
-		    		+ "In_Count, Pur_Pri, Sell_Pri, Profit_Rate, Write_Date, Edit_Date, Writer, Editor) " 
-		    		+ " values ("
-		    		+ "'" + m_junpyo + "', "
-				    + "'" + m_junpyo + "', "
-				    + "'1', "
-				    + "'3', "
-				    + "'" + m_purList.get(i).get("In_Date").toString() + "', "
-		    		+ "'" + m_purList.get(i).get("BarCode").toString() + "', "
-		    		+ "'" + i + "', "
-		    		+ "'" + m_purList.get(i).get("Office_Code").toString() + "', "
-		    		+ "'" + m_purList.get(i).get("Office_Name").toString() + "', "
-				    + "'" + m_purList.get(i).get("In_Count").toString() + "', "
-					+ "'" + m_purList.get(i).get("Pur_Pri").toString() + "', "
-					+ "'" + m_purList.get(i).get("Sell_Pri").toString() + "', "
-					+ "'" + m_purList.get(i).get("Profit_Rate").toString() + "', "
-					+ "'" + period + "', "
-					+ "'" + period + "', "
-					+ "'" + m_id + "', "
-		    		+ "'" + m_id + "');";
+		    		+ "(In_Num, In_BarCode, In_YN, In_Gubun, In_Date, BarCode, In_Seq, Office_Code, Office_Name, Tax_YN, "
+		    		+ "In_Count, Pur_Pri, Org_PurPri, Pur_Cost, Add_Tax, TPur_Pri, TPur_Cost, TAdd_Tax, In_Pri, "
+		    		+ "Sell_Pri, Org_SellPri, TSell_Pri, In_SellPri, Profit_Pri, Profit_Rate, "
+		    		+ "Write_Date, Edit_Date, Writer, Editor) " + " values ("		    		
+		    		+ "'" + junpyo + "', "
+				    + "'" + junpyo + "', "
+				    + "'" + pur.get("In_YN").toString() + "', "
+				    + "'" + pur.get("In_Gubun").toString() + "', "
+				    + "'" + pur.get("In_Date").toString() + "', "
+		    		+ "'" + pur.get("BarCode").toString() + "', "
+		    		+ "'" + seq + "', "
+		    		+ "'" + pur.get("Office_Code").toString() + "', "
+		    		+ "'" + pur.get("Office_Name").toString() + "', "
+				    + "'" + pur.get("Tax_YN").toString() + "', "
+				    + "'" + pur.get("In_Count").toString() + "', "
+					+ "'" + pur.get("Pur_Pri").toString() + "', "
+					+ "'" + pur.get("Org_PurPri").toString() + "', "
+					+ "'" + pur.get("Pur_Cost").toString() + "', "
+					+ "'" + pur.get("Add_Tax").toString() + "', "
+					+ "'" + pur.get("TPur_Pri").toString() + "', "
+					+ "'" + pur.get("TPur_Cost").toString() + "', "
+					+ "'" + pur.get("TAdd_Tax").toString() + "', "
+					+ "'" + pur.get("In_Pri").toString() + "', "
+					+ "'" + pur.get("Sell_Pri").toString() + "', "
+					+ "'" + pur.get("Org_SellPri").toString() + "', "
+					+ "'" + pur.get("TSell_Pri").toString() + "', "
+					+ "'" + pur.get("In_SellPri").toString() + "', "
+					+ "'" + pur.get("Profit_Pri").toString() + "', "
+					+ "'" + pur.get("Profit_Rate").toString() + "', "
+					+ "'" + pur.get("Write_Date").toString() + "', "
+					+ "'" + pur.get("Edit_Date").toString() + "', "
+					+ "'" + pur.get("Writer").toString() + "', "
+					+ "'" + pur.get("Editor").toString() + "');";	
+		    
+		    // InT용 데이터 누적시킴
+		    String Tax_YN = pur.get("Tax_YN"); //과세여부(0:면세,1:과세)
+		    String In_YN = pur.get("In_YN");	//매입여부(0:반품,1:매입,2:행사반품,3:행사매입)
+
+			TTAdd_Tax += Double.valueOf(pur.get("Add_Tax"));	//총 과세 부가세
+			if (Tax_YN.equals("1")) TTPur_Pri += Double.valueOf(pur.get("TPur_Pri"));	//총 과세매입가(공병제외)
+			if (Tax_YN.equals("0")) TFPur_Pri+= Double.valueOf(pur.get("TPur_Pri"));	//총 면세매입가(공병제외)
+			if (Tax_YN.equals("1")) In_TPri+= Double.valueOf(pur.get("In_Pri"));		//총 과세매입가(공병포함)
+			if (Tax_YN.equals("0")) In_FPri+= Double.valueOf(pur.get("In_Pri"));		//총 면세매입가(공병포함)
+			In_Pri+= Double.valueOf(pur.get("In_Pri"));		//총 매입가(공병포함)
+			if (In_YN.equals("0")) In_RePri+= Double.valueOf(pur.get("In_Pri"));		//총 반품가(공병포함)
+			TSell_Pri+= Double.valueOf(pur.get("TSell_Pri"));	//총 판매가(공병제외)
+			In_SellPri+= Double.valueOf(pur.get("In_SellPri"));	//총 판매가(공병포함)
+			Bot_Pri+= Double.valueOf(pur.get("Bot_Pur"));		//공병 총 매입가
+			Bot_SellPri+= Double.valueOf(pur.get("Bot_Sell"));	//공병 총 판매가
+			Profit_Pri = In_SellPri - In_Pri;
+			Profit_Rate = Profit_Pri / In_SellPri *100;
+
+			// 마지막이거나 다음것이 새로운 거래처이면, 이전까지 합산것데이터로 InT 쿼리생성
+			if (m_purList.size() >= i+1) {
+				if (m_purList.size() > i+1) {
+					HashMap<String, String> nextPur = m_purList.get(i+1);
+					if (curOffice_Code.equals(nextPur.get("Office_Code")))continue;
+				}
+				
+				query +=  "insert into " + tableName2 
+			    		+ "(In_Num, In_Date, In_Seq, Office_Code, Office_Name, "
+			    		+ "TTPur_Pri, TTAdd_Tax, TFPur_Pri, In_TPri, In_FPri, In_Pri, In_RePri "
+			    		+ "TSell_Pri, In_SellPri, Bot_Pri, Bot_SellPri, Profit_Pri, Profit_Rate, "
+			    		+ "Write_Date, Edit_Date, Writer, Editor) " + " values ("
+			    		+ "'" + junpyo + "', "
+					    + "'" + pur.get("In_Date").toString() + "', "
+			    		+ "'" + tseq++ + "', "
+			    		+ "'" + pur.get("Office_Code").toString() + "', "
+			    		+ "'" + pur.get("Office_Name").toString() + "', "				    		
+					    + "'" + String.valueOf(TTPur_Pri) + "', "
+					    + "'" + String.valueOf(TTAdd_Tax) + "', "
+					    + "'" + String.valueOf(TFPur_Pri) + "', "
+					    + "'" + String.valueOf(In_TPri) + "', "
+					    + "'" + String.valueOf(In_FPri) + "', "
+					    + "'" + String.valueOf(In_Pri) + "', "
+					    + "'" + String.valueOf(In_RePri) + "', "
+					    + "'" + String.valueOf(TSell_Pri) + "', "
+					    + "'" + String.valueOf(In_SellPri) + "', "
+					    + "'" + String.valueOf(Bot_Pri) + "', "
+					    + "'" + String.valueOf(Bot_SellPri) + "', "
+					    + "'" + String.valueOf(Profit_Pri) + "', "
+					    + "'" + String.valueOf(Profit_Rate) + "', "				    		
+						+ "'" + pur.get("Write_Date").toString() + "', "
+						+ "'" + pur.get("Edit_Date").toString() + "', "
+						+ "'" + pur.get("Writer").toString() + "', "
+						+ "'" + pur.get("Editor").toString() + "');";				
+			}
 		}
 
-	    query += " select * from " + tableName + " where In_Num='" + m_junpyo +"';";
-	    Log.i("qeury", query);
+	    query += " select * from " + tableName + " where In_Num='" + junpyo +"';";
 	    
+	    Log.i("r", query);
+	    if (true )return;
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
@@ -578,8 +710,6 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
 	
-	
-
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{    
@@ -675,10 +805,15 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 				dialog.cancel();
 				
 				if (results.length() > 0) {
-					try {						
+					try {			
+						m_tempProduct = JsonHelper.toStringHashMap(results.getJSONObject(0));
 						m_textProductName.setText(results.getJSONObject(0).getString("G_Name"));						
 						m_et_purchasePrice.setText(results.getJSONObject(0).getString("Pur_Pri"));
 						m_et_salePrice.setText(results.getJSONObject(0).getString("Sell_Pri"));
+						m_profitRatio.setText(results.getJSONObject(0).getString("Profit_Rate"));
+						m_customerCode.setText(results.getJSONObject(0).getString("Bus_Code"));
+						m_customerName.setText(results.getJSONObject(0).getString("Bus_Name"));
+						m_amount.setText("1");
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}
