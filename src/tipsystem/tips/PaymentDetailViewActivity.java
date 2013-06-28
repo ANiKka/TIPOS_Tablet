@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import android.os.Bundle;
 import android.app.ActionBar;
@@ -24,6 +25,11 @@ import android.support.v4.app.NavUtils;
 
 public class PaymentDetailViewActivity extends Activity {
 	
+	JSONObject m_shop;
+	
+	String m_ip = "122.49.118.102";
+	String m_port = "18971";
+	
 	ListView m_listPaymentView;
 	
 	TextView m_period1;
@@ -38,6 +44,15 @@ public class PaymentDetailViewActivity extends Activity {
 		setContentView(R.layout.activity_payment_detail_view);
 		// Show the Up button in the action bar.
 		setupActionBar();
+		
+		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
+	       
+        try {
+			m_ip = m_shop.getString("SHOP_IP");
+	        m_port = m_shop.getString("SHOP_PORT");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 		
 		m_listPaymentView = (ListView)findViewById(R.id.listviewPaymentDetailViewList);
 		
@@ -84,7 +99,7 @@ public class PaymentDetailViewActivity extends Activity {
 			public void onRequestCompleted(JSONArray results) {
 				setListItems(results);
 			}
-		}).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+		}).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 		
 
 	

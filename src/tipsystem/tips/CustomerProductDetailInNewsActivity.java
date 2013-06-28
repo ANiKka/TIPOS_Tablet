@@ -14,6 +14,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
 import android.os.AsyncTask;
@@ -34,6 +35,8 @@ public class CustomerProductDetailInNewsActivity extends Activity {
 
 	ListView m_listPurchaseDetail;
 	
+	JSONObject m_shop;
+	
 	String m_ip = "122.49.118.102";
 	String m_port = "18971";
 	NumberFormat m_numberFormat;
@@ -45,6 +48,16 @@ public class CustomerProductDetailInNewsActivity extends Activity {
 		setContentView(R.layout.activity_customer_product_detail_in_news);
 		// Show the Up button in the action bar.
 		setupActionBar();
+		
+		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
+	       
+        try {
+			m_ip = m_shop.getString("SHOP_IP");
+	        m_port = m_shop.getString("SHOP_PORT");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
 		
 		m_listPurchaseDetail= (ListView)findViewById(R.id.listviewCustomerProductDetailInNews);
 		

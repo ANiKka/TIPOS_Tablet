@@ -14,6 +14,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
 import android.os.AsyncTask;
@@ -39,13 +40,13 @@ public class CustomerProductDetailViewActivity extends Activity {
 	TextView m_customerCode;
 	TextView m_customerName;
 	
+	JSONObject m_shop;
 	String m_ip = "122.49.118.102";
 	String m_port = "18971";
+	
 	NumberFormat m_numberFormat;
 	ProgressDialog dialog;
-	
-	int m_queryCount1 = 0;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -53,11 +54,22 @@ public class CustomerProductDetailViewActivity extends Activity {
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
+		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
+	       
+        try {
+			m_ip = m_shop.getString("SHOP_IP");
+	        m_port = m_shop.getString("SHOP_PORT");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+        
+		
 		m_numberFormat = NumberFormat.getInstance();
 		
 		m_listDetailView= (ListView)findViewById(R.id.listviewCustomerProductDetailViewList);
 		m_period1 = (TextView)findViewById(R.id.textViewPeriod1);
 		m_period2 = (TextView)findViewById(R.id.textViewPeriod2);
+		m_customerCode = (TextView)findViewById(R.id.textViewCustomerCode);
 		m_customerName = (TextView)findViewById(R.id.textViewCustomerName);
 		
 		Intent intent = getIntent();
@@ -80,7 +92,6 @@ public class CustomerProductDetailViewActivity extends Activity {
  		dialog.setCancelable(false);
  		dialog.show();
  		
-		//new MyAsyncTask().execute(period1, period2, customerCode, customerName);
 		executeQuery(period1, period2, customerCode, customerName);
 	}
 
@@ -100,19 +111,6 @@ public class CustomerProductDetailViewActivity extends Activity {
 		
 		getActionBar().setDisplayHomeAsUpEnabled(false);
 
-	}
-	
-	private void setListDetail(List<HashMap<String, String>> fillMaps)
-	{
-		 // create the grid item mapping
-		String[] from = new String[] {"Barcode", "G_Name", "Sale_Count", "rSale"};
-        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-		
-		// fill in the grid_item layout
-		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
-				from, to);
-		
-		m_listDetailView.setAdapter(adapter);
 	}
 
 	@Override
@@ -159,10 +157,6 @@ public class CustomerProductDetailViewActivity extends Activity {
 		String tableName = null;
 		String constraint = "";
 
-		final List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		
-		m_queryCount1 = 0;
-		
 		for ( int y = year1; y <= year2; y++ )
 		{
 			for ( int m = month1; m <= month2; m++ )
@@ -179,7 +173,7 @@ public class CustomerProductDetailViewActivity extends Activity {
 					constraint = setConstraint(constraint, "Office_Name", "=", customerName);
 				}
 				
-    			query = "select Barcode, G_Name, Sale_Count, TSell_Pri, TSell_RePri, DC_Pri from " + tableName;
+    			query = query + "select Barcode, G_Name, Sale_Count, TSell_Pri, TSell_RePri, DC_Pri from " + tableName;
     			query = query + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
    			
     			if ( constraint.equals("") != true )
@@ -187,60 +181,78 @@ public class CustomerProductDetailViewActivity extends Activity {
     				query = query + " and " + constraint;
     			}
     			
-    			m_queryCount1 = m_queryCount1 + 1;
-    			
-    			new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-    				@Override
-    				public void onRequestCompleted(JSONArray results) {
-    					try {
-    						
-    						if ( results.length() > 0 )
-    						{
-    							
-    							for(int i = 0; i < results.length() ; i++)
-								{
-									JSONObject son = results.getJSONObject(i);
-									
-									String code = son.getString("Barcode");
-			        				String name = son.getString("G_Name");
-			        				int saleCount = son.getInt("Sale_Count");
-			        				int tSell = son.getInt("TSell_Pri");
-			        				int tRSell = son.getInt("TSell_RePri");
-			        				int dcPri = son.getInt("DC_Pri");
-			        				int rSale = tSell - (tRSell + dcPri);
-			        				
-			        				HashMap<String, String> map = new HashMap<String, String>();
-									map.put("Barcode", code );
-									map.put("G_Name", name);
-									map.put("Sale_Count", m_numberFormat.format(saleCount) );
-									map.put("rSale", m_numberFormat.format(rSale) );
-									fillMaps.add(map);
-									
-								}
-    							
-    							if ( m_queryCount1 == 0 )
-								{
-	    					        setListDetail(fillMaps);
-	    							
-	    							Toast.makeText(getApplicationContext(), "조회 완료" + results.length(), Toast.LENGTH_SHORT).show();
-	    							dialog.cancel();
-								}
-    						}
-    						else 
-    						{
-    							dialog.cancel();
-    						}
-    						
-    		    		} catch (JSONException e) {
-    		    			e.printStackTrace();
-    		    			dialog.cancel();
-    		    		}
-    					
-    				}
-    		    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+    			query = query + "; ";
     			
 			}
+		}
+		
+		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				updateList(results);
+				
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+		
+		
+	}
+	
+	private void updateList(JSONArray results)
+	{
+
+		String[] from = new String[] {"Barcode", "G_Name", "Sale_Count", "rSale"};
+        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
+		
+		try {
+			
+			if ( results.length() > 0 )
+			{
+				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+				
+				for(int i = 0; i < results.length() ; i++)
+				{
+					JSONObject son = results.getJSONObject(i);
+					
+					String code = son.getString("Barcode");
+    				String name = son.getString("G_Name");
+    				int saleCount = son.getInt("Sale_Count");
+    				int tSell = son.getInt("TSell_Pri");
+    				int tRSell = son.getInt("TSell_RePri");
+    				int dcPri = son.getInt("DC_Pri");
+    				int rSale = tSell - (tRSell + dcPri);
+    				
+    				HashMap<String, String> map = new HashMap<String, String>();
+					map.put("Barcode", code );
+					map.put("G_Name", name);
+					map.put("Sale_Count", m_numberFormat.format(saleCount) );
+					map.put("rSale", m_numberFormat.format(rSale) );
+					fillMaps.add(map);
+					
+				}
+								
+				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
+						from, to);
+				
+				m_listDetailView.setAdapter(adapter);
+
+			}
+			else 
+			{
+				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
+						from, to);
+				
+				m_listDetailView.setAdapter(adapter);
+
+			}
+			
+			dialog.cancel();
+			Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+			dialog.cancel();
 		}
 	}
  
