@@ -370,7 +370,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
  		dialog.show();
  		
  		switch (m_tabHost.getCurrentTab())
@@ -494,7 +493,9 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
-				
+
+				dialog.dismiss();
+				dialog.cancel();
 				updateListForTab1(results);
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
@@ -589,12 +590,8 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 				
 			}
 			
-			dialog.cancel();
-			
-			
 		} catch (JSONException e) {
 			e.printStackTrace();
-			dialog.cancel();
 		}
 	}
 	
@@ -661,7 +658,9 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
-				
+
+				dialog.dismiss();
+				dialog.cancel();
 				updateListForTab2(results);
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
@@ -754,14 +753,9 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 				
 				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
 				
-			}
-			
-			dialog.cancel();
-			
-			
+			}			
 		} catch (JSONException e) {
-			e.printStackTrace();
-			dialog.cancel();
+			e.printStackTrace();			
 		}
 		
 	}
@@ -831,7 +825,9 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
-				
+
+				dialog.dismiss();
+				dialog.cancel();
 				updateListForTab3(results);
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
@@ -919,13 +915,8 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
 				
 			}
-			
-			dialog.cancel();
-			
-			
 		} catch (JSONException e) {
 			e.printStackTrace();
-			dialog.cancel();
 		}
 		
 	}
@@ -950,7 +941,9 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
-				
+
+				dialog.dismiss();
+				dialog.cancel();
 				updateListForTab4(results);
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
@@ -1019,13 +1012,8 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
 				
 			}
-			
-			dialog.cancel();
-			
-			
 		} catch (JSONException e) {
 			e.printStackTrace();
-			dialog.cancel();
 		}
 		
 	}
