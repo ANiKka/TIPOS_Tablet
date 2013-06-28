@@ -509,16 +509,14 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 										
 										m_listPurchaseTab1.setAdapter(adapter);
 										Toast.makeText(getApplicationContext(), "조회 완료" + results.length(), Toast.LENGTH_SHORT).show();
-										//dialog.cancel();
+										
 									}
  								}
 								else 
 								{
-									dialog.cancel();
 								}
 				    		} catch (JSONException e) {
 				    			e.printStackTrace();
-				    			dialog.cancel();
 				    		}
 							
 						}

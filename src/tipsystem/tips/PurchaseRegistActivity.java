@@ -21,10 +21,8 @@ import com.dm.zbar.android.scanner.ZBarScannerActivity;
 
 import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
-import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -53,6 +51,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 
+// 매입등록
 public class PurchaseRegistActivity extends Activity implements OnItemClickListener, OnDateSetListener{
 
 	private static final int ZBAR_SCANNER_REQUEST = 0;
@@ -89,6 +88,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	EditText m_amount;
 	EditText m_profitRatio;
 	Button m_bt_barcodeSearch;
+	CheckBox m_checkBoxRejectedProduct;
 	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
 
 	String[] from = new String[] {"BarCode", "Office_Name", "Pur_Pri", "In_Count"};
@@ -134,11 +134,12 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		m_amount = (EditText)findViewById(R.id.editTextAmount);
 		m_profitRatio = (EditText)findViewById(R.id.editTextProfitRatio);
 		m_bt_barcodeSearch = (Button)findViewById(R.id.buttonBarcode);
+		m_checkBoxRejectedProduct = (CheckBox)findViewById(R.id.checkBoxRejectedProduct);
 		
 		m_dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
 		m_dateCalender1 = Calendar.getInstance();
 		m_period.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
-
+		
 		// 전송대기목록 뷰에 값 전달
 		Button saveButton = (Button)findViewById(R.id.buttonSave);
 		saveButton.setOnClickListener(new OnClickListener() {
@@ -157,7 +158,6 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 				m_selectedListIndex = -1;
 	        }
 		});
-
 
 		btn_Delete.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
@@ -179,6 +179,56 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 				m_selectedListIndex = -1;
 			}			
 		});
+
+		// 바코드 입력 후 포커스 딴 곳을 옮길 경우
+		m_textBarcode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			//@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+			    if(!hasFocus){
+			    	String barcode = m_textBarcode.getText().toString();
+			    	if(!barcode.equals("")) // 입력한 Barcode가 값이 있을 경우만
+			    		doQueryWithBarcode();	    	
+			    }
+			}
+		});
+		// 매입원가 + 이익률로 판매가
+		m_et_purchasePrice.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			//@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+			    if(!hasFocus){
+			    	calculateProfitRatio();
+			    }
+			}
+		});
+		// 매입원가 + 이익률로 판매가
+		m_et_salePrice.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			//@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+			    if(!hasFocus){
+			    	calculateProfitRatio();
+			    }
+			}
+		});
+		// 매입원가 + 이익률로 판매가
+		m_profitRatio.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			//@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+			    if(!hasFocus){
+			    	String ratio = m_profitRatio.getText().toString();
+			    	String purchasePrice = m_et_purchasePrice.getText().toString();
+			    	String salePrice = m_et_salePrice.getText().toString();
+			    	
+			    	if(!ratio.equals("") && !purchasePrice.equals("")&& !salePrice.equals("")) {
+			    		
+			    		float f_ratio =  Float.valueOf(ratio).floatValue();
+			    		float f_purchasePrice =  Float.valueOf(purchasePrice).floatValue();
+			    		float f_salePrice =  Float.valueOf(salePrice).floatValue();
+			    		f_purchasePrice = f_salePrice - (f_salePrice * f_ratio / 100) ;
+			    		m_et_purchasePrice.setText(String.valueOf(f_purchasePrice));
+			    	}
+			    }
+			}
+		});
 		
 		m_listReadyToSend.setOnItemClickListener(this);
       
@@ -190,15 +240,26 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	    getSeq();
 	}
 
+	private void calculateProfitRatio() {
+		String ratio = m_profitRatio.getText().toString();
+    	String purchasePrice = m_et_purchasePrice.getText().toString();
+    	String salePrice = m_et_salePrice.getText().toString();
+    	
+    	if(!ratio.equals("") && !purchasePrice.equals("")&& !salePrice.equals("")) {
+    		
+    		float f_ratio =  Float.valueOf(ratio).floatValue();
+    		float f_purchasePrice =  Float.valueOf(purchasePrice).floatValue();
+    		float f_salePrice =  Float.valueOf(salePrice).floatValue();
+    		f_ratio = (f_salePrice - f_purchasePrice) / f_salePrice * 100 ;
+    		m_profitRatio.setText(String.valueOf(f_ratio));
+    	}
+	}
 	/**
 	 * Set up the {@link android.app.ActionBar}.
 	 */
 	private void setupActionBar() {
 
-		ActionBar actionbar = getActionBar();         
-//		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-//		actionbar.setCustomView(custom_action_bar);
-
+		ActionBar actionbar = getActionBar();
 		actionbar.setDisplayShowHomeEnabled(false);
 		actionbar.setDisplayShowTitleEnabled(true);
 		actionbar.setDisplayShowCustomEnabled(true);
@@ -300,7 +361,6 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
         return junpyo;        
 	}
 	
-
 	public void deleteData() {
 		
 		if ( m_selectedListIndex == -1) {
@@ -321,7 +381,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		m_adapter.notifyDataSetChanged();		
 		m_purList.removeAll(m_purList);		
 		m_selectedListIndex = -1;
-	}	
+	}
 
 	public void clearInputBox () {
 		m_customerCode.setText("");
@@ -333,6 +393,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		m_et_salePrice.setText("");
 		m_amount.setText("");
 		m_profitRatio.setText("");
+		m_checkBoxRejectedProduct.setChecked(false);
 	}
 
 	public void changeInputMode (int mode) {
@@ -377,7 +438,8 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		String purchasePrice = m_et_purchasePrice.getText().toString();
 		String salePrice = m_et_salePrice.getText().toString();
 		String amount = m_amount.getText().toString();				
-		String profitRatio = m_profitRatio.getText().toString();	
+		String profitRatio = m_profitRatio.getText().toString();
+		String In_YN =(m_checkBoxRejectedProduct.isChecked())? "0":"1";	//매입여부(0:반품,1:매입,2:행사반품,3:행사매입)
 		
 		// 비어 있는 값 확인
 	    if(code.equals("") || name.equals("") || purchaseDate.equals("") || barcode.equals("") ||
@@ -395,8 +457,8 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		String Bot_Pur = m_tempProduct.get("Bot_Pur");	// 공병매입가 
 		String Bot_Sell = m_tempProduct.get("Bot_Sell");	// 공병매출가
 		String Tax_YN = m_tempProduct.get("Tax_YN");		// 과세여부(0:면세,1:과세)
-		//String Tax_Gubun = m_tempProduct.getString("Tax_Gubun");	// 부가세구분(0:별도,1:포함)
-		
+		String Tax_Gubun = m_tempProduct.get("VAT_CHK");	// 부가세구분(0:별도,1:포함)
+
 		if (Bot_Pur == null) Bot_Pur = "0";
 		if (Bot_Sell == null) Bot_Sell = "0";
 		
@@ -406,7 +468,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		String period = m_period.getText().toString();
 		    
         HashMap<String, String> rmap = new HashMap<String, String>();        
-    	rmap.put("In_YN", "1");
+    	rmap.put("In_YN", In_YN);
     	rmap.put("In_Gubun", "3");
     	rmap.put("In_Date", period);
         rmap.put("BarCode", barcode);
@@ -414,7 +476,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
         rmap.put("Office_Code", code);
         rmap.put("Office_Name", name);
         rmap.put("Tax_YN", Tax_YN);
-        //rmap.put("Tax_Gubun", Tax_Gubun);
+        rmap.put("Tax_Gubun", Tax_Gubun);
         rmap.put("In_Count", amount);			// 수량 
         rmap.put("Pur_Pri", purchasePrice);		//매입가
         rmap.put("Org_PurPri", Org_PurPri);
@@ -546,8 +608,9 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 			}
 			prevOffice_Code = pur.get("Office_Code");
 
+			// 매입상세 (InD)
 		    query +=  "insert into " + tableName 
-		    		+ "(In_Num, In_BarCode, In_YN, In_Gubun, In_Date, BarCode, In_Seq, Office_Code, Office_Name, Tax_YN, "
+		    		+ "(In_Num, In_BarCode, In_YN, In_Gubun, In_Date, BarCode, In_Seq, Office_Code, Office_Name, Tax_YN, Tax_Gubun, "
 		    		+ "In_Count, Pur_Pri, Org_PurPri, Pur_Cost, Add_Tax, TPur_Pri, TPur_Cost, TAdd_Tax, In_Pri, "
 		    		+ "Sell_Pri, Org_SellPri, TSell_Pri, In_SellPri, Profit_Pri, Profit_Rate, "
 		    		+ "Write_Date, Edit_Date, Writer, Editor) " + " values ("		    		
@@ -561,6 +624,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		    		+ "'" + pur.get("Office_Code").toString() + "', "
 		    		+ "'" + pur.get("Office_Name").toString() + "', "
 				    + "'" + pur.get("Tax_YN").toString() + "', "
+					+ "'" + pur.get("Tax_Gubun").toString() + "', "
 				    + "'" + pur.get("In_Count").toString() + "', "
 					+ "'" + pur.get("Pur_Pri").toString() + "', "
 					+ "'" + pur.get("Org_PurPri").toString() + "', "
@@ -580,7 +644,39 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 					+ "'" + pur.get("Edit_Date").toString() + "', "
 					+ "'" + pur.get("Writer").toString() + "', "
 					+ "'" + pur.get("Editor").toString() + "');";	
+
+		    // 거래처 대금 결제 (Office_Settlement)
+		    query += " insert into Office_Settlement ( Sale_Code, Pro_Date, In_Seq, Office_Code, Office_Name, Buy_Pri, "
+		    		+ " Sale_Pri, Sale_Rate, Gubun, Write_Date, Edit_Date, Writer, Editor) Values ("
+		    		+ "'" + junpyo + "', "
+		    		+ "'" + pur.get("In_Date").toString() + "', "
+		    		+ "'" + tseq + "', "
+		    		+ "'" + pur.get("Office_Code").toString() + "', "
+		    		+ "'" + pur.get("Office_Name").toString() + "', "	
+		    		+ "'" + String.valueOf(In_TPri) + "', "
+		    		+ "'0', "
+		    		+ "'0', "
+		    		+ "'" + junpyo + "', "
+					+ "'" + pur.get("Write_Date").toString() + "', "
+					+ "'" + pur.get("Edit_Date").toString() + "', "
+					+ "'" + pur.get("Writer").toString() + "', "
+					+ "'" + pur.get("Editor").toString() + "');";
 		    
+		    // 재고등록
+		    query += "update Goods Set Real_Sto=Real_Sto + IsNull(B.In_Count,0) "
+		    		+ "From Goods A Inner Join ( Select Barcode, Sum (In_Count) In_Count "
+		    		+ " From (Select A.BarCode, IsNull(Sum(A.In_Count),0) In_Count "
+		    			+ " From " + tableName + " A, Goods B "
+	    				+ " Where A.Barcode=B.Barcode AND A.Box_Use='0' AND A.Pack_Use='0' AND A.In_Num ='" + junpyo + "' Group by A.Barcode "
+		    			+ " Union All Select B.BarCode1.IsNull(Sum(A.In_Count * IsNull(B.Obtain,0)), 0) In_Count "
+		    			+ " From " + tableName + " A, Goods B "
+		    			+ "  Where A.Barcode=B.Barcode AND A.Box_Use='1' AND A.In_Num = '" + junpyo + "' Group By B.BarCode1 "
+		    			+ " Union All Select C.C_BARCODE BARCODE, IsNull(Sum(In_Count*C.G_COUNT), 0) InD_Count "
+		    			+ " From " + tableName+ " A, Goods B, Bundle C "
+		    			+ "  Where A.BARCODE=B.BARCODE AND A.BARCODE=C.P_BARCODE AND A.PACK_USE='1' AND A.In_NUm='" + junpyo +"' Group By C.C_BARCODE) " 
+		    			+ " X Group By Barcode )" 
+		    		+ " B On A.Barcode=B.Barcode;";	    		
+
 		    // InT용 데이터 누적시킴
 		    String Tax_YN = pur.get("Tax_YN"); //과세여부(0:면세,1:과세)
 		    String In_YN = pur.get("In_YN");	//매입여부(0:반품,1:매입,2:행사반품,3:행사매입)
@@ -599,16 +695,17 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 			Profit_Pri = In_SellPri - In_Pri;
 			Profit_Rate = Profit_Pri / In_SellPri *100;
 
-			// 마지막이거나 다음것이 새로운 거래처이면, 이전까지 합산것데이터로 InT 쿼리생성
+			// 마지막이거나 다음것이 새로운 거래처이면, 
 			if (m_purList.size() >= i+1) {
 				if (m_purList.size() > i+1) {
 					HashMap<String, String> nextPur = m_purList.get(i+1);
 					if (curOffice_Code.equals(nextPur.get("Office_Code")))continue;
 				}
 				
+				// 매입총괄(InT) 쿼리생성 
 				query +=  "insert into " + tableName2 
 			    		+ "(In_Num, In_Date, In_Seq, Office_Code, Office_Name, "
-			    		+ "TTPur_Pri, TTAdd_Tax, TFPur_Pri, In_TPri, In_FPri, In_Pri, In_RePri "
+			    		+ "TTPur_Pri, TTAdd_Tax, TFPur_Pri, In_TPri, In_FPri, In_Pri, In_RePri, "
 			    		+ "TSell_Pri, In_SellPri, Bot_Pri, Bot_SellPri, Profit_Pri, Profit_Rate, "
 			    		+ "Write_Date, Edit_Date, Writer, Editor) " + " values ("
 			    		+ "'" + junpyo + "', "
@@ -632,14 +729,20 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 						+ "'" + pur.get("Write_Date").toString() + "', "
 						+ "'" + pur.get("Edit_Date").toString() + "', "
 						+ "'" + pur.get("Writer").toString() + "', "
-						+ "'" + pur.get("Editor").toString() + "');";				
+						+ "'" + pur.get("Editor").toString() + "');";	
+
+				// 미수금액 업데이트
+				String Dec_Pri = String.valueOf(In_TPri);
+			    query += " update Office_Manage Set Dec_Pri = IsNull(Dec_Pri, 0) + '"+Dec_Pri+"' where Office_Code='" + junpyo +"';";
+			    
 			}
 		}
-
+		
 	    query += " select * from " + tableName + " where In_Num='" + junpyo +"';";
 	    
 	    Log.i("r", query);
-	    if (true )return;
+	    //if (true )return;
+	    
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
@@ -666,7 +769,8 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 				Toast.makeText(getApplicationContext(), "전송실패("+String.valueOf(code)+"):" + msg, Toast.LENGTH_SHORT).show();
 			}
 			
-	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	    //}).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+    	}).execute("122.49.118.102"+":"+"18971", "TIPS", "sa", "tips", query);
 	}
 		
 	//전표갯수를 구함
@@ -797,7 +901,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
  		dialog.show();
 
 	    // 콜백함수와 함께 실행
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
@@ -819,8 +923,37 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 					}
 				}
 				else {
-					Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+					//새로등록
+			        DialogInterface.OnClickListener newBarcodeListener = new DialogInterface.OnClickListener(){
+			              @Override
+			              public void onClick(DialogInterface dialog, int which){
+
+						    String barcode = m_textBarcode.getText().toString();
+						    	
+			          		Intent intent = new Intent(PurchaseRegistActivity.this, ManageProductActivity.class);
+			          		intent.putExtra("barcode", barcode);
+			              	startActivity(intent);
+			              }
+			        };
+			        
+			        DialogInterface.OnClickListener cancelListener = new DialogInterface.OnClickListener(){
+			              @Override
+			              public void onClick(DialogInterface dialog, int which){
+			                dialog.dismiss();
+			              }
+			        };
+			        
+			        new AlertDialog.Builder(PurchaseRegistActivity.this)
+			      .setTitle("등록되지않은 바코드입니다")
+			      .setNeutralButton("새로등록", newBarcodeListener)
+			      .setNegativeButton("취소", cancelListener)
+			      .show();
 				}
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
 	}

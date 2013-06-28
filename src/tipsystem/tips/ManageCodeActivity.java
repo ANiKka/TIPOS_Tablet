@@ -69,7 +69,7 @@ public class ManageCodeActivity extends Activity {
     	//Intent intent = new Intent(this, SelectShopActivity.class);    	
     	//EditText editText = (EditText) findViewById(R.id.editTextShopCode);
     	//String message = editText.getText().toString();
-    	//intent.putExtra(EXTRA_MESSAGE, message);
+    	intent.putExtra("barcode", "");
     	startActivity(intent);
 	}
 	

@@ -391,7 +391,31 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 					}
 				}
 				else {
-					Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+					//새로등록
+			        DialogInterface.OnClickListener newBarcodeListener = new DialogInterface.OnClickListener(){
+			              @Override
+			              public void onClick(DialogInterface dialog, int which){
+
+						    String barcode = m_textBarcode.getText().toString();
+						    	
+			          		Intent intent = new Intent(ManageStockActivity.this, ManageProductActivity.class);
+			          		intent.putExtra("barcode", barcode);
+			              	startActivity(intent);
+			              }
+			        };
+			        
+			        DialogInterface.OnClickListener cancelListener = new DialogInterface.OnClickListener(){
+			              @Override
+			              public void onClick(DialogInterface dialog, int which){
+			                dialog.dismiss();
+			              }
+			        };
+			        
+			        new AlertDialog.Builder(ManageStockActivity.this)
+			      .setTitle("등록되지않은 바코드입니다")
+			      .setNeutralButton("새로등록", newBarcodeListener)
+			      .setNegativeButton("취소", cancelListener)
+			      .show();
 				}
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
@@ -588,9 +612,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	 */
 	private void setupActionBar() {
 
-		ActionBar actionbar = getActionBar();         
-//		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-//		actionbar.setCustomView(custom_action_bar);
+		ActionBar actionbar = getActionBar();
 
 		actionbar.setDisplayShowHomeEnabled(false);
 		actionbar.setDisplayShowTitleEnabled(true);

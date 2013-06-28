@@ -266,6 +266,9 @@ public class ManageProductActivity extends Activity{
 			    }
 			}
 		});
+		
+		String barcode = getIntent().getStringExtra("barcode");
+		m_textBarcode.setText(barcode);
 	}
 
 	/**
@@ -322,7 +325,6 @@ public class ManageProductActivity extends Activity{
 		m_textSalesPrice.setText(salesPrice);
     }
 	
-
 	// private methods
 	public void updateListView(JSONArray results) {
         
@@ -448,7 +450,6 @@ public class ManageProductActivity extends Activity{
 		m_checkSurtax.setChecked(false);
 	}
 	
-
 	public void doRegister(){
 
 		String query = "";
