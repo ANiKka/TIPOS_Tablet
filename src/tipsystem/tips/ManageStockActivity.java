@@ -3,6 +3,7 @@ package tipsystem.tips;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -15,8 +16,10 @@ import org.json.JSONObject;
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 
+import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.MSSQL2;
 
 import android.os.Bundle;
 import android.app.ActionBar;
@@ -27,6 +30,7 @@ import android.app.ProgressDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -52,8 +56,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	String m_ip = "122.49.118.102";
 	String m_port = "18971";
 
-	String m_junpyo ="";
-	int  m_junpyoIdx = 0;
+	int  m_junpyoInTIdx = 0;
 	
 	DatePicker m_datePicker;
 	SimpleDateFormat m_dateFormatter;	
@@ -67,6 +70,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	String[] from = new String[] {"BarCode", "G_Name", "Real_Sto", "St_Count"};
     int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
     List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+	HashMap<String, String> m_tempProduct =new HashMap<String, String>();
 
 	Button m_period;
 	ListView m_listStock;
@@ -79,7 +83,6 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	Button m_bt_barcodeSearch;
 	private ProgressDialog dialog;
 	
-	 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -100,8 +103,6 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		
 		Button btn_Register = (Button)findViewById(R.id.buttonRegist);
 		Button btn_Renew = (Button)findViewById(R.id.buttonRenew);
-//		Button btn_Modify = (Button)findViewById(R.id.buttonModify);
-		
 		Button btn_Send = (Button)findViewById(R.id.buttonSend);
 		Button btn_Delete = (Button)findViewById(R.id.buttonDelete);
 		Button btn_SendAll = (Button)findViewById(R.id.buttonSendAll);
@@ -126,21 +127,24 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		
 		m_stockList = new ArrayList<HashMap<String, String>>();
 
+        adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, from, to);
+        m_listStock.setAdapter(adapter);
+        
 		btn_Register.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 
-				m_selectedListIndex = -1;
+				if (checkRedundancyData()==false) return;
 				setDataIntoList();
 				changeInputMode(1);
+				clearInputBox();
 			 }			
 		});
 		
 		btn_Renew.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				
-				m_selectedListIndex = -1;
-				clearInputBox();
 				changeInputMode(0);
+				clearInputBox();
 			 }			
 		});
 		
@@ -154,7 +158,6 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		btn_Send.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				// 전체 삭제 기능으로 대체 
-				// TODO: 아이콘 바꾸어야함
 				clearInputBox();
 				deleteListAll();
 			}			
@@ -163,8 +166,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		btn_SendAll.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				sendSelectedAllData();
-
-				m_selectedListIndex = -1;				
+				clearInputBox();			
 			}			
 		});
 		
@@ -182,13 +184,12 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		});
 
 		changeInputMode(0);
-		getSeq();
+		getInTSeq();
 	}
 	
-	public void makeJunPyo () {
+	public String makeJunPyo () {
 
 		String period = m_period.getText().toString();
-		
 		int year = Integer.parseInt(period.substring(0, 4));
 		int month = Integer.parseInt(period.substring(5, 7));
 		int day = Integer.parseInt(period.substring(8, 10));
@@ -202,8 +203,8 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 			e.printStackTrace();
 		}
         
-        m_junpyo = year + month + day + posID + String.format("%04d", m_junpyoIdx);
-        m_junpyoIdx++;
+        String junpyo = String.format("%04d%02d%02d", year, month, day) + posID + String.format("%03d", m_junpyoInTIdx);
+        return junpyo;        
 	}
 
 	public void deleteData() {
@@ -230,6 +231,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 
 	public void clearInputBox () {
 
+		m_selectedListIndex = -1;
 		m_textBarcode.setText("");
 		m_textProductName.setText("");
 		m_et_purchasePrice.setText("");
@@ -239,32 +241,178 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	}
 	
 	public void changeInputMode (int mode) {
-		//m_inputMode = mode;
 		if (mode==0) {
 			m_textBarcode.setEnabled(true);
-			m_textProductName.setEnabled(true);
 			m_period.setEnabled(true);
 			m_bt_barcodeSearch.setEnabled(true);
-			m_et_purchasePrice.setEnabled(true);
-			m_et_salePrice.setEnabled(true);
-			m_et_numOfReal.setEnabled(true);
-			m_et_curStock.setEnabled(true);
 		}
 		else {
-			m_textBarcode.setEnabled(false);
-			m_textProductName.setEnabled(false);
 			m_period.setEnabled(false);
-			m_bt_barcodeSearch.setEnabled(false);
-			m_et_purchasePrice.setEnabled(true);
-			m_et_salePrice.setEnabled(true);
-			m_et_numOfReal.setEnabled(true);
-			m_et_curStock.setEnabled(true);
+			m_textBarcode.setEnabled(true);
+			m_bt_barcodeSearch.setEnabled(true);
 		}
 	}
+	
+	public boolean checkRedundancyData() {
+		String barcode = m_textBarcode.getText().toString();
+		Iterator<HashMap<String, String>> iterator = m_stockList.iterator();		
+	    while (iterator.hasNext()) {
+			HashMap<String, String> element = iterator.next();
+	         String barcodeinList = element.get("BarCode");
+	         if (barcodeinList.equals(barcode)) {
+	        	 Toast.makeText(ManageStockActivity.this, "이미 등록되어 있는 바코드입니다.", Toast.LENGTH_SHORT).show();
+	 			return false;
+	         }
+	    }
+	    return true;
+	}
+	
+	public List<HashMap<String, String>> makeFillvapsWithStockList(){
+		List<HashMap<String, String>> fm = new ArrayList<HashMap<String, String>>();
+	    
+		Iterator<HashMap<String, String>> iterator = m_stockList.iterator();		
+	    while (iterator.hasNext()) {
+			boolean isNew = true;
+			HashMap<String, String> element = iterator.next();
+	         String barcode = element.get("BarCode");
+	        
+	         Iterator<HashMap<String, String>> fm_iterator = fm.iterator();
+	         while (fm_iterator.hasNext()) {
+
+	        	 HashMap<String, String>  fm_element = fm_iterator.next();
+		         String fm_barcode = fm_element.get("BarCode");
+
+		         if (fm_barcode.equals(barcode)) {
+		        	 isNew = false;
+		        	 // 같은게 있으면 fm_element에 추가 
+			         String fm_numOfReal = fm_element.get("Real_Sto");
+			         String fm_curStock = fm_element.get("St_Count");
+			         String numOfReal = element.get("Real_Sto");
+			         String curStock = element.get("St_Count");
+			         
+			         fm_element.put("Real_Sto", String.valueOf(Integer.valueOf(fm_numOfReal) + Integer.valueOf(numOfReal)));
+			         fm_element.put("St_Count", String.valueOf(Integer.valueOf(fm_curStock) + Integer.valueOf(curStock)));
+		         }
+	         }
+	         
+	         if (isNew) {
+		         String productName = element.get("G_Name");
+		         String numOfReal = element.get("Real_Sto");
+		         String curStock = element.get("St_Count");
+		     	 HashMap<String, String> map = new HashMap<String, String>();
+		         map.put("BarCode", barcode);
+		         map.put("G_Name", productName);
+		         map.put("Real_Sto", numOfReal);
+		         map.put("St_Count", curStock);
+		         
+		         fm.add(map);
+		    }
+	    }
+	    
+		return fm;
+	}
+	
+	public void setDataIntoList() {
+		
+		String period = m_period.getText().toString();
+		String barcode = m_textBarcode.getText().toString();
+		String productName = m_textProductName.getText().toString();
+		String purchasePrice = m_et_purchasePrice.getText().toString();
+		String salePrice = m_et_salePrice.getText().toString();
+		String numOfReal = m_et_numOfReal.getText().toString();
+		String curStock = m_et_curStock.getText().toString();
+		
+		if (barcode.equals("") || productName.equals("") || purchasePrice.equals("") || salePrice.equals("") || numOfReal.equals("")|| numOfReal.equals("")) {
+			Toast.makeText(ManageStockActivity.this, "비어있는 필드가 있습니다.", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		
+    	//선택된 상품장의 데이터를 꺼내옴
+		String Bus_Code = m_tempProduct.get("Bus_Code");		// 원매입가 
+		String Pur_Pri = m_tempProduct.get("Pur_Pri");		// 원매입가 
+		String Sell_Pri = m_tempProduct.get("Sell_Pri");	// 원매출가
+		String Pur_Cost = m_tempProduct.get("Pur_Cost");	// 매입원가 
+		String Add_Tax = m_tempProduct.get("Add_Tax");	// 부가세
+		String Bot_Pur = m_tempProduct.get("Bot_Pur");	// 공병매입가 
+		String Bot_Sell = m_tempProduct.get("Bot_Sell");	// 공병매출가
+		String Tax_YN = m_tempProduct.get("Tax_YN");		// 과세여부(0:면세,1:과세)
+		String Tax_Gubun = m_tempProduct.get("VAT_CHK");	// 부가세구분(0:별도,1:포함)
+		String In_YN = m_tempProduct.get("In_YN");	// 부가세구분(0:별도,1:포함)
+		String Box_Use = m_tempProduct.get("Box_Use");	//
+		String Pack_Use = m_tempProduct.get("Pack_Use");	// 
+		String Bot_Code = m_tempProduct.get("Bot_Code");	//
+		String Bot_Name = m_tempProduct.get("Bot_Name");	// 
+		String Real_Sto = m_tempProduct.get("Real_Sto");	// 
+
+		if (Bot_Pur == null) Bot_Pur = "0";
+		if (Bot_Sell == null) Bot_Sell = "0";
+		
+		double In_Pri = Double.valueOf(purchasePrice)*Double.valueOf(numOfReal);	//총 매입가(공병포함)=매입가x수량
+		double In_SellPri = Double.valueOf(salePrice)*Double.valueOf(numOfReal);	//판매가x수량
+        
+        HashMap<String, String> rmap = new HashMap<String, String>();
+        //rmap.put("St_Num", period);
+        //rmap.put("St_BarCode", barcode);
+        rmap.put("St_Gubun", "2");		//실사구분(0:수기,1:핸디,2:PDA,3:기타)
+        rmap.put("Set_Gubun", "0");
+        rmap.put("St_Date", period);
+        rmap.put("Office_Code", Bus_Code);
+        rmap.put("BarCode", barcode);
+        //rmap.put("St_Seq", "");
+        rmap.put("St_Count", numOfReal);
+        rmap.put("Tax_YN", Tax_YN);
+        rmap.put("Tax_Gubun", Tax_Gubun);
+        rmap.put("Bot_Code", Bot_Code);
+        rmap.put("Bot_Pur", Bot_Pur);
+        rmap.put("Bot_Sell", Bot_Sell);
+        rmap.put("Pur_Pri", Pur_Pri);
+        rmap.put("Pur_Cost", Pur_Cost);
+        rmap.put("Add_Tax", Add_Tax);
+        rmap.put("TPur_Pri", String.valueOf((Double.valueOf(purchasePrice)-Double.valueOf(Bot_Pur))*Double.valueOf(numOfReal)));		//총 매입가(공병제외)=매입가x수량
+        rmap.put("TPur_Cost", String.valueOf(Double.valueOf(Pur_Cost)*Double.valueOf(numOfReal)));			//매입원가x수량
+        rmap.put("TAdd_Tax", String.valueOf(Double.valueOf(Add_Tax)*Double.valueOf(numOfReal)));			//부가세x수량
+        rmap.put("In_Pri", String.valueOf(In_Pri));		//총 매입가(공병포함)=매입가x수량
+        rmap.put("Sell_Pri", Sell_Pri);
+        rmap.put("TSell_Pri", String.valueOf((Double.valueOf(salePrice)-Double.valueOf(Bot_Sell))*Double.valueOf(numOfReal)));	//총 판매가(공병제외)=판매가x수량
+        rmap.put("In_SellPri", String.valueOf(In_SellPri));	//판매가x수량
+        rmap.put("Bot_Pri", String.valueOf(Double.valueOf(Bot_Pur)*Double.valueOf(numOfReal)));
+        rmap.put("Bot_SellPri", String.valueOf(Double.valueOf(Bot_Sell)*Double.valueOf(numOfReal)));
+        
+        rmap.put("Bot_Code", Bot_Code);	// 
+        rmap.put("Bot_Name", Bot_Name);	//         
+        //rmap.put("Write_Date", currentDate);
+        //rmap.put("Edit_Date", currentDate);
+        //rmap.put("Writer", userid);
+        //rmap.put("Editor", userid);
+        rmap.put("oReal_Sto", Real_Sto);
+        
+        m_stockList.add(rmap);
+        
+        //ListView 에 뿌려줌
+    	HashMap<String, String> map = new HashMap<String, String>();
+        map.put("BarCode", barcode);
+        map.put("G_Name", productName);
+        map.put("Real_Sto", numOfReal);
+        map.put("St_Count", curStock);
+        fillMaps.add(map);            
+  		
+        adapter.notifyDataSetChanged();
+    }
 	
 	// MSSQL
 	// StT, StD 테이블에 삽입
 	public void sendSelectedAllData(){
+
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		String currentDate = sdf.format(new Date());
+
+	    JSONObject userProfile = LocalStorage.getJSONObject(this, "userProfile"); 
+	    String userid ="";
+        try {
+        	userid = userProfile.getString("User_ID");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 		
 		String tableName = null, sttTableName = null;
 		String period = m_period.getText().toString();
@@ -276,36 +424,102 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		sttTableName = String.format("StT_%04d%02d", year, month);
 		
 		//TODO: 새로운 전표생성
-        makeJunPyo();
-        
+		String junpyo = makeJunPyo();
+		
+		double TTPur_Pri =0, TTAdd_Tax =0, TFPur_Pri =0, In_TPri =0, In_FPri =0, In_Pri =0, In_RePri =0;
+		double TSell_Pri =0, In_SellPri =0, Bot_Pri =0, Bot_SellPri =0, Profit_Pri =0, Profit_Rate =0;
+		
 		// 쿼리 작성하기
 		String query =  "";
-		for ( int i = 0; i < m_stockList.size(); i++ ) {
-			
-			query +=  "insert into " + tableName + "(St_Num, St_BarCode, St_Date, BarCode, Pur_Pri, Sell_Pri, St_Count) " 
-		    		+ " values ("
-		    		+ "'" + m_junpyo + "', "
-		    		+ "'" + m_junpyo + "', "
-		    		+ "'" + m_stockList.get(i).get("St_Date").toString() + "', "
-		    		+ "'" + m_stockList.get(i).get("BarCode").toString() + "', "
-		    		+ "'" + m_stockList.get(i).get("Pur_Pri").toString() + "', "
-		    		+ "'" + m_stockList.get(i).get("Sell_Pri").toString() + "', "
-		    		+ "'" + m_stockList.get(i).get("St_Count").toString() + "');";
+		for ( int i = 0, seq=1; i < m_stockList.size(); i++, seq++ ) {
 
-		    query =  "insert into " + sttTableName + "(St_Num, St_Date) " 
+			HashMap<String, String> stock = m_stockList.get(i);
+			
+			query +=  "insert into " + tableName + "(St_Num, St_BarCode, St_Gubun, Set_Gubun, St_Date, Office_Code, BarCode, St_Seq, St_Count,"
+					+ "Tax_YN, Tax_Gubun, Bot_Code, Bot_Pur, Bot_Sell, Pur_Pri, Pur_Cost, Add_Tax, TPur_Pri, TPur_Cost, TAdd_Tax, In_Pri,"
+					+ "Sell_Pri, TSell_Pri, In_SellPri, Bot_Pri, Bot_SellPri, Write_Date, Edit_Date, Writer, Editor, oReal_Sto) " 
 		    		+ " values ("
-		    		+ "'" + m_junpyo + "', "
-		    		+ "'" + m_stockList.get(i).get("St_Date").toString() + "');";
+		    		+ "'" + junpyo + "', "
+		    		+ "'" + junpyo + "', "
+				    + "'" + stock.get("St_Gubun").toString() + "', "
+				    + "'" + stock.get("Set_Gubun").toString() + "', "
+				    + "'" + stock.get("St_Date").toString() + "', "
+				    + "'" + stock.get("Office_Code").toString() + "', "
+				    + "'" + stock.get("BarCode").toString() + "', "
+				    + "'" + seq + "', "
+				    + "'" + stock.get("St_Count").toString() + "', "
+				    + "'" + stock.get("Tax_YN").toString() + "', "
+				    + "'" + stock.get("Tax_Gubun").toString() + "', "
+				    + "'" + stock.get("Bot_Code").toString() + "', "
+				    + "'" + stock.get("Bot_Pur").toString() + "', "
+				    + "'" + stock.get("Bot_Sell").toString() + "', "
+				    + "'" + stock.get("Pur_Pri").toString() + "', "
+				    + "'" + stock.get("Pur_Cost").toString() + "', "
+				    + "'" + stock.get("Add_Tax").toString() + "', "
+				    + "'" + stock.get("TPur_Pri").toString() + "', "
+				    + "'" + stock.get("TPur_Cost").toString() + "', "
+				    + "'" + stock.get("TAdd_Tax").toString() + "', "
+				    + "'" + stock.get("In_Pri").toString() + "', "
+				    + "'" + stock.get("Sell_Pri").toString() + "', "
+				    + "'" + stock.get("TSell_Pri").toString() + "', "
+				    + "'" + stock.get("In_SellPri").toString() + "', "
+				    + "'" + stock.get("Bot_Pri").toString() + "', "
+				    + "'" + stock.get("Bot_SellPri").toString() + "', "
+				    + "'" + currentDate + "', "
+				    + "'" + currentDate + "', "
+				    + "'" + userid + "', "
+				    + "'" + userid + "', "
+					+ "'" + stock.get("oReal_Sto").toString() + "');";
+			
+			// InT용 데이터 누적시킴
+		    String Tax_YN = stock.get("Tax_YN"); //과세여부(0:면세,1:과세)
+		    //String In_YN = stock.get("In_YN");	//매입여부(0:반품,1:매입,2:행사반품,3:행사매입)
+
+			TTAdd_Tax += Double.valueOf(stock.get("Add_Tax"));	//총 과세 부가세
+			if (Tax_YN.equals("1")) TTPur_Pri += Double.valueOf(stock.get("TPur_Pri"));	//총 과세매입가(공병제외)
+			if (Tax_YN.equals("0")) TFPur_Pri+= Double.valueOf(stock.get("TPur_Pri"));	//총 면세매입가(공병제외)
+			if (Tax_YN.equals("1")) In_TPri+= Double.valueOf(stock.get("In_Pri"));		//총 과세매입가(공병포함)
+			if (Tax_YN.equals("0")) In_FPri+= Double.valueOf(stock.get("In_Pri"));		//총 면세매입가(공병포함)
+
+			else In_Pri+= Double.valueOf(stock.get("In_Pri"));		//총 매입가(공병포함)
+			TSell_Pri+= Double.valueOf(stock.get("TSell_Pri"));	//총 판매가(공병제외)
+			In_SellPri+= Double.valueOf(stock.get("In_SellPri"));	//총 판매가(공병포함)
+			Bot_Pri+= Double.valueOf(stock.get("Bot_Pur"));		//공병 총 매입가
+			Bot_SellPri+= Double.valueOf(stock.get("Bot_Sell"));	//공병 총 판매가
 		}
 
-	    query += " select * from " + tableName + " where St_Num='" + m_junpyo +"';";
+	    query +=  "insert into " + sttTableName + "(St_Num, St_Date, St_Seq, TTPur_Pri, TTAdd_Tax, TFPur_Pri, In_TPri, In_FPri, In_Pri, "
+	    		+ "TSell_Pri, In_SellPri, Bot_Pri, Bot_SellPri, St_Pri, Write_Date, Edit_Date, Writer, Editor ) " 
+	    		+ " values ("
+	    		+ "'" + junpyo + "', "
+	    	    + "'" + currentDate + "', "
+	    	    + "'" + "0" + "', "
+	    	    + "'" + TTPur_Pri + "', "
+	    	    + "'" + TTAdd_Tax + "', "
+	    	    + "'" + TFPur_Pri + "', "
+	    	    + "'" + In_TPri + "', "
+	    	    + "'" + In_FPri + "', "
+	    	    + "'" + In_Pri + "', "
+	    	    + "'" + TSell_Pri + "', "
+	    	    + "'" + In_SellPri + "', "
+	    	    + "'" + Bot_Pri + "', "
+	    	    + "'" + Bot_SellPri + "', "	 
+	    	    + "'" + In_Pri + "', "	    	    
+			    + "'" + currentDate + "', "
+			    + "'" + currentDate + "', "
+			    + "'" + userid + "', "
+			    + "'" + userid + "');";
 
+	    query += " select * from " + tableName + " where St_Num='" + junpyo +"';";
+
+        m_junpyoInTIdx++;
+        
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
  		dialog.setCancelable(false);
  		dialog.show();
- 		
+
 	    // 콜백함수와 함께 실행
 	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
@@ -318,11 +532,12 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 				clearInputBox();
 				Toast.makeText(ManageStockActivity.this, "전송완료.", Toast.LENGTH_SHORT).show();
 			}
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+	    }).execute(m_ip+":"+m_port,  "TIPS", "sa", "tips", query);
 	}
 
+
 	//전표갯수를 구함
-	public void getSeq(){
+	public void getInTSeq() {
 
 		String tableName = null;
 		String period = m_period.getText().toString();
@@ -330,12 +545,13 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		int year = Integer.parseInt(period.substring(0, 4));
 		int month = Integer.parseInt(period.substring(5, 7));
 		
-		tableName = String.format("StD_%04d%02d", year, month);
+		tableName = String.format("StT_%04d%02d", year, month);
 		
 		// 쿼리 작성하기
 		String query =  "";
-	    query += " select * from " + tableName + " ;";
-		
+	    query += "SELECT TOP 1 St_Seq, St_Num FROM " + tableName + " WHERE St_Date='"+period
+	    		+"' AND (St_Seq NOT IN(SELECT TOP 0 St_Seq FROM " + tableName + ")) order by St_Num DESC;";
+	    
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
@@ -343,16 +559,32 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
  		dialog.show();
  		
 	    // 콜백함수와 함께 실행
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
 				dialog.dismiss();
 				dialog.cancel();
-				m_junpyoIdx = results.length()+1;
+				if (results.length()>0) {
+					try {
+						m_junpyoInTIdx = results.getJSONObject(0).getInt("St_Seq")+1;
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				else {
+					m_junpyoInTIdx =1;
+				}				
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				Toast.makeText(getApplicationContext(), "실패("+String.valueOf(code)+"):" + msg, Toast.LENGTH_SHORT).show();
 			}
 			
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
 	
 	// SQL QUERY 실행
@@ -380,11 +612,12 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 				
 				if (results.length() > 0) {
 					try {
+						m_tempProduct = JsonHelper.toStringHashMap(results.getJSONObject(0));
 						m_textProductName.setText(results.getJSONObject(0).getString("G_Name"));
 						m_et_purchasePrice.setText(results.getJSONObject(0).getString("Pur_Pri"));
 						m_et_salePrice.setText(results.getJSONObject(0).getString("Sell_Pri"));
-						m_et_numOfReal.setText(results.getJSONObject(0).getString("Real_Sto"));
-						//m_et_curStock.setText(results.getJSONObject(0).getString("Real_Sto"));
+						//m_et_numOfReal.setText(results.getJSONObject(0).getString("Real_Sto"));
+						m_et_curStock.setText(results.getJSONObject(0).getString("Real_Sto"));
 						
 					} catch (JSONException e) {
 						e.printStackTrace();
@@ -480,7 +713,6 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 			}
 	}
 	
-
 	public void OnClickModify(View v)
 	{
 		if ( m_selectedListIndex == -1) {
@@ -519,93 +751,6 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
         m_selectedListIndex = -1;
 	}
 
-	public void setDataIntoList(){
-
-		String barcode = m_textBarcode.getText().toString();
-		String productName = m_textProductName.getText().toString();
-		String purchasePrice = m_et_purchasePrice.getText().toString();
-		String salePrice = m_et_salePrice.getText().toString();
-		String numOfReal = m_et_numOfReal.getText().toString();
-		String curStock = m_et_curStock.getText().toString();
-		
-		if (barcode.equals("") || productName.equals("") || purchasePrice.equals("") || salePrice.equals("") || numOfReal.equals("")|| numOfReal.equals("")) {
-			Toast.makeText(ManageStockActivity.this, "비어있는 필드가 있습니다.", Toast.LENGTH_SHORT).show();
-			return;
-		}
-		
-		String period = m_period.getText().toString();
-		    
-        HashMap<String, String> rmap = new HashMap<String, String>();
-
-        rmap.put("St_Num", m_junpyo);
-        rmap.put("St_BarCode", m_junpyo);
-        rmap.put("St_Date", period);
-        rmap.put("BarCode", barcode);
-        rmap.put("G_Name", productName);
-        rmap.put("Pur_Pri", purchasePrice);
-        rmap.put("Sell_Pri", salePrice);
-        rmap.put("St_Count", curStock);
-        rmap.put("Real_Sto", numOfReal);
-        
-        m_stockList.add(rmap);
-        
-        //ListView 에 뿌려줌
-    	HashMap<String, String> map = new HashMap<String, String>();
-        map.put("BarCode", barcode);
-        map.put("G_Name", productName);
-        map.put("Real_Sto", numOfReal);
-        map.put("St_Count", curStock);
-        fillMaps.add(map);            
-  		
-        adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, from, to);
-        m_listStock.setAdapter(adapter);
-        adapter.notifyDataSetChanged();
-    }
-	
-	public List<HashMap<String, String>> makeFillvapsWithStockList(){
-		List<HashMap<String, String>> fm = new ArrayList<HashMap<String, String>>();
-	    
-		Iterator<HashMap<String, String>> iterator = m_stockList.iterator();		
-	    while (iterator.hasNext()) {
-			boolean isNew = true;
-			HashMap<String, String> element = iterator.next();
-	         String barcode = element.get("BarCode");
-	        
-	         Iterator<HashMap<String, String>> fm_iterator = fm.iterator();
-	         while (fm_iterator.hasNext()) {
-
-	        	 HashMap<String, String>  fm_element = fm_iterator.next();
-		         String fm_barcode = fm_element.get("BarCode");
-
-		         if (fm_barcode.equals(barcode)) {
-		        	 isNew = false;
-		        	 // 같은게 있으면 fm_element에 추가 
-			         String fm_numOfReal = fm_element.get("Real_Sto");
-			         String fm_curStock = fm_element.get("St_Count");
-			         String numOfReal = element.get("Real_Sto");
-			         String curStock = element.get("St_Count");
-			         
-			         fm_element.put("Real_Sto", String.valueOf(Integer.valueOf(fm_numOfReal) + Integer.valueOf(numOfReal)));
-			         fm_element.put("St_Count", String.valueOf(Integer.valueOf(fm_curStock) + Integer.valueOf(curStock)));
-		         }
-	         }
-	         
-	         if (isNew) {
-		         String productName = element.get("G_Name");
-		         String numOfReal = element.get("Real_Sto");
-		         String curStock = element.get("St_Count");
-		     	 HashMap<String, String> map = new HashMap<String, String>();
-		         map.put("BarCode", barcode);
-		         map.put("G_Name", productName);
-		         map.put("Real_Sto", numOfReal);
-		         map.put("St_Count", curStock);
-		         
-		         fm.add(map);
-		    }
-	    }
-	    
-		return fm;
-	}
 	
 	/**
 	 * Set up the {@link android.app.ActionBar}.
@@ -660,7 +805,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		m_dateCalender1.set(year, monthOfYear, dayOfMonth);
 		m_period.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
 		
-		getSeq();
+		getInTSeq();
 	}
 
 	@Override
@@ -693,7 +838,6 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	        curStock.setText(m_stockList.get(arg2).get("St_Count").toString());
 	        
 	        m_period.setText(m_stockList.get(arg2).get("St_Date").toString());
-	                 
 		}
 	};
 }

@@ -4,6 +4,7 @@ import org.json.JSONArray;
 
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.MSSQL2;
 import tipsystem.utils.Reachability;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -91,11 +92,14 @@ public class TIPSSplashActivity extends Activity {
 	    query += " select * from " + tableName + " ;";
 		
 	    // 콜백함수와 함께 실행
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
+			}
 
+			@Override
+			public void onRequestFailed(int code, String msg) {
 			}
 			
 	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);

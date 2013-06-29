@@ -20,6 +20,7 @@
         android:label="@string/app_name"
         android:theme="@android:style/Theme.Holo" >
         <activity
+            android:screenOrientation="portrait"
             android:name="tipsystem.tips.TIPSSplashActivity"
             android:label="@string/app_name"
             android:theme="@android:style/Theme.Holo.NoActionBar" >
@@ -35,14 +36,17 @@
 	         />
         
         <activity
+            android:screenOrientation="portrait"
             android:name="tipsystem.tips.LoginActivity"
             android:parentActivityName="tipsystem.tips.MainActivity" >
         </activity>
         <activity
+            android:screenOrientation="portrait"
             android:name="tipsystem.tips.MainActivity"
             android:parentActivityName="tipsystem.tips.MainActivity" >
         </activity>
         <activity
+            android:screenOrientation="portrait"
             android:name="tipsystem.tips.ConfigActivity"
             android:label="@string/title_activity_config_detail"
             android:parentActivityName="tipsystem.tips.LoginActivity" >
@@ -51,6 +55,7 @@
                 android:value="tipsystem.tips.ConfigActivity" />
         </activity>
         <activity
+            android:screenOrientation="portrait"
             android:name="tipsystem.tips.MainMenuActivity"
             android:parentActivityName="tipsystem.tips.MainActivity" >
             <meta-data
@@ -163,6 +168,7 @@
                 android:value="tipsystem.tips.PurchasePaymentStatusActivity" />
         </activity>
         <activity
+            android:screenOrientation="portrait"
             android:name="tipsystem.tips.ManageSalesActivity"
             android:parentActivityName="tipsystem.tips.MainMenuActivity" >
             <meta-data
@@ -177,7 +183,15 @@
                 android:value="tipsystem.tips.ManageSalesActivity" />
         </activity>
         <activity
+            android:screenOrientation="portrait"
             android:name="tipsystem.tips.ManageEventActivity"
+            android:parentActivityName="tipsystem.tips.MainMenuActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.MainMenuActivity" />
+        </activity>
+        <activity
+            android:name="tipsystem.tips.ManageEventListActivity"
             android:parentActivityName="tipsystem.tips.MainMenuActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

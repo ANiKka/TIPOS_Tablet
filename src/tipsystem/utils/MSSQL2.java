@@ -54,9 +54,7 @@ public class MSSQL2 extends AsyncTask<String, Integer, JSONArray> {
         	ResultSet rs =null;
             rs = stmt.executeQuery(query);	            
         	json = ResultSetConverter.convert(rs);
-    	   
-    	    conn.close();
-
+        	
    	 	} catch (SQLException e) {
     	    Log.w("Error connection","" + e.getMessage());
     	    errCode = 1;
@@ -65,6 +63,13 @@ public class MSSQL2 extends AsyncTask<String, Integer, JSONArray> {
     	    Log.w("Error connection","" + e.getMessage());	
     	    errCode = 2;
     	    errMsg = e.getMessage();
+    	}
+    	finally {
+    		try {
+				conn.close();
+			} catch (java.sql.SQLException e) {
+				e.printStackTrace();
+			}
     	}
     	
     	return json;        	 

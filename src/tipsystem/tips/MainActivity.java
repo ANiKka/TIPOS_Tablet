@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.MSSQL2;
 
 import android.os.Bundle;
 import android.app.Activity;
@@ -143,7 +144,6 @@ public class MainActivity extends Activity {
 
 	private View createCustomView() {
 		LinearLayout linearLayoutView = new LinearLayout(this);
-		//ListView list =  (ListView)findViewById(R.id.listShops);
 		m_list =  new ListView(this);
 		
 		ArrayList<ShopSelectItem> shopList;
@@ -199,13 +199,20 @@ public class MainActivity extends Activity {
 	    		+ " where APP_HP =" + phoneNumber + "AND DEL_YN = 0;";
 
 	    // 콜백함수와 함께 실행
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
 				dialog.dismiss();
 				dialog.cancel();
 				didAuthentication(results);
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+		    	Toast.makeText(getApplicationContext(), "알수없는 에러가 발생하였습니다", Toast.LENGTH_SHORT).show();
 			}
 	    }).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query);
     }
@@ -316,7 +323,7 @@ public class MainActivity extends Activity {
 			String strIP = object.get(position).getIP();
 			
 			holder.object = object.get(position);
-			holder.txtShopName.setText(name);
+			holder.txtShopName.setText(name+" 번호");
 			holder.radioShop.setChecked(position == mSelectedPosition);
 			holder.txtIP.setText(strIP);
 			

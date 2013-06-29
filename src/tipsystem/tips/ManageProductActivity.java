@@ -639,14 +639,14 @@ public class ManageProductActivity extends Activity{
 	    String customerCode = m_textCustomerCode.getText().toString();
 	    String customerName = m_textCustomerName.getText().toString();
 		
-		query += "select * from Goods ";
+		query += "select * from Goods WHERE Goods_Use='1' AND Pur_Use='1' ";
 	    
 	    if (!barcode.equals("") || !customerCode.equals("")){
-	    	query += " WHERE";
+	    	
 		        
 		    boolean added = false;
 		    if (!barcode.equals("")){
-		    	query += " Barcode = '" + barcode + "'";
+		    	query += " AND Barcode = '" + barcode + "'";
 		    	added = true;
 		    }
 		    				    

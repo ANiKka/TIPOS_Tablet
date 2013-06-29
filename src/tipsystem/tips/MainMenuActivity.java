@@ -194,7 +194,7 @@ public class MainMenuActivity extends Activity {
         	return;
         }
         
-		Intent intent = new Intent(this, ManageEventActivity.class);
+		Intent intent = new Intent(this, ManageEventListActivity.class);
     	startActivity(intent);
 	}
 	

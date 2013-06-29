@@ -936,7 +936,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		query = "select TSell_Pri, Sale_Num, Sale_Pri, TPur_Pri from " + tableName;
 		query = query + " where Sale_Date = '" + period + "'";
 		
-		
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
 			@Override

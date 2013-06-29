@@ -129,7 +129,7 @@ public class ManageProductListActivity extends Activity {
 
     	String index = String.valueOf(mfillMaps.size());
 		String query = "";    	
-		query = "SELECT TOP 50 * FROM Goods WHERE BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods);";
+		query = "SELECT TOP 50 * FROM Goods WHERE Goods_Use='1' AND Pur_Use='1' AND BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods);";
 
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);

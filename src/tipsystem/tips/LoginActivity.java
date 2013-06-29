@@ -6,6 +6,7 @@ import org.json.JSONObject;
 
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.MSSQL2;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -153,7 +154,6 @@ public class LoginActivity extends Activity {
     	// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
  		dialog.show();
  		
     	// 쿼리 작성하기
@@ -164,13 +164,20 @@ public class LoginActivity extends Activity {
 	    //query = "select * from Admin_User where APP_USER_GRADE=2;";
 	    
 	    // 콜백함수와 함께 실행
-	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
 				dialog.dismiss();
 				dialog.cancel();
 				didLogin(results);
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+	    		Toast.makeText(getApplicationContext(), "에러발생", Toast.LENGTH_SHORT).show();
 			}
 	    }).execute(ip + ":" + port, "TIPS", "sa", "tips", query);
     }

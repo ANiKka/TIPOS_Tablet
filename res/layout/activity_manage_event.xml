@@ -322,8 +322,9 @@
 	        android:layout_marginLeft="10dip"
 	        android:scaleY="0.75"
 	        android:background="@drawable/change_btn"
+	        android:visibility="gone"
 	        android:onClick="OnClickModify" />
-       
+        
        <Button
 	        android:id="@+id/buttonRenew"
 	        style="?android:attr/buttonStyleSmall"
@@ -373,7 +374,7 @@
 			android:textSize="14sp"
 			android:gravity="center"
 			android:background="@drawable/gray_bar_bg"
-            android:text="행사명"
+            android:text="바코드"
         />
         <TextView android:id="@+id/item2"
            android:layout_height="fill_parent"
@@ -384,7 +385,7 @@
 			android:textSize="14sp"
 			android:gravity="center"
 			android:background="@drawable/gray_bar_bg"
-            android:text="구분"
+            android:text="행사매입가"
         />
         <TextView android:id="@+id/item3"
             android:layout_height="fill_parent"
@@ -395,7 +396,7 @@
 			android:textSize="14sp"
 			android:gravity="center"
 			android:background="@drawable/gray_bar_bg"
-            android:text="기간"
+            android:text="행사판매가"
         />
     </LinearLayout>
 
