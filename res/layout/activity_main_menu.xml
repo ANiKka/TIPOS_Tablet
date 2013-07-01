@@ -1,22 +1,20 @@
-<!-- 
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
     android:background="@drawable/bg_img"
     android:orientation="vertical"
     tools:context=".MainMenuActivity" >
-
+    
     <LinearLayout 
 	    android:layout_width="match_parent"
 	    android:layout_height="0dp"
-	    android:layout_weight="2"
-	    android:orientation="vertical" >
-	</LinearLayout>
-	
-    <LinearLayout 
-	    android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
+	    android:layout_weight="0.6"
 	    android:gravity="center"
 	    android:orientation="horizontal" >
 	    
@@ -27,109 +25,102 @@
 	        android:background="@drawable/page_after_login_btn01"
 	        android:onClick="onClickDefaultManage" />
 	
-	    <Button
-	        android:id="@+id/buttonSalesManage"
+        <Button
+	        android:id="@+id/buttonPurchaseManage"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:layout_marginLeft="15dp"
-	        android:background="@drawable/page_after_login_btn04"
-	        android:onClick="onClickSalesManage" />
+	        android:layout_marginLeft="20dp"
+	        android:background="@drawable/page_after_login_btn02"
+	        android:onClick="onClickPurchaseManage" />
+        
+         <Button
+	        android:id="@+id/buttonSalesNews"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="20dp"
+	        android:background="@drawable/page_after_login_btn03"
+	        android:onClick="onClickSalesNews" />
 	
-	    <Button
-	        android:id="@+id/buttonEventManage"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_marginLeft="15dp"
-	        android:background="@drawable/page_after_login_btn05"
-	        android:onClick="onClickEventManage" />
         
         
 	</LinearLayout>
 	
     <LinearLayout 
 	    android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
-	    android:gravity="center"
+	    android:layout_height="0dp"
+	    android:layout_weight="0.5"
+	    android:gravity="center_horizontal"
 	    android:orientation="horizontal" >
 	    
-        
         <Button
-	        android:id="@+id/buttonPurchaseManage"
+	        android:id="@+id/buttonSalesManage"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:layout_above="@+id/buttonSalesManage"
-	        android:layout_centerHorizontal="true"
-	        android:background="@drawable/page_after_login_btn02"
-	        android:onClick="onClickPurchaseManage" />
-	        
+	        android:background="@drawable/page_after_login_btn04"
+	        android:onClick="onClickSalesManage" />
         
-        <Button
-	        android:id="@+id/buttonSalesNews"
+	    <Button
+	        android:id="@+id/buttonEventManage"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:layout_above="@+id/buttonSalesManage"
-	        android:layout_alignRight="@+id/linearLayout1"
-	        android:background="@drawable/page_after_login_btn03"
-	        android:onClick="onClickSalesNews" />
-	
+	        android:layout_marginLeft="20dp"
+	        android:background="@drawable/page_after_login_btn05"
+	        android:onClick="onClickEventManage" />
+        
+       
 	    <Button
 	        android:id="@+id/buttonManageStock"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:layout_above="@+id/linearLayout1"
-	        android:layout_alignRight="@+id/linearLayout1"
+	        android:layout_marginLeft="20dp"
 	        android:background="@drawable/page_after_login_btn06"
 	        android:onClick="onClickManageStock" />
 	        
-        
-  </LinearLayout>
+  	</LinearLayout>
 
  
+	<LinearLayout
+	    android:layout_width="match_parent"
+	    android:layout_height="0dp"
+	 	android:layout_weight="0.12"
+	 	android:gravity="center"
+	    android:background="#333333" >
+	
+	    <TextView
+	        android:id="@+id/textViewShopTitle"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="1.9"
+	        android:text="@string/board"
+	        android:textAppearance="?android:attr/textAppearanceMedium"
+	        android:textSize="18sp"
+	        android:textStyle="bold" />
+	
+	    <Button
+	        android:id="@+id/buttonQuestion"
+	        android:layout_width="45dp"
+	        android:layout_height="27dp"
+	        android:background="@drawable/page_after_login_icon01"
+	        android:gravity="right"
+	        android:layout_weight="0.1"
+	        android:onClick="onClickQuestion" />
+	
+	</LinearLayout>
 
     <ListView
         android:id="@+id/listViewBoard"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/buttonDefaultMagage"
-        android:layout_alignParentBottom="true"
-        android:layout_below="@+id/linearLayout1"
+        android:layout_height="0dp"
+	    android:layout_weight="1"
         android:background="#ffffff">
     </ListView>
 
 
-    <LinearLayout
-        android:id="@+id/linearLayout1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/buttonSalesManage"
-        android:layout_below="@+id/buttonSalesManage"
-        android:layout_marginTop="16dp"
-        android:background="#333333" >
-
-        <TextView
-            android:id="@+id/textViewShopTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.9"
-            android:text="@string/board"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <Button
-            android:id="@+id/buttonQuestion"
-            android:layout_width="45dp"
-            android:layout_height="27dp"
-            android:background="@drawable/page_after_login_icon01"
-            android:gravity="right"
-            android:layout_weight="0.1"
-            android:onClick="onClickQuestion" />
-
-    </LinearLayout>
+    
 
 </LinearLayout>
--->
 
+<!-- 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"

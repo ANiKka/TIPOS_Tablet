@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,13 +7,13 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:background="@drawable/bg_img"
-    tools:context=".PaymentDetailViewActivity" >
+    tools:context=".PaymentDetailViewActivity"
+    android:orientation="vertical" >
 
 	<LinearLayout
 	    android:id="@+id/linearLayoutTitle"
 	    android:layout_width="match_parent"
 	    android:layout_height="wrap_content"
-	    android:layout_alignParentLeft="true"
 	    android:orientation="horizontal" >
 
         <TextView
@@ -43,7 +43,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_below="@id/linearLayoutTitle"
         android:orientation="horizontal" >
          
         <TextView
@@ -96,7 +95,6 @@
 		android:id="@+id/horizontalScrollView1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/linearLayout2"
          >
 
         <LinearLayout
@@ -279,7 +277,6 @@
 	    <LinearLayout android:id="@+id/layout"
 	        android:layout_width="match_parent"
 	        android:layout_height="fill_parent"
-	        android:layout_below="@+id/header"
 	        >
 	        <ListView android:id="@+id/listviewPaymentDetailViewList"
 	            android:layout_height="wrap_content"
@@ -292,7 +289,4 @@
     </LinearLayout>
     </HorizontalScrollView>
     
-
-
-	
-</RelativeLayout>
+</LinearLayout>

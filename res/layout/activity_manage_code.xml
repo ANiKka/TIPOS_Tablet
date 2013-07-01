@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,59 +7,99 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:background="@drawable/bg_img"
-    tools:context=".ManageCodeActivity" >
+    tools:context=".ManageCodeActivity"
+    android:gravity="center"
+    android:orientation="vertical" >
 
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="17dp"
-        android:text="기본 관리"
-        android:textColor="#ffffff"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+    <LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="0dp"
+	    android:layout_weight="0.6"
+	    android:gravity="center"
+	    android:orientation="vertical" >
+	    
+	    <TextView
+	        android:id="@+id/textView1"
+	        android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+	        android:text="기본 관리"
+	        android:textColor="#ffffff"
+	        android:textSize="20sp"
+	        android:textStyle="bold"
+	        android:gravity="bottom"
+	        android:textAppearance="?android:attr/textAppearanceLarge" />
+    
+    </LinearLayout>
+    
+    <LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="0dp"
+	    android:layout_weight="0.3"
+	    android:gravity="center_horizontal"
+	    android:orientation="vertical" >
+    
+	    <TextView
+	        android:id="@+id/textView2"
+	        android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+	        android:background="@drawable/section_line" />
+	    
+	</LinearLayout>
 
-    <Button
-        android:id="@+id/buttonManageProduct"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/buttonManageCustomer"
-        android:layout_alignRight="@+id/buttonManageCustomer"
-        android:layout_below="@+id/buttonManageCustomer"
-        android:layout_marginTop="17dp"
-        android:background="@drawable/basic_btn02"
-        android:onClick="onClickManageProduct" />
+    <LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="0dp"
+	    android:layout_weight="0.8"
+	    android:gravity="center"
+	    android:orientation="vertical" >
+	
+        <Button
+	        android:id="@+id/buttonManageProduct"
+	        android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+	        android:background="@drawable/basic_btn02"
+	        android:onClick="onClickManageProduct" />
+        
+	</LinearLayout>
+	
+    <LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="0dp"
+	    android:layout_weight="0.8"
+	    android:gravity="center"
+	    android:orientation="vertical" >
+	
+     <Button
+	        android:id="@+id/buttonManageCustomer"
+	        android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+	        android:background="@drawable/basic_btn01"
+	        android:onClick="onClickManageCustomer" />
+     
+     </LinearLayout>
 
-    <Button
-        android:id="@+id/buttonManageCustomer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textView2"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="42dp"
-        android:background="@drawable/basic_btn01"
-        android:onClick="onClickManageCustomer" />
-
-    <Button
-        android:id="@+id/buttonComparePrice"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/buttonManageProduct"
-        android:layout_below="@+id/buttonManageProduct"
-        android:layout_marginTop="18dp"
-        android:background="@drawable/basic_btn03"
-        android:onClick="onClickComparePrice" />
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textView1"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="14dp"
-        android:background="@drawable/section_line" />
-
-</RelativeLayout>
+    <LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="0dp"
+	    android:layout_weight="0.8"
+	    android:gravity="center"
+	    android:orientation="vertical" >
+     
+	    <Button
+	        android:id="@+id/buttonComparePrice"
+	        android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+	        android:background="@drawable/basic_btn03"
+	        android:onClick="onClickComparePrice" />
+	    
+	</LinearLayout>
+	
+    <LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="0dp"
+	    android:layout_weight="2.5"
+	    android:orientation="vertical" >
+	    
+    </LinearLayout>
+	
+</LinearLayout>

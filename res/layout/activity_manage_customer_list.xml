@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,20 +7,14 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:background="@drawable/bg_img"
-    tools:context=".ManageCustomerActivity" >
+    tools:context=".ManageCustomerActivity"
+    android:orientation="vertical" >
 
-    <!-- List Divider -->
- 	<View android:layout_width="fill_parent"
-        android:layout_height="1dip"
-        android:layout_below="@id/header"
-        android:background="?android:attr/listDivider" />
- 	
+    	
     <LinearLayout
         android:id="@+id/linearLayoutTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_marginTop="14sp"
         android:background="@drawable/tap_bar_bg"
         android:gravity="center"
         android:orientation="vertical" >
@@ -40,7 +34,6 @@
     <LinearLayout android:id="@+id/header"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_below="@id/linearLayoutTitle"
         >
         <TextView android:id="@+id/item1"
             android:layout_height="fill_parent"
@@ -83,11 +76,15 @@
         />
     </LinearLayout>
     
+    <!-- List Divider -->
+ 	<View android:layout_width="fill_parent"
+        android:layout_height="1dip"
+        android:background="?android:attr/listDivider" />
+ 	
     <!-- ListView (grid_items) -->
     <LinearLayout android:id="@+id/layout"
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
-        android:layout_below="@+id/header"
         >
         <ListView android:id="@+id/listviewCustomerList"
             android:layout_height="fill_parent"
@@ -95,4 +92,4 @@
         </ListView>
     </LinearLayout>
     
-</RelativeLayout>
+</LinearLayout>

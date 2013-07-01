@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,7 +7,8 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:background="@drawable/bg_img"
-    tools:context=".ChargeCustomerDetailActivity" >
+    tools:context=".ChargeCustomerDetailActivity"
+    android:orientation="vertical" >
 
     <LinearLayout
         android:id="@+id/linearLayout2"
@@ -67,7 +68,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_below="@+id/linearLayout2"
         android:orientation="horizontal" >
 
          <TextView
@@ -109,7 +109,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_below="@+id/linearLayout3"
         android:orientation="horizontal" >
 
          <CheckBox
@@ -149,7 +148,6 @@
     <LinearLayout android:id="@+id/header1"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_below="@id/linearLayout4"
         android:layout_marginTop="10dp" >
                  
             <TextView android:id="@+id/item1"
@@ -187,11 +185,10 @@
 	        />
 	</LinearLayout>
 	
-        <LinearLayout android:id="@+id/linearContent1"
+    <LinearLayout android:id="@+id/linearContent1"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_marginTop="5dip"
-        android:layout_below="@id/header1" >
+        android:layout_marginTop="5dip" >
                  
             <TextView android:id="@+id/content1"
 	            android:layout_height="fill_parent"
@@ -225,8 +222,7 @@
 	<LinearLayout android:id="@+id/header2"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_marginTop="5dip"
-        android:layout_below="@id/linearContent1">
+        android:layout_marginTop="5dip">
                  
             <TextView android:id="@+id/item4"
 	            android:layout_height="fill_parent"
@@ -266,8 +262,7 @@
         <LinearLayout android:id="@+id/linearContent2"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_marginTop="5dip"
-        android:layout_below="@id/header2" >
+        android:layout_marginTop="5dip" >
                  
             <TextView android:id="@+id/content4"
 	            android:layout_height="fill_parent"
@@ -301,8 +296,7 @@
     <LinearLayout android:id="@+id/header3"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_marginTop="5dip"
-        android:layout_below="@id/linearContent2">
+        android:layout_marginTop="5dip">
                  
             <TextView android:id="@+id/item7"
 	            android:layout_height="fill_parent"
@@ -342,8 +336,7 @@
     <LinearLayout android:id="@+id/linearContent3"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_marginTop="5dip"
-        android:layout_below="@id/header3" >
+        android:layout_marginTop="5dip" >
                  
             <TextView android:id="@+id/content7"
 	            android:layout_height="fill_parent"
@@ -378,8 +371,7 @@
     <LinearLayout android:id="@+id/header4"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_marginTop="5dip"
-        android:layout_below="@id/linearContent3">
+        android:layout_marginTop="5dip">
                  
             <TextView android:id="@+id/item10"
 	            android:layout_height="fill_parent"
@@ -419,8 +411,7 @@
         <LinearLayout android:id="@+id/linearContent4"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_marginTop="5dip"
-        android:layout_below="@id/header4" >
+        android:layout_marginTop="5dip" >
                  
             <TextView android:id="@+id/content10"
 	            android:layout_height="fill_parent"
@@ -455,8 +446,7 @@
 	<LinearLayout android:id="@+id/header5"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_marginTop="5dip"
-        android:layout_below="@id/linearContent4">
+        android:layout_marginTop="5dip">
                  
             <TextView android:id="@+id/item13"
 	            android:layout_height="fill_parent"
@@ -496,8 +486,7 @@
 	<LinearLayout android:id="@+id/linearContent5"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_marginTop="5dip"
-        android:layout_below="@id/header5" >
+        android:layout_marginTop="5dip" >
                  
             <TextView android:id="@+id/content13"
 	            android:layout_height="fill_parent"
@@ -532,8 +521,7 @@
 	<LinearLayout android:id="@+id/header6"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_marginTop="5dip"
-        android:layout_below="@id/linearContent5">
+        android:layout_marginTop="5dip">
                  
             <TextView android:id="@+id/item16"
 	            android:layout_height="fill_parent"
@@ -573,8 +561,7 @@
 	<LinearLayout android:id="@+id/linearContent6"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_marginTop="5dip"
-        android:layout_below="@id/header6" >
+        android:layout_marginTop="5dip" >
                  
             <TextView android:id="@+id/content16"
 	            android:layout_height="fill_parent"
@@ -608,8 +595,7 @@
 	<LinearLayout android:id="@+id/header7"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_marginTop="5dip"
-        android:layout_below="@id/linearContent6">
+        android:layout_marginTop="5dip">
                  
             <TextView android:id="@+id/item19"
 	            android:layout_height="fill_parent"
@@ -649,8 +635,7 @@
 	<LinearLayout android:id="@+id/linearContent7"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_marginTop="5dip"
-        android:layout_below="@id/header7" >
+        android:layout_marginTop="5dip" >
                  
             <TextView android:id="@+id/content19"
 	            android:layout_height="fill_parent"
@@ -684,8 +669,7 @@
 	<LinearLayout android:id="@+id/header8"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_marginTop="5dip"
-        android:layout_below="@id/linearContent7">
+        android:layout_marginTop="5dip">
                  
             <TextView android:id="@+id/item22"
 	            android:layout_height="fill_parent"
@@ -725,8 +709,7 @@
 	<LinearLayout android:id="@+id/linearContent8"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-       	android:layout_marginTop="5dip"
-        android:layout_below="@id/header8" >
+       	android:layout_marginTop="5dip" >
                  
             <TextView android:id="@+id/content22"
 	            android:layout_height="fill_parent"
@@ -757,4 +740,4 @@
 	        />
 	</LinearLayout>
 	
-</RelativeLayout>
+</LinearLayout>
