@@ -186,6 +186,7 @@
         </activity>
         <activity
             android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan"
             android:name="tipsystem.tips.ManageEventActivity"
             android:parentActivityName="tipsystem.tips.MainMenuActivity" >
             <meta-data

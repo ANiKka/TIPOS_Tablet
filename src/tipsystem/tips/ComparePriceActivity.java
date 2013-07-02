@@ -11,6 +11,8 @@ import org.json.JSONObject;
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 
+import tipsystem.tips.MainActivity.ViewHolder;
+import tipsystem.tips.models.ShopSelectItem;
 import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
@@ -32,6 +34,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView.OnItemClickListener;
@@ -39,7 +42,9 @@ import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -65,7 +70,7 @@ public class ComparePriceActivity extends Activity{
 	TextView m_local;	
 	
 	ListView m_listPriceSearch;
-	SimpleAdapter m_adapter; 
+	CompareListAdapter m_adapter; 
 	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
 	private ProgressDialog dialog;
 
@@ -115,12 +120,14 @@ public class ComparePriceActivity extends Activity{
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             	sendDataFromList(position);
             }
-        });		
+        });
         m_listPriceSearch.setOnScrollListener(customScrollListener);
 
-    	String[] from = new String[] {"BarCode", "G_Name", "Pur_Pri", "Sell_Pri"};
-        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-        m_adapter = new SimpleAdapter(this, mfillMaps, R.layout. activity_listview_compare_list, from, to);
+    	//String[] from = new String[] {"BarCode", "G_Name", "Pur_Pri", "Sell_Pri"};
+        //int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
+        //m_adapter = new SimpleAdapter(this, mfillMaps, R.layout. activity_listview_compare_list, from, to);
+        m_adapter = new CompareListAdapter(this,  R.layout. activity_listview_compare_list, mfillMaps);
+                
         m_listPriceSearch.setAdapter(m_adapter);
         
         m_customerCode = (TextView)findViewById(R.id.editTextCustomer);
@@ -134,6 +141,7 @@ public class ComparePriceActivity extends Activity{
 	        public void onClick(View v) { 
 	        	deleteListViewAll();
 	        	doSearchInMarket();
+	        	closeKeyboard();
 	        }
 		});
 				
@@ -177,45 +185,11 @@ public class ComparePriceActivity extends Activity{
         textView.setTypeface(typeface);        
 	}
 
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();
-
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("가격비교");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
+	private void closeKeyboard() {
+    	getWindow().getCurrentFocus().clearFocus();
+		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(getWindow().getCurrentFocus().getWindowToken(), 0);	    
 	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.compare_price, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case android.R.id.home:
-			// This ID represents the Home or Up button. In the case of this
-			// activity, the Up button is shown. Use NavUtils to allow users
-			// to navigate up one level in the application structure. For
-			// more details, see the Navigation pattern on Android Design:
-			//
-			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
-			//
-			NavUtils.navigateUpFromSameTask(this);
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
-	
 
 	public void deleteListViewAll() {
 		if (mfillMaps.isEmpty()) return;
@@ -246,12 +220,16 @@ public class ComparePriceActivity extends Activity{
 	    if (!customer.equals("") || !barcode.equals("") || !local.equals("")){
 	    	
 	 	    if(!customer.equals("")){
-	 	    	query += " AND Bus_Code = '" + customer + "'";
+	 	    	query += " AND Bus_Code like '" + customer + "%'";
 	 		}
 	 	    
 	 		if(!barcode.equals("")){
-	 			query += " AND BarCode = '" + barcode + "'";
-	 		}	 		
+	 			query += " AND BarCode like '" + barcode + "%'";
+	 		}
+	 		
+	 		if(!local.equals("")){
+	 			//query += " AND Location like '" + local + "%'";
+	 		}
 	 		query += ";";
 	    } else {
 	    	query = "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods) A " 
@@ -346,15 +324,20 @@ public class ComparePriceActivity extends Activity{
     			
             	HashMap<String, String> map = JsonHelper.toStringHashMap(json1);
 
-	            String Pur_Pri = map.get("Pur_Pri");	           
-	            if(Pur_Pri1>Pur_Pri2) Pur_Pri += " +";
-	            else Pur_Pri += "-";
-	            map.put("Pur_Pri", Pur_Pri);
+	            String Pur_Pri = map.get("Pur_Pri");	
+	            if(Pur_Pri1>Pur_Pri2) Pur_Pri = "+";
+	            else if(Pur_Pri1==Pur_Pri2) Pur_Pri = "=";
+	            else Pur_Pri = "-";
+
+	            map.put("Pur_Pri_dif", String.format("%.1f", Pur_Pri1-Pur_Pri2));
+	            map.put("Pur_Pri_inc", Pur_Pri);
 	            
 	            String Sell_Pri = map.get("Sell_Pri");
-	            if(Sell_Pri1>Sell_Pri2) Sell_Pri += " +";
-	            else Sell_Pri += "-";
-	            map.put("Sell_Pri", Sell_Pri);
+	            if(Sell_Pri1>Sell_Pri2) Sell_Pri = " +";
+	            else if(Sell_Pri1==Sell_Pri2) Sell_Pri = "=";
+	            else Sell_Pri = "-";
+	            map.put("Sell_Pri_dif", String.format("%.1f", Sell_Pri1-Sell_Pri2));
+	            map.put("Sell_Pri_inc", Sell_Pri);
 	            
     	        mfillMaps.add(map);         
     	        
@@ -508,4 +491,106 @@ public class ComparePriceActivity extends Activity{
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
+	
+
+	class CompareListAdapter extends BaseAdapter 
+	{
+		Context ctx;
+		int itemLayout;
+		
+		private List<HashMap<String, String>> object ;
+		public CompareListAdapter(Context ctx, int itemLayout, List<HashMap<String, String>> object)
+		{
+			super();
+			this.ctx = ctx;
+			this.itemLayout = itemLayout;
+			this.object = object;
+		}
+		@Override
+		public int getCount() {
+			return object.size();
+		}
+		@Override
+		public Object getItem(int position) {
+			return object.get(position);
+		}
+		@Override
+		public long getItemId(int position) {
+			return position;
+		}
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			
+			if ( convertView == null ) {
+				LayoutInflater inflater = LayoutInflater.from(this.ctx);
+				convertView = inflater.inflate(this.itemLayout, parent, false);
+			}
+			HashMap<String, String> obj = object.get(position);
+
+			TextView barcode = (TextView) convertView.findViewById(R.id.item1);
+			TextView gname  = (TextView) convertView.findViewById(R.id.item2);
+			TextView pur  = (TextView) convertView.findViewById(R.id.item3);
+			TextView sell  = (TextView) convertView.findViewById(R.id.item4);
+			barcode.setText(obj.get("BarCode"));
+			gname.setText(obj.get("G_Name"));
+			pur.setText(obj.get("Pur_Pri_dif"));
+			sell.setText(obj.get("Sell_Pri_dif"));
+
+			ImageView pur_arrow  = (ImageView) convertView.findViewById(R.id.arrow1);
+			ImageView sell_arrow  = (ImageView) convertView.findViewById(R.id.arrow2);
+			
+			String Pur_Pri_inc = obj.get("Pur_Pri_inc");
+			pur_arrow.setVisibility(View.VISIBLE);
+			if (Pur_Pri_inc.equals("+")) pur_arrow.setImageResource(R.drawable.icon_uparrow);
+			else if (Pur_Pri_inc.equals("-")) pur_arrow.setImageResource(R.drawable.icon_parte_arrow);
+			else pur_arrow.setVisibility(View.INVISIBLE);
+			
+			String Sell_Pri_inc = obj.get("Sell_Pri_inc");
+			sell_arrow.setVisibility(View.VISIBLE);
+			if (Sell_Pri_inc.equals("+")) sell_arrow.setImageResource(R.drawable.icon_uparrow);
+			else if (Sell_Pri_inc.equals("-")) sell_arrow.setImageResource(R.drawable.icon_parte_arrow);
+			else sell_arrow.setVisibility(View.INVISIBLE);
+			
+			return convertView;
+		}
+	}
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	private void setupActionBar() {
+
+		ActionBar actionbar = getActionBar();
+
+		actionbar.setDisplayShowHomeEnabled(false);
+		actionbar.setDisplayShowTitleEnabled(true);
+		actionbar.setDisplayShowCustomEnabled(true);
+		actionbar.setTitle("가격비교");
+		
+		getActionBar().setDisplayHomeAsUpEnabled(false);
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.compare_price, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			// This ID represents the Home or Up button. In the case of this
+			// activity, the Up button is shown. Use NavUtils to allow users
+			// to navigate up one level in the application structure. For
+			// more details, see the Navigation pattern on Android Design:
+			//
+			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
+			//
+			NavUtils.navigateUpFromSameTask(this);
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+	
 }

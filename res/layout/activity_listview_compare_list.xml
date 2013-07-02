@@ -1,36 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
     android:orientation="horizontal" >
     
+    <!-- 바코드 -->
     <TextView android:id="@+id/item1"
-        android:text="바코드"
         android:layout_height="fill_parent"
-        android:layout_width="0dip"
-        android:layout_weight="1"
+        android:layout_width="110dp"
         android:gravity="center"
     />
+    <!-- 상품명 -->
     <TextView android:id="@+id/item2"
-        android:text="상품명"
         android:layout_height="fill_parent"
         android:layout_width="0dip"
         android:layout_weight="1"
         android:gravity="center"
     />
+    <!-- 매입가 -->
     <TextView android:id="@+id/item3"
-        android:text="매입가"
+        android:layout_width="70dp"
         android:layout_height="fill_parent"
-        android:layout_width="0dip"
-        android:layout_weight="1"
         android:gravity="center"
-    />
-    <TextView android:id="@+id/item4"
-        android:text="판매가"
-        android:layout_height="fill_parent"
-        android:layout_width="0dip"
-        android:layout_weight="1"
-        android:gravity="center"
-    />
+	        />
 
+    <ImageView
+           android:id="@+id/arrow1"
+           android:layout_width="10dp"
+           android:layout_height="fill_parent" 	
+           android:src="@drawable/icon_uparrow" />
+    
+    <!-- 판매가 -->
+    <TextView android:id="@+id/item4"
+        android:layout_width="70dp"
+        android:layout_height="fill_parent"
+        android:gravity="center"
+    />
+   
+    <ImageView
+           android:id="@+id/arrow2"
+           android:layout_width="10dp"
+           android:layout_height="fill_parent" 	
+           android:src="@drawable/icon_uparrow" />
+    
 </LinearLayout>

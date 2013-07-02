@@ -368,40 +368,49 @@
 	
     <!-- Header -->
     <LinearLayout android:id="@+id/header"
-        
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
+        android:orientation="horizontal"
         >
         <TextView android:id="@+id/item1"
             android:layout_height="fill_parent"
-			android:layout_width="0dip"
-			android:layout_weight="1"
+            android:layout_width="110dp"
+			android:gravity="center"
 			android:textColor="#d7d7d7"
 			android:textStyle="bold"
 			android:textSize="14sp"
-			android:gravity="center"
 			android:background="@drawable/gray_bar_bg"
             android:text="바코드"
         />
+        
         <TextView android:id="@+id/item2"
-           android:layout_height="fill_parent"
-			android:layout_width="0dip"
-			android:layout_weight="1"
+            android:layout_height="fill_parent"
+            android:layout_width="0dip"
+            android:layout_weight="1"
+            android:text="상품명"
+			android:textColor="#d7d7d7"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:background="@drawable/gray_bar_bg"
+        />
+        <TextView android:id="@+id/item2"
+            android:layout_width="80dp"
+            android:layout_height="fill_parent"
+            android:gravity="center"
 			android:textColor="#d7d7d7"
 			android:textStyle="bold"
 			android:textSize="14sp"
-			android:gravity="center"
 			android:background="@drawable/gray_bar_bg"
             android:text="행사매입가"
         />
         <TextView android:id="@+id/item3"
+            android:layout_width="80dp"
             android:layout_height="fill_parent"
-			android:layout_width="0dip"
-			android:layout_weight="1"
+            android:gravity="center"
 			android:textColor="#d7d7d7"
 			android:textStyle="bold"
 			android:textSize="14sp"
-			android:gravity="center"
 			android:background="@drawable/gray_bar_bg"
             android:text="행사판매가"
         />
@@ -415,13 +424,13 @@
     <!-- ListView (grid_items) -->
     <LinearLayout android:id="@+id/layout"
         android:layout_width="match_parent"
-        android:layout_height="140dp"
+        android:layout_height="match_parent"
         >
 
         <ListView
             android:id="@+id/listviewReadyToSendEventList"
             android:layout_width="fill_parent"
-            android:layout_height="140dp"
+            android:layout_height="match_parent"
             >
 
         </ListView>

@@ -19,6 +19,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Typeface;
 import android.util.Log;
@@ -26,6 +27,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
@@ -109,11 +112,13 @@ public class ManageCustomerActivity extends Activity{
 	        public void onClick(View v) { 
 	        	deleteListViewAll();
 	        	doSearch();
+	        	closeKeyboard();
 	        }
 		});
         registButton.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) { 
 	        	doRegister();
+	        	closeKeyboard();
 	        }
 		});
         renewButton.setOnClickListener(new OnClickListener() {
@@ -165,44 +170,6 @@ public class ManageCustomerActivity extends Activity{
         textView.setTypeface(typeface);
 	}
 
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();        
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("거래처관리");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.manage_customer, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-			case android.R.id.home:
-			// This ID represents the Home or Up button. In the case of this
-			// activity, the Up button is shown. Use NavUtils to allow users
-			// to navigate up one level in the application structure. For
-			// more details, see the Navigation pattern on Android Design:
-			//
-			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
-			//
-			NavUtils.navigateUpFromSameTask(this);
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
-
 	// private methods
 	private void fillCustomerFormFromList(int position) {		
 		String code = mfillMaps.get(position).get("Office_Code");
@@ -216,6 +183,12 @@ public class ManageCustomerActivity extends Activity{
 		else if(StringSection.equals("매출거래처")) section = 2;
 		else section = 3;
 		m_customerSection.setSelection(section);
+	}
+	
+	private void closeKeyboard() {
+    	getWindow().getCurrentFocus().clearFocus();
+		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(getWindow().getCurrentFocus().getWindowToken(), 0);	    
 	}
 	
 	public void deleteListViewAll() {
@@ -254,7 +227,7 @@ public class ManageCustomerActivity extends Activity{
         m_adapter.notifyDataSetChanged();
     }
 
-	//조회
+	// 조회
 	public void doSearch(){
 		//입력된 코드 가져오기
     	String customerCode = m_customerCode.getText().toString();
@@ -265,13 +238,13 @@ public class ManageCustomerActivity extends Activity{
     	query += "select * from Office_Manage ";
     	String index = String.valueOf(mfillMaps.size());
     	query = "select TOP 50 * from Office_Manage WHERE Office_Code NOT IN (SELECT TOP "+ index + " Office_Code FROM Office_Manage) ";
-    		    
+    	
 	    if (!customerCode.equals("")) {
-	    	query += " AND Office_Code = '" + customerCode + "'";
+	    	query += " AND Office_Code like '"+customerCode+"%'";
 	    }
 	    
 	    if (!customerName.equals("")) {
-	    	query += " AND Office_Name = '" + customerName  + "'";
+	    	query += " AND Office_Name like '" + customerName  + "%'";
 	    }
 	    
 	    if (!customerSection.equals("0")) {
@@ -361,4 +334,43 @@ public class ManageCustomerActivity extends Activity{
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	 }
+
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	private void setupActionBar() {
+
+		ActionBar actionbar = getActionBar();        
+		actionbar.setDisplayShowHomeEnabled(false);
+		actionbar.setDisplayShowTitleEnabled(true);
+		actionbar.setDisplayShowCustomEnabled(true);
+		actionbar.setTitle("거래처관리");
+		
+		getActionBar().setDisplayHomeAsUpEnabled(false);
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.manage_customer, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case android.R.id.home:
+			// This ID represents the Home or Up button. In the case of this
+			// activity, the Up button is shown. Use NavUtils to allow users
+			// to navigate up one level in the application structure. For
+			// more details, see the Navigation pattern on Android Design:
+			//
+			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
+			//
+			NavUtils.navigateUpFromSameTask(this);
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
 }

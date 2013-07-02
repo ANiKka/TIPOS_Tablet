@@ -80,6 +80,62 @@ public class ComparePriceDetailActivity extends Activity {
 		comparePrice(BarCode, G_Name);
 	}
 	
+	private void comparePrice(String BarCode, String G_Name) {
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+ 		String query = "";
+ 		query = "SELECT A.Pur_Pri, A.Sell_Pri, B.Shop_Area, B.Shop_Size FROM Goods A inner join V_OFFICE_USER B "
+ 				+ " on A.Office_Code = B.Sto_CD"
+ 				+ " WHERE A.BarCode = '" + BarCode + "' ;";
+ 		Log.w("MSSQL", "Query : " + query);
+ 		
+ 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				if (results.length() > 0) {
+					updateListView(results);
+		            Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
+				}
+				else {
+		            Toast.makeText(getApplicationContext(), "상품을 검색할수 없습니다", Toast.LENGTH_SHORT).show();					
+				}
+			}
+	    }).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query);
+ 		
+	}
+	
+	public void updateListView(JSONArray results) {
+		
+        if (!mfillMaps.isEmpty()) mfillMaps.clear();
+        
+        for (int i = 0; i < results.length(); i++) {
+        	try {
+            	JSONObject json = results.getJSONObject(i);
+            	HashMap<String, String> map = JsonHelper.toStringHashMap(json);
+
+	            mfillMaps.add(map);
+		 
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+        
+		String[] from = new String[] {"Shop_Area", "Shop_Size", "Pur_Pri", "Sell_Pri"};
+        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
+        
+        // fill in the grid_item layout
+        SimpleAdapter adapter = new SimpleAdapter(ComparePriceDetailActivity.this, mfillMaps, R.layout. activity_listview_compare_detail_list, from, to);
+        m_listPriceDetail.setAdapter(adapter);
+    }
+
 	/**
 	 * Set up the {@link android.app.ActionBar}.
 	 */
@@ -118,59 +174,4 @@ public class ComparePriceDetailActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-
-	private void comparePrice(String BarCode, String G_Name) {
-		
-		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
- 		
- 		String query = "";
- 		query = "SELECT * FROM Goods WHERE BarCode = '" + BarCode + "' and G_Name = '" + G_Name + "';";
- 		Log.w("MSSQL", "Query : " + query);
- 		
- 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-			@Override
-			public void onRequestCompleted(JSONArray results) {
-				dialog.dismiss();
-				dialog.cancel();
-				if (results.length() > 0) {
-					updateListView(results);
-		            Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
-				}
-				else {
-		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();					
-				}
-			}
-	    }).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query);
- 		
-	}
-	
-	public void updateListView(JSONArray results) {
-		
-        if (!mfillMaps.isEmpty()) mfillMaps.clear();
-        
-        for (int i = 0; i < results.length(); i++) {
-        	try {
-            	JSONObject json = results.getJSONObject(i);
-            	HashMap<String, String> map = JsonHelper.toStringHashMap(json);
-
-	            mfillMaps.add(map);
-		 
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-		}
-        
-		String[] from = new String[] {"Barcode", "G_Name", "Pur_Pri", "Sell_Pri"};
-        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
-        
-        // fill in the grid_item layout
-        SimpleAdapter adapter = new SimpleAdapter(ComparePriceDetailActivity.this, mfillMaps, R.layout. activity_listview_compare_detail_list, from, to);
-        m_listPriceDetail.setAdapter(adapter);
-    }
-
 }

@@ -102,9 +102,6 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	List<HashMap<String, String>> m_evtList = new ArrayList<HashMap<String, String>>();
 	HashMap<String, String> tempMap =null;
 	
-	String[] from = new String[] {"BarCode", "Sale_Pur", "Sale_Sell"};
-    int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
-
 	private ProgressDialog dialog;
 	
 	@Override
@@ -157,7 +154,10 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		m_period1.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
 		m_period2.setText(m_dateFormatter.format(m_dateCalender2.getTime()));
 
-		m_adapter = new SimpleAdapter(this, m_evtList, R.layout.activity_listview_item3,	from, to);
+		String[] from = new String[] {"BarCode", "G_Name", "Sale_Pur", "Sale_Sell"};
+	    int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4  };
+
+		m_adapter = new SimpleAdapter(this, m_evtList, R.layout.activity_listview_product_list, from, to);
         m_listEvent.setAdapter(m_adapter);
         
 		m_bt_register.setOnClickListener(new OnClickListener() {

@@ -35,7 +35,7 @@
              android:textColor="#000000"
              android:background="@drawable/white_text_box_small"
              android:textSize="14sp"
-             android:inputType="text"/>
+             android:inputType="number"/>
          
          <requestFocus />
          
@@ -91,7 +91,7 @@
              android:ems="10"
              android:textSize="14sp"
              android:textColor="#000000"
-             android:inputType="text"
+             android:inputType="number"
              android:background="@drawable/white_text_box_small" />
         
          <requestFocus />
@@ -190,15 +190,12 @@
 	        >
 	        <TextView android:id="@+id/item1"
 	            android:layout_height="fill_parent"
-	            android:layout_width="0dip"
-	            android:layout_weight="0.7"
+	            android:layout_width="110dp"
 	            android:text="바코드"
 	            android:textColor="#d7d7d7"
 	            android:textStyle="bold"
 	            android:textSize="14sp"
 	            android:gravity="center"
-	            android:width="75dip"
-	            android:height="20dip"
 	            android:background="@drawable/gray_bar_bg"
 	        />
 	        <TextView android:id="@+id/item2"
@@ -210,34 +207,26 @@
 	            android:textStyle="bold"
 	            android:textSize="14sp"
 	            android:gravity="center"
-	            android:width="75dip"
-	            android:height="20dip"
 	            android:background="@drawable/gray_bar_bg"
 	        />
 	        <TextView android:id="@+id/item3"
+	            android:layout_width="80dp"
 	            android:layout_height="fill_parent"
-	            android:layout_width="0dip"
-	            android:layout_weight="1"
+	            android:gravity="center"
 	            android:text="매입가"
 	            android:textColor="#d7d7d7"
 	            android:textStyle="bold"
 	            android:textSize="14sp"
-	            android:gravity="center"
-	            android:width="75dip"
-	            android:height="20dip"
 	            android:background="@drawable/gray_bar_bg"
 	        />
 	        <TextView android:id="@+id/item4"
+	            android:layout_width="80dp"
 	            android:layout_height="fill_parent"
-	            android:layout_width="0dip"
-	            android:layout_weight="1"
+	            android:gravity="center"
 	            android:text="판매가"
 	            android:textColor="#d7d7d7"
 	            android:textStyle="bold"
 	            android:textSize="14sp"
-	            android:gravity="center"
-	            android:width="75dip"
-	            android:height="20dip"
 	            android:background="@drawable/gray_bar_bg"
 	        />
 	    </LinearLayout>
