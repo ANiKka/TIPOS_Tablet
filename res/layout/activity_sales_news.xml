@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,7 +7,8 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:background="@drawable/bg_img"
-    tools:context=".SalesNewsActivity" >
+    tools:context=".SalesNewsActivity"
+    android:orientation="vertical" >
 
     <LinearLayout
         android:id="@+id/linearLayoutTitle"
@@ -67,7 +68,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_below="@+id/linearLayoutTitle"
         android:orientation="horizontal" >
 
         <TextView
@@ -120,7 +120,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
-        android:layout_below="@+id/linearLayout2"
         android:orientation="horizontal" >
 
         <TextView
@@ -174,7 +173,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
-        android:layout_below="@+id/linearLayout3"
         android:orientation="horizontal" >
 
         <TextView
@@ -227,7 +225,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
-        android:layout_below="@+id/linearLayout4"
         android:orientation="horizontal" >
 
         <TextView
@@ -279,8 +276,6 @@
         android:id="@+id/tabhostSalesNews"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/linearLayout5"
         android:layout_marginTop="10dp" >
 
         <LinearLayout
@@ -441,7 +436,6 @@
 				    <LinearLayout android:id="@+id/layout2"
 				        android:layout_width="match_parent"
 				        android:layout_height="fill_parent"
-				        android:layout_below="@+id/header2"
 				        >
 				        <ListView android:id="@+id/listviewSalesNewsListTab2"
 				            android:layout_height="fill_parent"
@@ -560,7 +554,6 @@
 				    <LinearLayout android:id="@+id/layout3"
 				        android:layout_width="match_parent"
 				        android:layout_height="fill_parent"
-				        android:layout_below="@+id/header3"
 				        >
 				        <ListView android:id="@+id/listviewSalesNewsListTab3"
 				            android:layout_height="fill_parent"
@@ -573,6 +566,4 @@
             </FrameLayout>
         </LinearLayout>
     </TabHost>
-			
-
-</RelativeLayout>
+</LinearLayout>

@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,7 +7,8 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:background="@drawable/bg_img"
-    tools:context=".EventDetailViewActivity" >
+    tools:context=".EventDetailViewActivity" 
+    android:orientation="vertical">
 
     <LinearLayout
         android:id="@+id/linearLayoutTitle"
@@ -41,7 +42,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_below="@id/linearLayoutTitle"
         android:orientation="horizontal" >
          
         <TextView
@@ -71,7 +71,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_below="@id/linearLayout2"
         android:orientation="horizontal" >
 
          <TextView
@@ -104,7 +103,6 @@
        android:layout_width="fill_parent"
        android:layout_marginTop="10dip"
        android:orientation="horizontal"
-       android:layout_below="@id/linearLayout3"
        >
         <TextView android:id="@+id/item1"
             android:layout_height="fill_parent"
@@ -156,14 +154,12 @@
     <!-- List Divider -->
     <View android:layout_width="fill_parent"
         android:layout_height="1dip"
-        android:layout_below="@id/header"
         android:background="?android:attr/listDivider" />
  
     <!-- ListView (grid_items) -->
     <LinearLayout android:id="@+id/layout"
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
-        android:layout_below="@+id/header"
         >
         <ListView android:id="@+id/listviewReadyToSendEventDetailViewList"
             android:layout_height="wrap_content"
@@ -173,4 +169,4 @@
     </LinearLayout>
     
 
-</RelativeLayout>
+</LinearLayout>

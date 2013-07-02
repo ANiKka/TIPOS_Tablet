@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,137 +7,161 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:background="@drawable/contact_box_bg"
-    tools:context=".InputQuestionActivity" >
+    tools:context=".InputQuestionActivity"
+    android:orientation="vertical" >
 
     <TextView
         android:id="@+id/textViewShopTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
         android:text="XX 마트"
         android:textColor="#ffffff"
         android:textSize="20sp"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textViewShopTitle"
-        android:layout_below="@+id/textViewShopTitle"
-        android:layout_marginTop="20dp"
-        android:text="담당자 명"
-        android:textColor="#ffffff"
-        android:textSize="20sp"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+    <LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_marginTop="20dp"
+	    android:orientation="horizontal" >
+    
+    
+	    <TextView
+	        android:id="@+id/textView1"
+	        android:layout_width="0dip"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="0.5"  
+	        android:text="담당자 명"
+	        android:textColor="#ffffff"
+	        android:textSize="20sp"
+	        android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView1"
-        android:layout_below="@+id/editTextManagerName"
-        android:layout_marginTop="28dp"
-        android:text="연락처"
-		android:textColor="#ffffff"
-        android:textSize="20sp"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+	    <EditText
+	        android:id="@+id/editTextManagerName"
+	        android:layout_width="1dip"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="1"
+	        android:textColor="#000000"
+	        android:background="@drawable/white_text_box_small"
+	        android:inputType="text"
+	        android:ems="10" >
+	
+	        <requestFocus android:layout_width="wrap_content" />
 
-    <EditText
-        android:id="@+id/editTextContectNumber"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/textView2"
-        android:layout_alignBottom="@+id/textView2"
-        android:layout_alignLeft="@+id/editTextManagerName"
-        android:layout_alignRight="@+id/editTextManagerName"
-        android:background="@drawable/white_text_box_small"
-        android:ems="10"
-        android:inputType="phone"
-        android:textColor="#000000" />
+	    	</EditText>
+	
+	</LinearLayout>
+	
+	<LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_marginTop="20dp"
+	    android:orientation="horizontal" >
+	    
+	    <TextView
+	        android:id="@+id/textView2"
+	        android:layout_width="0dip"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="0.5" 
+	        android:text="연락처"
+			android:textColor="#ffffff"
+	        android:textSize="20sp"
+	        android:textAppearance="?android:attr/textAppearanceMedium" />
+		    
+	    <EditText
+	        android:id="@+id/editTextContectNumber"
+	        android:layout_width="0dip"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="1" 
+	        android:background="@drawable/white_text_box_small"
+	        android:ems="10"
+	        android:inputType="phone"
+	        android:textColor="#000000" />
+	    
+	    
+	</LinearLayout>
+	    
+    <LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_marginTop="20dp"
+	    android:orientation="horizontal" >
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView2"
-        android:layout_alignTop="@+id/spinnerQuestionType"
-        android:text="문의유형"
-        android:textColor="#ffffff"
-        android:textSize="20sp"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        <TextView
+	        android:id="@+id/textView3"
+	        android:layout_width="0dip"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="0.5"
+	        android:text="문의유형"
+	        android:textColor="#ffffff"
+	        android:textSize="20sp"
+	        android:textAppearance="?android:attr/textAppearanceMedium" />
+	
+	    <Spinner
+	        android:id="@+id/spinnerQuestionType"
+	        android:layout_width="0dip"
+	        android:layout_height="wrap_content"
+			android:layout_weight="1"
+	        android:entries="@array/question_type"
+	        android:prompt="@string/choose_question"
+	        android:textColor="#000000" />
+    
+	</LinearLayout>
+	
+    
+	<LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_marginTop="20dp"
+	    android:orientation="horizontal" >
+	    
+	    <TextView
+	        android:id="@+id/textView4"
+	        android:layout_width="0dip"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="0.5"
+	        android:layout_gravity="start"
+	        android:text="내용"
+	        android:textAppearance="?android:attr/textAppearanceMedium"
+	        android:textColor="#ffffff"
+	        android:textSize="20sp" />
+	    
+	    
+	    <EditText
+	        android:id="@+id/editTextCustomerCode"
+	        android:layout_width="0dip"
+	        android:layout_height="180dp"
+	        android:layout_weight="1"
+	        android:background="#ffffff"
+	        android:inputType="textMultiLine"
+	        android:ems="10"
+	        android:textColor="#000000" />
+	    
+	</LinearLayout>
+    
+    
+	<LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_marginTop="20dp"
+	    android:gravity="center"
+	    android:orientation="horizontal" >
+	    
+	    <Button
+	        android:id="@+id/buttonSave"
+	        style="?android:attr/buttonStyleSmall"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:background="@drawable/contact_btn_save" />
+	    
+	    <Button
+	        android:id="@+id/buttonCancel"
+	        style="?android:attr/buttonStyleSmall"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="25dip"
+	        android:background="@drawable/contact_btn_cancel" />
+	
+    </LinearLayout>
 
-    <Spinner
-        android:id="@+id/spinnerQuestionType"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/editTextContectNumber"
-        android:layout_alignRight="@+id/editTextContectNumber"
-        android:layout_below="@+id/editTextContectNumber"
-        android:layout_marginTop="18dp"
-        android:entries="@array/question_type"
-        android:prompt="@string/choose_question"
-        android:textColor="#000000" />
-
-    <EditText
-        android:id="@+id/editTextManagerName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/textView1"
-        android:layout_alignBottom="@+id/textView1"
-        android:layout_alignRight="@+id/buttonCancel"
-        android:textColor="#000000"
-        android:background="@drawable/white_text_box_small"
-        android:inputType="text"
-        android:ems="10" >
-
-        <requestFocus />
-    </EditText>
-
-    <EditText
-        android:id="@+id/editTextCustomerCode"
-        android:layout_width="wrap_content"
-        android:layout_height="180dp"
-        android:layout_alignLeft="@+id/spinnerQuestionType"
-        android:layout_alignRight="@+id/spinnerQuestionType"
-        android:layout_alignTop="@+id/textView4"
-        android:background="#ffffff"
-        android:ems="10"
-        android:inputType="textMultiLine"
-        android:textColor="#000000" />
-
-    <Button
-        android:id="@+id/buttonCancel"
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/buttonSave"
-        android:layout_alignBottom="@+id/buttonSave"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="15dp"
-        android:background="@drawable/contact_btn_cancel" />
-
-    <Button
-        android:id="@+id/buttonSave"
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView4"
-        android:layout_below="@+id/editTextCustomerCode"
-        android:layout_marginTop="26dp"
-        android:background="@drawable/contact_btn_save" />
-
-    <TextView
-        android:id="@+id/textView4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView3"
-        android:layout_below="@+id/spinnerQuestionType"
-        android:layout_marginTop="19dp"
-        android:text="내용"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="#ffffff"
-        android:textSize="20sp" />
-
-</RelativeLayout>
+</LinearLayout>

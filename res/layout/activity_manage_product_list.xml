@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,11 +7,11 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:background="@drawable/bg_img"
-    tools:context=".ComparePriceDetailActivity" >
+    tools:context=".ComparePriceDetailActivity"
+    android:orientation="vertical" >
     
 	
     <!-- Header -->
-
     <LinearLayout
         android:id="@+id/header"
         android:layout_width="fill_parent"
@@ -76,14 +76,12 @@
     <!-- List Divider -->
     <View android:layout_width="fill_parent"
         android:layout_height="1dip"
-        android:layout_below="@id/header"
         android:background="?android:attr/listDivider" />
  
     <!-- ListView (grid_items) -->
     <LinearLayout android:id="@+id/layout"
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
-        android:layout_below="@+id/header"
         >
 
         <ListView
@@ -92,5 +90,6 @@
             android:layout_height="fill_parent" >
 
         </ListView>
-    </LinearLayout>       
-</RelativeLayout>
+    </LinearLayout>
+      
+</LinearLayout>

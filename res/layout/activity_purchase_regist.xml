@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,13 +7,13 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:background="@drawable/bg_img"
-    tools:context=".PurchaseRegistActivity" >
+    tools:context=".PurchaseRegistActivity"
+    android:orientation="vertical" >
 
     <LinearLayout
         android:id="@+id/linearLayoutTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
         android:orientation="horizontal" >
 
         <TextView
@@ -54,7 +54,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_below="@+id/linearLayoutTitle"
         android:orientation="horizontal" >
 
         <TextView
@@ -112,7 +111,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_below="@+id/linearLayout2"
         android:orientation="horizontal" >
 
         <TextView
@@ -137,6 +135,8 @@
 		     android:singleLine="true"
 		     android:lines="1"
              android:background="@drawable/white_text_box_small" />
+             
+             <requestFocus />
         
          <requestFocus />
         
@@ -183,14 +183,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_below="@+id/linearLayout3"
         android:orientation="horizontal" >
 
         <TextView
             android:id="@+id/textView6"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
-            android:layout_weight="0.6"
+            android:layout_weight="0.53"
             android:textColor="#ffffff"
             android:textSize="14sp"
             android:text="매입가"
@@ -205,7 +204,7 @@
             android:textSize="14sp"
             android:textColor="#000000"
 		    android:singleLine="true"
-             android:inputType="number"
+		    android:inputType="number"
 		    android:lines="1"
             android:background="@drawable/white_text_box_small" />
        
@@ -228,7 +227,7 @@
 	        android:ems="10"
 	        android:textColor="#000000"
 		    android:singleLine="true"
-            android:inputType="number"
+		    android:inputType="number"
 		    android:lines="1"
             android:background="@drawable/white_text_box_small"
 	        android:textSize="14sp"
@@ -241,14 +240,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_below="@+id/linearLayout4"
         android:orientation="horizontal" >
 
         <TextView
             android:id="@+id/textView8"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
-            android:layout_weight="0.6"
+            android:layout_weight="0.53"
             android:textColor="#ffffff"
             android:textSize="14sp"
             android:text="수량"
@@ -298,7 +296,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_below="@+id/linearLayout5"
         android:orientation="horizontal"
         android:gravity="center" >
         
@@ -319,6 +316,15 @@
 	        android:background="@drawable/purchase_save_btn"
 	        android:scaleY="0.8"
 	        android:layout_gravity="center"/>
+	        
+	    <CheckBox
+	    	android:id="@+id/checkBoxRejectedProduct"
+	    	android:layout_width="0dip"
+	    	android:layout_height="wrap_content"
+	    	android:layout_weight="1"
+	    	android:text="반품"
+	    	android:textSize="14sp"
+	    	/>
 	           
        <Button
 	        android:id="@+id/buttonRenew"
@@ -336,7 +342,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_below="@+id/linearLayout6"
         android:background="@drawable/tap_bar_bg"
         android:gravity="center"
         android:orientation="horizontal" >
@@ -358,7 +363,6 @@
         
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_below="@id/linearLayout7"
         >
         <TextView android:id="@+id/item1"
             android:layout_height="fill_parent"
@@ -432,14 +436,12 @@
     <!-- List Divider -->
     <View android:layout_width="fill_parent"
         android:layout_height="1dip"
-        android:layout_below="@id/header"
         android:background="?android:attr/listDivider" />
  
     <!-- ListView (grid_items) -->
     <LinearLayout android:id="@+id/layout"
         android:layout_width="match_parent"
         android:layout_height="178dp"
-        android:layout_below="@+id/header"
         >
 
         <ListView
@@ -455,7 +457,6 @@
         android:id="@+id/linearLayout8"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/layout"
         android:orientation="horizontal"
         android:background="@android:color/darker_gray"
         android:layout_gravity="center" >
@@ -492,4 +493,4 @@
             android:background="@drawable/purchase_allsave_btn" />
     </LinearLayout>
     
-</RelativeLayout>
+</LinearLayout>
