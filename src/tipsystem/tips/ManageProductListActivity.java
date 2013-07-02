@@ -41,6 +41,8 @@ public class ManageProductListActivity extends Activity {
 	SimpleAdapter m_adapter; 
 	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
 
+	String m_barcode = "";
+	
     // loading bar
 	private ProgressDialog dialog;
 
@@ -83,6 +85,9 @@ public class ManageProductListActivity extends Activity {
 			e.printStackTrace();
 		}
 
+        String barcode = getIntent().getStringExtra("barcode");
+        if (barcode != null) m_barcode = " AND BarCode like '"+barcode +"%'";
+        
 		m_cusList= (ListView)findViewById(R.id.listviewManageProductList);
 		m_cusList.setOnItemClickListener(new OnItemClickListener() {
             @Override
@@ -95,7 +100,7 @@ public class ManageProductListActivity extends Activity {
 
     	String[] from = new String[] {"BarCode", "G_Name", "Pur_Pri", "Sell_Pri"};
         int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-        m_adapter = new SimpleAdapter(this, mfillMaps, R.layout. activity_product_list, from, to);
+        m_adapter = new SimpleAdapter(this, mfillMaps, R.layout. activity_listview_product_list, from, to);
         m_cusList.setAdapter(m_adapter);
         
         doSearch();
@@ -128,8 +133,9 @@ public class ManageProductListActivity extends Activity {
 	private void doSearch() {
 
     	String index = String.valueOf(mfillMaps.size());
-		String query = "";    	
-		query = "SELECT TOP 50 * FROM Goods WHERE Goods_Use='1' AND Pur_Use='1' AND BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods);";
+		String query = "";    
+		query += "SELECT TOP 50 BarCode, G_Name, Pur_Pri, Sell_Pri FROM Goods ";
+		query += " WHERE Goods_Use='1' AND Pur_Use='1' "+m_barcode+" AND BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods);";
 
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);

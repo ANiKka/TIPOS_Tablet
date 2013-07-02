@@ -175,6 +175,11 @@ public class MainMenuActivity extends Activity {
     		Toast.makeText(getApplicationContext(), "수수료매장은 사용할수 없습니다", Toast.LENGTH_SHORT).show(); 
         	return;
         }
+        // 부관리자인경우
+        if (m_APP_USER_GRADE.equals("1")) {
+    		Toast.makeText(getApplicationContext(), "부관리자는 사용할수 없습니다", Toast.LENGTH_SHORT).show(); 
+        	return;
+        }
         
 		Intent intent = new Intent(this, SalesNewsActivity.class);
     	startActivity(intent);
@@ -182,6 +187,12 @@ public class MainMenuActivity extends Activity {
 	
 	public void onClickSalesManage(View view)
 	{
+		// 부관리자인경우
+        if (m_APP_USER_GRADE.equals("1")) {
+    		Toast.makeText(getApplicationContext(), "부관리자는 사용할수 없습니다", Toast.LENGTH_SHORT).show(); 
+        	return;
+        }
+        
 		Intent intent = new Intent(this, ManageSalesActivity.class);
     	startActivity(intent);
 	}

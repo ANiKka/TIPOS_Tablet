@@ -28,7 +28,7 @@ public class TIPSSplashActivity extends Activity {
         
         startMainActivity();
         
-        testQuery();
+        //testQuery();
     }
 
     private void checkNetwork() {

@@ -10,6 +10,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.tips.models.ShopSelectItem;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
@@ -62,8 +63,10 @@ public class MainActivity extends Activity {
 
         m_rgShop = new RadioGroup(this);
         
-        // test
-        updateTestData();
+        String officeCode = LocalStorage.getString(this, "officeCode"); 
+		if (!officeCode.equals("")) {
+			showSelectShop();
+		}
     }
 
     @Override
@@ -73,13 +76,6 @@ public class MainActivity extends Activity {
         return true;
     }
 
-	// Private Methods
-    public void updateTestData() {
-
-    	EditText textView = (EditText) findViewById(R.id.editTextShopCode);
-    	textView.setText("0000001");
-    }
-    
 	public void showSelectShop() {
 		m_alert = new AlertDialog.Builder(this)
 			.setTitle("매장을 선택하세요")
@@ -129,7 +125,10 @@ public class MainActivity extends Activity {
 
 			    		LocalStorage.setJSONObject(MainActivity.this, "currentShopData", shop);
 			        	Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+		            	intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		        		intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 			        	startActivity(intent);
+		                finish();
 						   
 					} catch (ParseException e) {
 						
@@ -157,9 +156,9 @@ public class MainActivity extends Activity {
 				JSONObject shop = shopsData.getJSONObject(i);
 				String Office_Name = shop.getString("Office_Name");
 				String SHOP_IP = shop.getString("SHOP_IP");
-				//String SHOP_PORT = shop.getString("SHOP_PORT");
+				String APP_EDATE = shop.getString("APP_EDATE");
 				
-				shopList.add(new ShopSelectItem(Office_Name, SHOP_IP, false));
+				shopList.add(new ShopSelectItem(Office_Name, SHOP_IP, APP_EDATE, false));
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
@@ -174,13 +173,8 @@ public class MainActivity extends Activity {
 		return linearLayoutView;
 	}
 	
-    // 인증관련 실행 함수 
-    public void onAuthentication(View view) {
-
- 		// 입력된 코드 가져오기
-    	EditText textView = (EditText) findViewById(R.id.editTextShopCode);
-    	String code = textView.getText().toString();
-    	if (code.equals("")) return;
+	// 매장 정보 가져오기
+    public void fetchOffices() {
     	
     	// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
@@ -191,10 +185,9 @@ public class MainActivity extends Activity {
 
     	// 쿼리 작성하기
 	    String query =  "";
-	    //query = "select * from V_OFFICE_USER where Sto_CD =" + code + ";";
 	    query = "select * " 
 	    		+"  from APP_USER inner join V_OFFICE_USER " 
-	    		+ " on APP_USER.OFFICE_CODE = V_OFFICE_USER.Sto_CD "//AND APP_USER.OFFICE_CODE="+code
+	    		+ " on APP_USER.OFFICE_CODE = V_OFFICE_USER.Sto_CD "
 	    		+ " JOIN APP_SETTLEMENT on APP_USER.OFFICE_CODE = APP_SETTLEMENT.OFFICE_CODE " 
 	    		+ " where APP_HP =" + phoneNumber + "AND DEL_YN = 0 ;";
 
@@ -217,13 +210,63 @@ public class MainActivity extends Activity {
 	    }).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query);
     }
     
+    // 인증관련 실행 함수 
+    public void onAuthentication(View view) {
+
+ 		// 입력된 코드 가져오기
+    	EditText textView = (EditText) findViewById(R.id.editTextShopCode);
+    	String code = textView.getText().toString();
+    	if (code.equals("")) return;
+    	
+    	// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.show();
+ 		
+    	String phoneNumber = LocalStorage.getString(MainActivity.this, "phoneNumber");
+
+    	// 쿼리 작성하기
+	    String query =  "";
+	    //query = "select * from V_OFFICE_USER where Sto_CD =" + code + ";";
+	    query = "select * " 
+	    		+"  from APP_USER inner join V_OFFICE_USER " 
+	    		+ " on APP_USER.OFFICE_CODE = V_OFFICE_USER.Sto_CD AND APP_USER.OFFICE_CODE="+code
+	    		+ " JOIN APP_SETTLEMENT on APP_USER.OFFICE_CODE = APP_SETTLEMENT.OFFICE_CODE " 
+	    		+ " where APP_HP =" + phoneNumber + "AND DEL_YN = 0 ;";
+
+	    // 콜백함수와 함께 실행
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				if (results.length()>0) {
+			    	Toast.makeText(getApplicationContext(), "인증성공", Toast.LENGTH_SHORT).show();
+			    	EditText textView = (EditText) findViewById(R.id.editTextShopCode);
+			    	String code = textView.getText().toString();
+			        LocalStorage.setString(getApplicationContext(), "officeCode", code); 
+			        
+			        fetchOffices();
+				}
+				else {
+			    	Toast.makeText(getApplicationContext(), "오피스코드가 없거나 등록되지 않은 휴대폰 번호입니다", Toast.LENGTH_SHORT).show();
+				}
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+		    	Toast.makeText(getApplicationContext(), "알수없는 에러가 발생하였습니다", Toast.LENGTH_SHORT).show();
+			}
+	    }).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query);
+    }
+    
     // DB에 접속후 호출되는 함수
     public void didAuthentication(JSONArray results) {
     	Toast.makeText(getApplicationContext(), "인증 완료", Toast.LENGTH_SHORT).show();
 
-		//LocalStorage.setJSONArray(MainActivity.this, "shopsData", results);
-    	//showSelectShop();
-    	
     	if (results.length() > 0) {
     		Toast.makeText(getApplicationContext(), "인증 완료", Toast.LENGTH_SHORT).show();
 
@@ -281,9 +324,10 @@ public class MainActivity extends Activity {
 				holder.txtIP = (TextView) convertView.findViewById(R.id.textViewShopIP);
 				holder.buttonConfig = (Button) convertView.findViewById(R.id.buttonShopConfig);
 				holder.txtShopName = (TextView) convertView.findViewById(R.id.textViewShopName);
+				holder.txtDate = (TextView) convertView.findViewById(R.id.textViewDate);
 				holder.buttonConfig.setTag(position);
 				holder.buttonConfig.setOnClickListener(new OnClickListener() {
-
+					
 					@Override
 					public void onClick(View v) {
 						int idx = (Integer) v.getTag();
@@ -321,9 +365,11 @@ public class MainActivity extends Activity {
 			
 			String name = object.get(position).getName();
 			String strIP = object.get(position).getIP();
+			String edate = object.get(position).getEdate();
 			
 			holder.object = object.get(position);
-			holder.txtShopName.setText(name+" 번호");
+			holder.txtShopName.setText(name);
+			holder.txtDate.setText("["+edate+"]");
 			holder.radioShop.setChecked(position == mSelectedPosition);
 			holder.txtIP.setText(strIP);
 			
@@ -339,6 +385,7 @@ public class MainActivity extends Activity {
 		public Button buttonConfig;
 		public int m_position;
 		public TextView txtShopName;
+		public TextView txtDate;
 		public ShopSelectItem object;
 		
 		public ViewHolder(Context ctx) {

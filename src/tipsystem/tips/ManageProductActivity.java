@@ -151,7 +151,7 @@ public class ManageProductActivity extends Activity{
         int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
         
         // fill in the grid_item layout
-        m_adapter = new SimpleAdapter(this, mfillMaps, R.layout. activity_listview_product_list, from, to);
+        m_adapter = new SimpleAdapter(this, mfillMaps, R.layout.activity_listview_product_list, from, to);
         m_listProduct.setAdapter(m_adapter);
         
 		Button searchButton = (Button) findViewById(R.id.buttonProductSearch);
@@ -277,7 +277,6 @@ public class ManageProductActivity extends Activity{
 	private void setupActionBar() {
 
 		ActionBar actionbar = getActionBar();        
-
 		actionbar.setDisplayShowHomeEnabled(false);
 		actionbar.setDisplayShowTitleEnabled(true);
 		actionbar.setDisplayShowCustomEnabled(true);
@@ -641,12 +640,19 @@ public class ManageProductActivity extends Activity{
 		
 		query += "select * from Goods WHERE Goods_Use='1' AND Pur_Use='1' ";
 	    
-	    if (!barcode.equals("") || !customerCode.equals("")){
+	    if (!barcode.equals("") || !customerCode.equals("")|| !productName.equals("")|| !customerName.equals("")){
 	    	
-		        
 		    boolean added = false;
 		    if (!barcode.equals("")){
 		    	query += " AND Barcode = '" + barcode + "'";
+		    	added = true;
+		    }
+		    if (!productName.equals("")){
+		    	query += " AND G_Name = '" + productName + "'";
+		    	added = true;
+		    }
+		    if (!customerName.equals("")){
+		    	query += " AND Bus_Name = '" + customerName + "'";
 		    	added = true;
 		    }
 		    				    
@@ -711,7 +717,9 @@ public class ManageProductActivity extends Activity{
 			public void onClick(DialogInterface dialog, int which) {
 
 				if(which == 0){ // 목록으로 조회할 경우
+					String barcode = m_textBarcode.getText().toString();
 					Intent intent = new Intent(ManageProductActivity.this, ManageProductListActivity.class);
+					intent.putExtra("barcode", barcode);
 			    	startActivityForResult(intent, BARCODE_MANAGER_REQUEST);
 				} else { // 스캔할 경우
 					Intent intent = new Intent(ManageProductActivity.this, ZBarScannerActivity.class);
@@ -772,9 +780,7 @@ public class ManageProductActivity extends Activity{
  		dialog.setCancelable(false);
  		dialog.show();
  		
-		// TODO Auto-generated method stub
-		String query = "";
-		
+		String query = "";		
 		query = "SELECT Office_Name From Office_Manage WHERE Office_Code = '" + customerCode + "';";
 	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 

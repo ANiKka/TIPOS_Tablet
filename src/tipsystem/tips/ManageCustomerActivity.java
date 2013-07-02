@@ -136,7 +136,7 @@ public class ManageCustomerActivity extends Activity{
         int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
         
         // fill in the grid_item layout
-        m_adapter = new SimpleAdapter(this, mfillMaps, R.layout. activity_listview_customer_list, from, to);
+        m_adapter = new SimpleAdapter(this, mfillMaps, R.layout.activity_listview_customer_list, from, to);
         m_cusList.setAdapter(m_adapter);
         
         Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
@@ -170,13 +170,11 @@ public class ManageCustomerActivity extends Activity{
 	 */
 	private void setupActionBar() {
 
-		ActionBar actionbar = getActionBar();         
-		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-		actionbar.setCustomView(custom_action_bar);
-
+		ActionBar actionbar = getActionBar();        
 		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(false);
+		actionbar.setDisplayShowTitleEnabled(true);
 		actionbar.setDisplayShowCustomEnabled(true);
+		actionbar.setTitle("거래처관리");
 		
 		getActionBar().setDisplayHomeAsUpEnabled(false);
 	}
