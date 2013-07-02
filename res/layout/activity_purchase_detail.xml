@@ -71,7 +71,7 @@
             android:textAppearance="?android:attr/textAppearanceSmall"/>
          
          <TextView
-            android:id="@+id/textView5"
+            android:id="@+id/textViewDate"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1"

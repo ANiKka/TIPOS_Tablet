@@ -42,6 +42,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -88,11 +90,8 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	EditText m_profitRatio;
 	Button m_bt_barcodeSearch;
 	CheckBox m_checkBoxRejectedProduct;
-	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
-
-	String[] from = new String[] {"BarCode", "Office_Name", "Pur_Pri", "In_Count"};
-    int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-    
+	CheckBox m_checkBoxFixCustomer;//
+	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();   
 	List<HashMap<String, String>> m_purList =new ArrayList<HashMap<String, String>>();
 	HashMap<String, String> m_tempProduct =new HashMap<String, String>();
 	
@@ -116,7 +115,6 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		}
 
 		Button btn_Send = (Button)findViewById(R.id.buttonSend);
-		Button btn_Delete = (Button)findViewById(R.id.buttonDelete);
 		Button btn_SendAll = (Button)findViewById(R.id.buttonSendAll);
 		
 		m_listReadyToSend= (ListView)findViewById(R.id.listviewReadyToSendList);
@@ -133,35 +131,31 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		m_profitRatio = (EditText)findViewById(R.id.editTextProfitRatio);
 		m_bt_barcodeSearch = (Button)findViewById(R.id.buttonBarcode);
 		m_checkBoxRejectedProduct = (CheckBox)findViewById(R.id.checkBoxRejectedProduct);
+		m_checkBoxFixCustomer = (CheckBox)findViewById(R.id.checkBoxFixCustomer);
 		
 		m_dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
 		m_dateCalender1 = Calendar.getInstance();
 		m_period.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
-		
+
 		// 전송대기목록 뷰에 값 전달
 		Button saveButton = (Button)findViewById(R.id.buttonSave);
 		saveButton.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) { 
-	        	doSendListView();
-	        	changeInputMode(1);
-				clearInputBox();
-				m_selectedListIndex = -1;
+	        	if (!checkData()) return;
+	        	doSendListView();	    	    
+	        	blockInputMode();
+	    		clearInputBox();
 	        }
 		});
 
 		Button btn_Renew = (Button)findViewById(R.id.buttonRenew);
 		btn_Renew.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) { 
-	            changeInputMode(0);
+	        	releaseInputMode();
 				clearInputBox();
-				m_selectedListIndex = -1;
+				m_customerCode.setText("");
+				m_customerName.setText("");
 	        }
-		});
-
-		btn_Delete.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				deleteData();				
-			}			
 		});
 		
 		btn_Send.setOnClickListener(new OnClickListener() {
@@ -176,9 +170,9 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 				
 				sendAllData();
 				m_selectedListIndex = -1;
-			}			
+			}
 		});
-
+		
 		// 바코드 입력 후 포커스 딴 곳을 옮길 경우
 		m_textBarcode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 			//@Override
@@ -235,7 +229,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		TextView textView = (TextView) findViewById(R.id.textView2);
 		textView.setTypeface(typeface);
       
-	    changeInputMode(0);
+		releaseInputMode();
 		getInTSeq();
 	}
 
@@ -273,6 +267,27 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
         String junpyo = String.format("%04d%02d%02d", year, month, day) + posID + String.format("%03d", m_junpyoInTIdx);
         return junpyo;        
 	}
+
+	public boolean checkData() {
+	    String purchaseDate = m_period.getText().toString();
+		String barcode = m_textBarcode.getText().toString();
+		String productName = m_textProductName.getText().toString();
+		String code = m_customerCode.getText().toString();
+	    String name = m_customerName.getText().toString();
+		String purchasePrice = m_et_purchasePrice.getText().toString();
+		String salePrice = m_et_salePrice.getText().toString();
+		String amount = m_amount.getText().toString();				
+		String profitRatio = m_profitRatio.getText().toString();
+		
+		// 비어 있는 값 확인
+	    if(code.equals("") || name.equals("") || purchaseDate.equals("") || barcode.equals("") || productName.equals("") ||
+	    		purchasePrice.equals("") || salePrice.equals("") || amount.equals("") || profitRatio.equals("")) {
+	    	Toast.makeText(getApplicationContext(), "값을 모두 입력해주세요.", 0).show();
+	    	return false;
+	    }
+	    
+	    return true;
+	}
 	
 	public void deleteData() {
 		
@@ -297,8 +312,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	}
 
 	public void clearInputBox () {
-		m_customerCode.setText("");
-		m_customerName.setText("");
+		m_selectedListIndex = -1;
 		m_textBarcode.setText("");
 		m_textProductName.setText("");
 		m_bt_barcodeSearch.setText("");
@@ -309,34 +323,32 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		m_checkBoxRejectedProduct.setChecked(false);
 	}
 
-	public void changeInputMode (int mode) {
-		//m_inputMode = mode;
-		if (mode==0) {
-			m_textBarcode.setEnabled(true);
-			m_textProductName.setEnabled(true);
-			m_period.setEnabled(true);
-			m_checkBoxRejectedProduct.setEnabled(true);
-			m_bt_barcodeSearch.setEnabled(true);
-			m_customerCode.setEnabled(true);
-			m_customerName.setEnabled(true);
-			m_et_purchasePrice.setEnabled(true);
-			m_et_salePrice.setEnabled(true);
-			m_amount.setEnabled(true);
-			m_profitRatio.setEnabled(true);
-		}
-		else {
-			m_textBarcode.setEnabled(true);
-			m_textProductName.setEnabled(true);
-			m_period.setEnabled(false);
-			m_checkBoxRejectedProduct.setEnabled(false);
-			m_bt_barcodeSearch.setEnabled(true);
-			m_customerCode.setEnabled(false);
-			m_customerName.setEnabled(false);
-			m_et_purchasePrice.setEnabled(true);
-			m_et_salePrice.setEnabled(true);
-			m_amount.setEnabled(true);
-			m_profitRatio.setEnabled(true);
-		}
+	public void blockInputMode () {
+		m_textBarcode.setEnabled(true);
+		m_textProductName.setEnabled(true);
+		m_period.setEnabled(false);
+		m_checkBoxRejectedProduct.setEnabled(false);
+		m_bt_barcodeSearch.setEnabled(true);
+		m_customerCode.setEnabled(true);
+		m_customerName.setEnabled(true);
+		m_et_purchasePrice.setEnabled(true);
+		m_et_salePrice.setEnabled(true);
+		m_amount.setEnabled(true);
+		m_profitRatio.setEnabled(true);
+	}
+	
+	public void releaseInputMode () {
+		m_textBarcode.setEnabled(true);
+		m_textProductName.setEnabled(true);
+		m_period.setEnabled(true);
+		m_checkBoxRejectedProduct.setEnabled(true);
+		m_bt_barcodeSearch.setEnabled(true);
+		m_customerCode.setEnabled(true);
+		m_customerName.setEnabled(true);
+		m_et_purchasePrice.setEnabled(true);
+		m_et_salePrice.setEnabled(true);
+		m_amount.setEnabled(true);
+		m_profitRatio.setEnabled(true);
 	}
 
 	// 저장 버튼
@@ -355,13 +367,6 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		String amount = m_amount.getText().toString();				
 		String profitRatio = m_profitRatio.getText().toString();
 		
-		// 비어 있는 값 확인
-	    if(code.equals("") || name.equals("") || purchaseDate.equals("") || barcode.equals("") || productName.equals("") ||
-	    		purchasePrice.equals("") || salePrice.equals("") || amount.equals("") || profitRatio.equals("")) {
-	    	Toast.makeText(getApplicationContext(), "값을 모두 입력해주세요.", 0).show();
-	    	return;
-	    }
-	    
 	    JSONObject userProfile = LocalStorage.getJSONObject(this, "userProfile"); 
 	    String userid ="";
         try {
@@ -369,7 +374,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-	    
+        
     	//선택된 상품장의 데이터를 꺼내옴
 		String Org_PurPri = m_tempProduct.get("Pur_Pri");		// 원매입가 
 		String Org_SellPri = m_tempProduct.get("Sell_Pri");	// 원매출가
@@ -408,7 +413,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		String period = m_period.getText().toString();
 		    
         HashMap<String, String> rmap = new HashMap<String, String>();  
-        
+        rmap.put("purchaseDate", purchaseDate);
     	rmap.put("immediatePayment", (immediatePayment)?"1":"0");
     	rmap.put("In_YN", In_YN);
     	rmap.put("In_Gubun", "3");
@@ -450,13 +455,15 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
         
         //ListView 에 뿌려줌
         mfillMaps = makeFillvapsWithStockList();
-        
-        m_adapter = new SimpleAdapter(this, mfillMaps, R.layout.activity_listview_item4, from, to);
+
+		String[] from = new String[] {"BarCode", "Office_Name", "Pur_Pri", "In_Count"};
+	    int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
+        m_adapter = new SimpleAdapter(this, mfillMaps, R.layout.activity_listview_item4_1, from, to);
         m_listReadyToSend.setAdapter(m_adapter);
+        
         m_adapter.notifyDataSetChanged();
 	}
 	
-
 	public List<HashMap<String, String>> makeFillvapsWithStockList(){
 		List<HashMap<String, String>> fm = new ArrayList<HashMap<String, String>>();
 	    
@@ -490,6 +497,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		         String Office_Name = element.get("Office_Name");
 		         String Pur_Pri = element.get("Pur_Pri");
 		         String In_Count = element.get("In_Count");
+		         String purchaseDate = element.get("purchaseDate");
 		     	 HashMap<String, String> map = new HashMap<String, String>();
 
 		         map.put("Office_Code", Office_Code);
@@ -497,6 +505,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		         map.put("Office_Name", Office_Name);
 		         map.put("Pur_Pri",Pur_Pri  );
 		         map.put("In_Count", In_Count  );
+		         map.put("purchaseDate", purchaseDate  );
 		         
 		         fm.add(map);
 		    }
@@ -918,9 +927,17 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 						m_et_purchasePrice.setText(results.getJSONObject(0).getString("Pur_Pri"));
 						m_et_salePrice.setText(results.getJSONObject(0).getString("Sell_Pri"));
 						m_profitRatio.setText(results.getJSONObject(0).getString("Profit_Rate"));
-						m_customerCode.setText(results.getJSONObject(0).getString("Bus_Code"));
-						m_customerName.setText(results.getJSONObject(0).getString("Bus_Name"));
+						
 						m_amount.setText("1");
+						
+						if(m_checkBoxFixCustomer.isChecked()) {
+							m_tempProduct.put("Bus_Code", m_customerCode.getText().toString());
+							m_tempProduct.put("Bus_Name", m_customerName.getText().toString());
+						}
+						else {
+							m_customerCode.setText(results.getJSONObject(0).getString("Bus_Code"));
+							m_customerName.setText(results.getJSONObject(0).getString("Bus_Name"));
+						}
 						
 						doQueryWithBarcode2(m_textBarcode.getText().toString());
 					} catch (JSONException e) {
@@ -963,6 +980,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
 	}
 	
+	// 행사상품인지 검사
 	public void doQueryWithBarcode2 (String barcode) {
 		
 		String date = m_period.getText().toString();
@@ -1050,6 +1068,8 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 
 		String Office_Code = mfillMaps.get(position).get("Office_Code");
 		String Office_Name = mfillMaps.get(position).get("Office_Name");
+		String purchaseDate = mfillMaps.get(position).get("purchaseDate");
+		
 		Iterator<HashMap<String, String>> iterator = m_purList.iterator();	
 		
 		JSONArray array = new JSONArray();
@@ -1068,6 +1088,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		intent.putExtra("data", array.toString());
 		intent.putExtra("Office_Code", Office_Code);
 		intent.putExtra("Office_Name", Office_Name);
+		intent.putExtra("purchaseDate", purchaseDate);
 		startActivityForResult(intent, PURCHASE_REGIST_REQUEST);
 	}
 

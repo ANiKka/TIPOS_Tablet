@@ -60,11 +60,14 @@ public class PurchaseDetailActivity extends Activity {
 		
 		String Office_Name = getIntent().getStringExtra("Office_Name");
 		String Office_Code = getIntent().getStringExtra("Office_Code");
-
+		String purchaseDate = getIntent().getStringExtra("purchaseDate");
+		
 		EditText customerCode = (EditText)findViewById(R.id.editTextCustomerCode);
 		EditText customerName = (EditText)findViewById(R.id.editTextCustomerName);
+		TextView textViewDate = (TextView)findViewById(R.id.textViewDate);
 		customerCode.setText(Office_Name);
 		customerName.setText(Office_Code);
+		textViewDate.setText(purchaseDate);
 		customerCode.setEnabled(false);
 		customerName.setEnabled(false);
 		
@@ -81,9 +84,7 @@ public class PurchaseDetailActivity extends Activity {
 		textView = (TextView) findViewById(R.id.textView4);
 		textView.setTypeface(typeface);
 		  
-		textView = (TextView) findViewById(R.id.textView5);
-		textView.setTypeface(typeface);
-      
+		textViewDate.setTypeface(typeface);
 	}
 
 	/**

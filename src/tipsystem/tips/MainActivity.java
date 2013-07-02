@@ -182,7 +182,7 @@ public class MainActivity extends Activity {
  		dialog.show();
  		
     	String phoneNumber = LocalStorage.getString(MainActivity.this, "phoneNumber");
-
+    	
     	// 쿼리 작성하기
 	    String query =  "";
 	    query = "select * " 
