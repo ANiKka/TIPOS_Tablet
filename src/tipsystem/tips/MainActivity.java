@@ -194,9 +194,9 @@ public class MainActivity extends Activity {
 	    //query = "select * from V_OFFICE_USER where Sto_CD =" + code + ";";
 	    query = "select * " 
 	    		+"  from APP_USER inner join V_OFFICE_USER " 
-	    		+ " on APP_USER.OFFICE_CODE = V_OFFICE_USER.Sto_CD " 
+	    		+ " on APP_USER.OFFICE_CODE = V_OFFICE_USER.Sto_CD "//AND APP_USER.OFFICE_CODE="+code
 	    		+ " JOIN APP_SETTLEMENT on APP_USER.OFFICE_CODE = APP_SETTLEMENT.OFFICE_CODE " 
-	    		+ " where APP_HP =" + phoneNumber + "AND DEL_YN = 0;";
+	    		+ " where APP_HP =" + phoneNumber + "AND DEL_YN = 0 ;";
 
 	    // 콜백함수와 함께 실행
 	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {

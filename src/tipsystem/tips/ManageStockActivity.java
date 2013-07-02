@@ -353,6 +353,8 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
         HashMap<String, String> rmap = new HashMap<String, String>();
         //rmap.put("St_Num", period);
         //rmap.put("St_BarCode", barcode);
+
+        rmap.put("G_Name", productName);
         rmap.put("St_Gubun", "2");		//실사구분(0:수기,1:핸디,2:PDA,3:기타)
         rmap.put("Set_Gubun", "0");
         rmap.put("St_Date", period);
@@ -385,6 +387,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
         //rmap.put("Writer", userid);
         //rmap.put("Editor", userid);
         rmap.put("oReal_Sto", Real_Sto);
+        rmap.put("Real_Sto", numOfReal);
         
         m_stockList.add(rmap);
         
@@ -488,12 +491,13 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 			Bot_SellPri+= Double.valueOf(stock.get("Bot_Sell"));	//공병 총 판매가
 		}
 
-	    query +=  "insert into " + sttTableName + "(St_Num, St_Date, St_Seq, TTPur_Pri, TTAdd_Tax, TFPur_Pri, In_TPri, In_FPri, In_Pri, "
-	    		+ "TSell_Pri, In_SellPri, Bot_Pri, Bot_SellPri, St_Pri, Write_Date, Edit_Date, Writer, Editor ) " 
+	    query +=  "insert into " + sttTableName + "(St_Num, St_Date, St_Seq, StSet_Num, TTPur_Pri, TTAdd_Tax, TFPur_Pri, In_TPri, In_FPri, In_Pri, "
+	    		+ "TSell_Pri, In_SellPri, Bot_Pri, Bot_SellPri, St_Pri, Bigo, Write_Date, Edit_Date, Writer, Editor ) " 
 	    		+ " values ("
 	    		+ "'" + junpyo + "', "
 	    	    + "'" + currentDate + "', "
-	    	    + "'" + "0" + "', "
+	    	    + "'" + m_junpyoInTIdx + "', "
+	    	    + "'', "
 	    	    + "'" + TTPur_Pri + "', "
 	    	    + "'" + TTAdd_Tax + "', "
 	    	    + "'" + TFPur_Pri + "', "
@@ -504,7 +508,8 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	    	    + "'" + In_SellPri + "', "
 	    	    + "'" + Bot_Pri + "', "
 	    	    + "'" + Bot_SellPri + "', "	 
-	    	    + "'" + In_Pri + "', "	    	    
+	    	    + "'" + In_Pri + "', "	  
+	    	    + "'', "  	    
 			    + "'" + currentDate + "', "
 			    + "'" + currentDate + "', "
 			    + "'" + userid + "', "
@@ -612,7 +617,23 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 				
 				if (results.length() > 0) {
 					try {
-						m_tempProduct = JsonHelper.toStringHashMap(results.getJSONObject(0));
+						JSONObject object = results.getJSONObject(0);
+						m_tempProduct = JsonHelper.toStringHashMap(object);
+						String Pack_Use = m_tempProduct.get("Pack_Use");
+						String Box_Use = m_tempProduct.get("Box_Use");
+						String BarCode1 = m_tempProduct.get("BarCode1");
+						if (Pack_Use.equals("1")) {
+							m_textBarcode.setText("");
+					        Toast.makeText(ManageStockActivity.this, "묶음상품은 사용이 불가능합니다", Toast.LENGTH_SHORT).show();
+							return;
+						}
+						if (Box_Use.equals("1")) {
+							m_textBarcode.setText(BarCode1);
+					        Toast.makeText(ManageStockActivity.this, "박스상품입니다. 단품상품으로 대체합니다.", Toast.LENGTH_SHORT).show();
+							doQueryWithBarcode();
+							return;
+						}
+						
 						m_textProductName.setText(results.getJSONObject(0).getString("G_Name"));
 						m_et_purchasePrice.setText(results.getJSONObject(0).getString("Pur_Pri"));
 						m_et_salePrice.setText(results.getJSONObject(0).getString("Sell_Pri"));
@@ -834,7 +855,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	        productName.setText(m_stockList.get(arg2).get("G_Name").toString());
 	        purchasePrice.setText(m_stockList.get(arg2).get("Pur_Pri").toString());
 	        salePrice.setText(m_stockList.get(arg2).get("Sell_Pri").toString());
-	        numOfReal.setText(m_stockList.get(arg2).get("Real_Sto").toString());
+	        numOfReal.setText(m_stockList.get(arg2).get("oReal_Sto").toString());
 	        curStock.setText(m_stockList.get(arg2).get("St_Count").toString());
 	        
 	        m_period.setText(m_stockList.get(arg2).get("St_Date").toString());

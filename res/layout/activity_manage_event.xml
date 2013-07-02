@@ -7,6 +7,8 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:background="@drawable/bg_img"
+    android:focusable="true"
+	android:focusableInTouchMode="true"
     tools:context=".ManageEventActivity" >
 
     <LinearLayout
@@ -35,7 +37,6 @@
             android:textSize="14sp"
             android:inputType="text" />
                  
-         <requestFocus />
     </LinearLayout>
     
     
@@ -97,8 +98,6 @@
              android:textSize="14sp"
              android:text="2013-05-19"
              android:onClick="onClickSetDate1" />
-
-        <requestFocus />
 
         <TextView
             android:id="@+id/textView3"
@@ -217,6 +216,10 @@
             android:background="@drawable/white_text_box_small"
             android:inputType="number"
             android:ems="10"
+	        android:clickable="false" 
+		    android:cursorVisible="false" 
+		    android:focusable="false" 
+		    android:focusableInTouchMode="false"
             android:textSize="14sp"  />
         
         <TextView
@@ -239,6 +242,10 @@
             android:background="@drawable/white_text_box_small"
             android:inputType="number"
             android:ems="10"
+	        android:clickable="false" 
+		    android:cursorVisible="false" 
+		    android:focusable="false" 
+		    android:focusableInTouchMode="false"
             android:textSize="14sp"  
 	     />       
     
@@ -334,6 +341,16 @@
 	        android:scaleY="0.75"
 	        android:background="@drawable/replace_btn" />
        
+        <Button
+            android:id="@+id/buttonDelete"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+	        android:layout_marginLeft="10dip"
+	        android:scaleY="0.75"
+            android:background="@drawable/purchase_delete_btn" />
+       
+       
     </LinearLayout>
        
 	<LinearLayout
@@ -352,7 +369,7 @@
             android:layout_height="wrap_content"
             android:textColor="#ffffff"
             android:textSize="14sp"
-            android:text="전송대기 목록"
+            android:text="행사 상세 상품 목록"
             android:textAppearance="?android:attr/textAppearanceSmall"
              />
 	
@@ -421,7 +438,7 @@
 
         </ListView>
     </LinearLayout>
-
+<!-- 
     <LinearLayout
         android:id="@+id/linearLayout8"
         android:layout_width="match_parent"
@@ -454,4 +471,5 @@
             android:layout_marginLeft="5dip"
             android:background="@drawable/purchase_allsave_btn" />
     </LinearLayout>
+     -->
 </RelativeLayout>

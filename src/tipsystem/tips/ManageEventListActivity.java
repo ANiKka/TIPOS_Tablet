@@ -93,6 +93,19 @@ public class ManageEventListActivity extends Activity {
 		
 		m_cusList.setOnScrollListener(customScrollListener);
 
+        
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		if (!mDataStore.isEmpty()) {
+			mDataStore.removeAll(mDataStore);
+			mfillMaps.removeAll(mfillMaps);
+			m_adapter.notifyDataSetChanged();	
+		}
+
     	String[] from = new String[] {"Evt_Name", "Evt_Gubun_text", "Evt_Date"};
         int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3};
         m_adapter = new SimpleAdapter(this, mfillMaps, R.layout. activity_event_list, from, to);
@@ -151,9 +164,7 @@ public class ManageEventListActivity extends Activity {
     
 	private void doSearch() {
 
-    	String index = String.valueOf(mDataStore.size());
 		String query = "";    	
-		//query = "SELECT TOP 500 Evt_CD,Evt_Name,Evt_Gubun,Evt_SDate,Evt_EDate FROM Evt_Mst WHERE Evt_CD NOT IN(SELECT TOP " + index + " Evt_CD FROM Evt_Mst);";
 		query = "SELECT Evt_CD,Evt_Name,Evt_Gubun,Evt_SDate,Evt_EDate FROM Evt_Mst;";
 
 		// 로딩 다이알로그 

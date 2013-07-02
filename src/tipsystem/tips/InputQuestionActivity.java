@@ -173,6 +173,7 @@ public class InputQuestionActivity extends Activity implements OnItemSelectedLis
 		EditText editTextCustomerCode = (EditText) findViewById(R.id.editTextCustomerCode);
 		
 		// ..
+		//addOrUpdateNewNotice(0);
 		
 		AlertDialog.Builder builder = new AlertDialog.Builder(InputQuestionActivity.this);
         builder.setTitle("알림");

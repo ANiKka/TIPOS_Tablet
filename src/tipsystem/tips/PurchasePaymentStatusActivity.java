@@ -285,11 +285,6 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		String customerName = m_customerName.getText().toString();
 		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
 		
-		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
  		
 		executeQuery(tabIndex, period1, period2, barCode, productName, customerCode, customerName);
 	};
@@ -364,6 +359,12 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 
 	private void executeQuery(String... urls)
 	{
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
 		String tabIndex = urls[0];
  	    
  	    String period1 = urls[1];
@@ -445,7 +446,10 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 						@Override
 						public void onRequestCompleted(JSONArray results) {
 							try {
-								
+
+						 		dialog.cancel();
+						 		dialog.dismiss();
+						 		
 								m_queryCount1 = m_queryCount1 - 1;
 								
 								if ( results.length() > 0 )
@@ -587,7 +591,10 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 						@Override
 						public void onRequestCompleted(JSONArray results) {
 							try {
-								
+
+						 		dialog.cancel();
+						 		dialog.dismiss();
+						 		
 								m_queryCount2 = m_queryCount2 - 1;
 								
 								if ( results.length() > 0 )
@@ -741,7 +748,10 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 						@Override
 						public void onRequestCompleted(JSONArray results) {
 							try {
-								
+
+						 		dialog.cancel();
+						 		dialog.dismiss();
+						 		
 								m_queryCount3 = m_queryCount3 - 1;
 								
 								if ( results.length() > 0 )

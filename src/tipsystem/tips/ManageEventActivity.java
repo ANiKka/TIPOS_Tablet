@@ -1,11 +1,9 @@
 package tipsystem.tips;
 
-import java.text.Collator;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -70,6 +68,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	DatePicker m_datePicker;
 	SimpleDateFormat m_dateFormatter;
 	SimpleDateFormat m_timeFormatter;
+	Date m_Finish_Date;
 	
 	Calendar m_dateCalender1;
 	Calendar m_dateCalender2;
@@ -98,8 +97,10 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	int m_selectedListIndex = -1;
 	int m_newOrUpdate = 0;
 	HashMap<String, String> m_updateData;
+	String m_junpyo;
 	
 	List<HashMap<String, String>> m_evtList = new ArrayList<HashMap<String, String>>();
+	HashMap<String, String> tempMap =null;
 	
 	String[] from = new String[] {"BarCode", "Sale_Pur", "Sale_Sell"};
     int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
@@ -120,13 +121,11 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-        
+		
         m_bt_register = (Button)findViewById(R.id.buttonRegist);
         m_bt_modify = (Button)findViewById(R.id.buttonModify);
 		Button btn_Renew = (Button)findViewById(R.id.buttonRenew);
-		Button btn_Send = (Button)findViewById(R.id.buttonSend);
 		Button btn_Delete = (Button)findViewById(R.id.buttonDelete);
-		Button btn_SendAll = (Button)findViewById(R.id.buttonSendAll);
 
 		m_eventName = (EditText)findViewById(R.id.editTextEventName);
 		m_textBarcode = (EditText)findViewById(R.id.editTextBarcode);
@@ -161,15 +160,28 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		m_adapter = new SimpleAdapter(this, m_evtList, R.layout.activity_listview_item3,	from, to);
         m_listEvent.setAdapter(m_adapter);
         
-		
 		m_bt_register.setOnClickListener(new OnClickListener() {
 			public void onClick(View v){
 
 				if (checkForm()==false) return;
 				
-				setDataIntoList();
+		        Iterator<HashMap<String, String>> iterator = m_evtList.iterator();		
+			    while (iterator.hasNext()) {
+					HashMap<String, String> element = iterator.next();
+			        String BarCode = element.get("BarCode");
+
+			        if (BarCode.equals(m_textBarcode.getText().toString()) ) { //&& Evt_CD.equals(m_junpyo)
+			        	Toast.makeText(getApplicationContext(), "같은 품목은 추가할수 없습니다", Toast.LENGTH_SHORT).show();	        	
+			        	return;
+			        }
+			    }
+
 				blockTopInputForm();
-				clearInputBox();
+
+				int section = m_spinEvent.getSelectedItemPosition()+1;
+				
+				String barcode = m_textBarcode.getText().toString();
+				checkEvent(barcode, m_period1.getText().toString(), m_period2.getText().toString(), section+"");
 			 }
 		});
 		m_bt_modify.setOnClickListener(new OnClickListener() {
@@ -177,7 +189,6 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 
 				if (checkForm()==false) return;
 				modifyDataIntoList(m_selectedListIndex);
-				clearInputBox();
 				changeRegisterMode();
 			 }
 		});
@@ -195,20 +206,6 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 			}			
 		});
 		
-		btn_Send.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				clearInputBoxAll();
-				deleteListAll();
-			}			
-		});
-		
-		btn_SendAll.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				sendAllData();
-				clearInputBoxAll();
-				changeRegisterMode();
-			}			
-		});
 		
 		// 바코드 입력 후 포커스 딴 곳을 옮길 경우
 		m_textBarcode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -227,11 +224,15 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		if (Evt_CD.equals("")) {
 			m_newOrUpdate = 0;
 			getInTSeq();
+
 		}
 		else {
 			m_newOrUpdate = 1;
+			m_junpyo = Evt_CD;
+			blockTopInputForm();
 			fetchData(Evt_CD);
 		}
+		getFinishDate();
 	}
 
 	public boolean checkForm() {
@@ -257,16 +258,72 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 			return;
 		}
 
-	    m_evtList.remove(m_selectedListIndex);
-	    m_adapter.notifyDataSetChanged();
+	    String Evt_CD = m_evtList.get(m_selectedListIndex).get("Evt_CD");
+	    String BarCode = m_evtList.get(m_selectedListIndex).get("BarCode");
+	    // 쿼리 작성하기
+ 		String query =  "";
+ 	    query += " Delete From Evt_Mst where Evt_CD='"+Evt_CD +"';";
+ 	    Log.i("qeury", query);
+ 		
+ 	    Date sd = makeTimeWithStringDateFormat(m_period1.getText().toString());
+	    Date ed = makeTimeWithStringDateFormat(m_period2.getText().toString());
+
+	    if((m_Finish_Date.after(sd) ||m_Finish_Date.equals(sd)) && (m_Finish_Date.before(ed) ||m_Finish_Date.equals(ed))) {
+
+	        // In between
+	    	query +=  "update  Goods set "
+		    		+ "Sale_SDate='', "
+		    		+ "Sale_EDate='', "
+		    		+ "Sale_Use='0', "
+				    + "Edit_Check='0', "
+				    + "Tran_Chk='0' "
+		    		+"where BarCode='" + BarCode +"';"
+		    		;
+	    }
+
+ 	    query += " Select * From Evt_Mst where Evt_CD='"+Evt_CD +"';";
+ 	    
+ 		// 로딩 다이알로그 
+     	dialog = new ProgressDialog(this);
+  		dialog.setMessage("Loading....");
+  		dialog.setCancelable(false);
+  		dialog.show();
+
+ 	    // 콜백함수와 함께 실행
+ 	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
+
+ 			@Override
+ 			public void onRequestCompleted(JSONArray results) {
+ 				dialog.dismiss();
+ 				dialog.cancel();
+ 				if (results.length()>0) {
+ 					Toast.makeText(getApplicationContext(), "이미 행사중인 상품입니다", Toast.LENGTH_SHORT).show();
+ 				}
+ 				else {
+ 				    m_evtList.remove(m_selectedListIndex);
+ 				    m_adapter.notifyDataSetChanged();
+ 				    if (m_evtList.size()==0) {
+ 				    	finish();
+ 				    }
+ 				   clearInputBox () ;
+ 				}
+ 			}
+
+ 			@Override
+ 			public void onRequestFailed(int code, String msg) {
+ 				dialog.dismiss();
+ 				dialog.cancel();
+ 				Toast.makeText(getApplicationContext(), "실패("+String.valueOf(code)+"):" + msg, Toast.LENGTH_SHORT).show();
+ 			}
+ 			
+ 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
 	
 	public void deleteListAll() {
 		if (m_evtList.isEmpty()) return;
 		
 		m_evtList.removeAll(m_evtList);
-		m_adapter.notifyDataSetChanged();		
-		m_evtList.removeAll(m_evtList);		
+		m_adapter.notifyDataSetChanged();	
 		m_selectedListIndex = -1;
 		releaseTopInputForm();
 	}	
@@ -339,7 +396,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		m_period2.setText(Evt_EDate);
 
 		m_textBarcode.setText(event.get("BarCode"));
-		m_textProductName.setText(event.get("BarCode"));
+		m_textProductName.setText(event.get("G_Name"));
 		m_et_purchasePrice.setText(event.get("Pur_Pri"));
 		m_et_salePrice.setText(event.get("Sell_Pri"));
 		m_evtSaleValue.setText(event.get("Sale_Sell"));
@@ -348,10 +405,8 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 
 	public String makeJunPyo () {
 
-		String period = m_period1.getText().toString();
-		int year = Integer.parseInt(period.substring(0, 4));
-		int month = Integer.parseInt(period.substring(5, 7));
-		int day = Integer.parseInt(period.substring(8, 10));
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+		String currentDate = sdf.format(new Date());
 		
         // 전표번호 생성 
 		String posID = "P";
@@ -362,20 +417,90 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 			e.printStackTrace();
 		}
         
-        String junpyo = String.format("%04d%02d%02d", year, month, day) + posID + String.format("%03d", m_junpyoInTIdx);
+        String junpyo = currentDate + posID + String.format("%03d", m_junpyoInTIdx);
         return junpyo;        
 	}
 
     public void modifyDataIntoList(int position) {
-    	HashMap<String, String> event = m_evtList.get(position);
-    	event.put("BarCode", m_textBarcode.getText().toString());
-    	event.put("G_Name", m_textProductName.getText().toString());
-        event.put("Pur_Pri", m_et_purchasePrice.getText().toString());
-        event.put("Sell_Pri", m_et_salePrice.getText().toString());
-        event.put("Sale_Pur", m_evtPurValue.getText().toString());
-        event.put("Sale_Sell", m_evtSaleValue.getText().toString());
+    	
+        String Sale_Pur= m_evtPurValue.getText().toString();
+        String Sale_Sell= m_evtSaleValue.getText().toString();
+        String barcode= m_textBarcode.getText().toString();
+        
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		String currentDate = sdf.format(new Date());
 
-        m_adapter.notifyDataSetChanged();    
+	    JSONObject userProfile = LocalStorage.getJSONObject(this, "userProfile"); 
+	    String userid ="";
+        try {
+        	userid = userProfile.getString("User_ID");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+        String query="";
+	    query +=  "update Evt_Mst set Sale_Pur= '" + Sale_Pur + "', "
+	    		+ "Sale_Sell='" + Sale_Sell + "', "
+	    		+ "Write_Date='" + currentDate + "', "
+	    		+ "Edit_Date='" + currentDate + "', "
+	    		+ "Writer='" + userid + "', "
+	    		+ "Editor='" + userid + "' "
+	    		+"where  Evt_CD='" + m_junpyo + "' AND BarCode='" + barcode +"';"
+	    		;
+
+	    Date sd = makeTimeWithStringDateFormat(m_period1.getText().toString());
+	    Date ed = makeTimeWithStringDateFormat(m_period2.getText().toString());
+
+	    if((m_Finish_Date.after(sd) ||m_Finish_Date.equals(sd)) && (m_Finish_Date.before(ed) ||m_Finish_Date.equals(ed))) {
+	    	query +=  "update  Goods set Sale_Pur= '" + Sale_Pur + "', "
+		    		+ "Sale_Sell='" + Sale_Sell + "', "
+		    		+ "Sale_SDate='" + currentDate + "', "
+		    		+ "Sale_EDate='" + currentDate + "', "
+				    + "Sale_Use='1', "
+				    + "Edit_Check='1', "
+				    + "Tran_Chk='1' "
+		    		+"where BarCode='" + barcode +"';"
+		    		;
+	    }
+	    
+	    query += " select * from Evt_Mst where Evt_CD='" + m_junpyo +"';";
+	    Log.i("qeury", query);
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+
+	    // 콜백함수와 함께 실행
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				
+				HashMap<String, String> event = m_evtList.get(m_selectedListIndex);
+		    	event.put("BarCode", m_textBarcode.getText().toString());
+		    	event.put("G_Name", m_textProductName.getText().toString());
+		        event.put("Pur_Pri", m_et_purchasePrice.getText().toString());
+		        event.put("Sell_Pri", m_et_salePrice.getText().toString());
+		        event.put("Sale_Pur", m_evtPurValue.getText().toString());
+		        event.put("Sale_Sell", m_evtSaleValue.getText().toString());
+
+		        m_adapter.notifyDataSetChanged();  
+		        
+				clearInputBox();
+				Toast.makeText(getApplicationContext(), "전송완료.", Toast.LENGTH_SHORT).show();
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				Toast.makeText(getApplicationContext(), "전송실패("+String.valueOf(code)+"):" + msg, Toast.LENGTH_SHORT).show();
+			}
+			
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
     }
     
     public void setDataIntoList() {
@@ -391,18 +516,6 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		String Sale_Pur = m_evtPurValue.getText().toString();
 		String Sale_Sell = m_evtSaleValue.getText().toString();
 		
-        Iterator<HashMap<String, String>> iterator = m_evtList.iterator();		
-	    while (iterator.hasNext()) {
-			HashMap<String, String> element = iterator.next();
-	        String Evt_CD = element.get("Evt_CD");
-	        String BarCode = element.get("BarCode");
-
-	        if (BarCode.equals(m_textBarcode.getText().toString()) ) { //&& Evt_CD.equals(m_junpyo)
-	        	Toast.makeText(getApplicationContext(), "같은 품목은 추가할수 없습니다", Toast.LENGTH_SHORT).show();	        	
-	        	return;
-	        }
-	    }
-
         if ( section.equals("기간행사") == true) section ="1";
         else section ="2";
 
@@ -411,28 +524,26 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
         double Profit_Pri = Double.valueOf(Sale_Sell)-Double.valueOf(Sale_Pur);
         double Profit_Rate = Profit_Pri/Double.valueOf(Sale_Sell)*100;
         
-        HashMap<String, String> rmap = new HashMap<String, String>();
+        tempMap = new HashMap<String, String>();
         //rmap.put("Evt_CD", m_junpyo);
-        rmap.put("Evt_Name", Name);
-        rmap.put("Evt_Gubun", section);
-        rmap.put("BarCode", m_textBarcode.getText().toString());
-        rmap.put("G_Name", m_textProductName.getText().toString());
-    	rmap.put("Evt_SDate", period1);
-        rmap.put("Evt_EDate", period2);            
-        rmap.put("Evt_STime", "00:00");
-        rmap.put("Evt_ETime", "24:00");
-        rmap.put("Sale_Pur", Sale_Pur);
-        rmap.put("Sale_Sell", Sale_Sell);
-        rmap.put("Pur_Pri", Pur_Pri);
-        rmap.put("Sell_Pri", Sell_Pri);
-        rmap.put("DC_Pri", String.valueOf(DC_Pri));  
-        rmap.put("DC_Rate", String.valueOf(DC_Rate));  
-        rmap.put("Profit_Rate", String.valueOf(Profit_Rate));  
-        rmap.put("Profit_Pri", String.valueOf(Profit_Pri));  
+        tempMap.put("Evt_Name", Name);
+        tempMap.put("Evt_Gubun", section);
+        tempMap.put("BarCode", m_textBarcode.getText().toString());
+        tempMap.put("G_Name", m_textProductName.getText().toString());
+        tempMap.put("Evt_SDate", period1);
+        tempMap.put("Evt_EDate", period2);            
+        tempMap.put("Evt_STime", "00:00");
+        tempMap.put("Evt_ETime", "24:00");
+        tempMap.put("Sale_Pur", Sale_Pur);
+        tempMap.put("Sale_Sell", Sale_Sell);
+        tempMap.put("Pur_Pri", Pur_Pri);
+        tempMap.put("Sell_Pri", Sell_Pri);
+        tempMap.put("DC_Pri", String.valueOf(DC_Pri));  
+        tempMap.put("DC_Rate", String.valueOf(DC_Rate));  
+        tempMap.put("Profit_Rate", String.valueOf(Profit_Rate));  
+        tempMap.put("Profit_Pri", String.valueOf(Profit_Pri));  
 
-        m_evtList.add(rmap);
-        
-        m_adapter.notifyDataSetChanged();    
+        sendData(m_evtList.size()-1);
     }
     
 	public List<HashMap<String, String>> makeFillvapsWithStockList(){
@@ -473,8 +584,49 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	    
 		return fm;
 	}
+
+	public void checkEvent(String barcode, String sdate, String edate, String Evt_Gubun) {
+		
+		// 쿼리 작성하기
+		String query =  "";
+	    query += " select * from Evt_Mst where BarCode='" + barcode +"' "
+	    		+" AND Evt_Gubun<> '"+Evt_Gubun+"' "
+	    		+" AND Evt_SDate <= '"+edate+"' "
+	    	    +" AND Evt_EDate >= '"+sdate+"' ;";
+	    Log.i("qeury", query);
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+
+	    // 콜백함수와 함께 실행
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				if (results.length()>0) {
+					Toast.makeText(getApplicationContext(), "이미 행사중인 상품입니다", Toast.LENGTH_SHORT).show();
+				}
+				else {
+					setDataIntoList();
+				}
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				Toast.makeText(getApplicationContext(), "실패("+String.valueOf(code)+"):" + msg, Toast.LENGTH_SHORT).show();
+			}
+			
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	}
 	
-	public void sendAllData(){
+	public void sendData(int position) {
 
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		String currentDate = sdf.format(new Date());
@@ -486,36 +638,45 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-        
-		//TODO: 새로운 전표생성
-		String junpyo = makeJunPyo();
-		
-		// 쿼리 작성하기
-		String query =  "";
-		for ( int i = 0; i < m_evtList.size(); i++ ) {
+        String query="";
+		HashMap<String, String> event = tempMap;
+	    query +=  "insert into  Evt_Mst (Evt_CD, Evt_Name, Evt_Gubun, BarCode, Evt_SDate, Evt_EDate, Sale_Pur, Sale_Sell, "
+	    		+ " DC_Pri, DC_Rate, Profit_Rate, Profit_Pri, Write_Date, Edit_Date, Writer, Editor) " 
+	    		+ " values (" 	+ "'" + m_junpyo + "', "
+							    + "'" + event.get("Evt_Name").toString() + "', "
+					    		+ "'" + event.get("Evt_Gubun").toString() + "', "
+					    		+ "'" + event.get("BarCode").toString() + "', "
+					    		+ "'" + event.get("Evt_SDate").toString() + "', "
+					    		+ "'" + event.get("Evt_EDate").toString() + "', "
+							    + "'" + event.get("Sale_Pur").toString() + "', "
+					    		+ "'" + event.get("Sale_Sell").toString() + "', "
+							    + "'" + event.get("DC_Pri").toString() + "', "								    
+							    + "'" + event.get("DC_Rate").toString() + "', "
+							    + "'" + event.get("Profit_Rate").toString() + "', "
+							    + "'" + event.get("Profit_Pri").toString() + "', "								    
+					    		+ "'" + currentDate + "', "
+					    		+ "'" + currentDate+ "', "
+							    + "'" + userid + "', "
+					    		+ "'" + userid + "');";
 
-			HashMap<String, String> event = m_evtList.get(i);
-		    query +=  "insert into  Evt_Mst (Evt_CD, Evt_Name, Evt_Gubun, BarCode, Evt_SDate, Evt_EDate, Sale_Pur, Sale_Sell, "
-		    		+ " DC_Pri, DC_Rate, Profit_Rate, Profit_Pri, Write_Date, Edit_Date, Writer, Editor) " 
-		    		+ " values (" 	+ "'" + junpyo + "', "
-								    + "'" + event.get("Evt_Name").toString() + "', "
-						    		+ "'" + event.get("Evt_Gubun").toString() + "', "
-						    		+ "'" + event.get("BarCode").toString() + "', "
-						    		+ "'" + event.get("Evt_SDate").toString() + "', "
-						    		+ "'" + event.get("Evt_EDate").toString() + "', "
-								    + "'" + event.get("Sale_Pur").toString() + "', "
-						    		+ "'" + event.get("Sale_Sell").toString() + "', "
-								    + "'" + event.get("DC_Pri").toString() + "', "								    
-								    + "'" + event.get("DC_Rate").toString() + "', "
-								    + "'" + event.get("Profit_Rate").toString() + "', "
-								    + "'" + event.get("Profit_Pri").toString() + "', "								    
-						    		+ "'" + currentDate + "', "
-						    		+ "'" + currentDate+ "', "
-								    + "'" + userid + "', "
-						    		+ "'" + userid + "');";
-		}
+	    Date sd = makeTimeWithStringDateFormat(m_period1.getText().toString());
+	    Date ed = makeTimeWithStringDateFormat(m_period2.getText().toString());
 
-	    query += " select * from Evt_Mst where Evt_CD='" + junpyo +"';";
+	    if((m_Finish_Date.after(sd) ||m_Finish_Date.equals(sd)) && (m_Finish_Date.before(ed) ||m_Finish_Date.equals(ed))) {
+	    	
+	        // In between
+	    	query +=  "update  Goods set Sale_Pur= '" + event.get("Sale_Pur").toString() + "', "
+		    		+ "Sale_Sell='" + event.get("Sale_Sell").toString() + "', "
+		    		+ "Sale_SDate='" + event.get("Evt_SDate").toString() + "', "
+		    		+ "Sale_EDate='" + event.get("Evt_EDate").toString() + "', "
+    			    + "Sale_Use='1', "
+    			    + "Edit_Check='1', "
+    			    + "Tran_Chk='1' "
+		    		+"where BarCode='" + event.get("BarCode").toString() +"';"
+		    		;
+	    }
+	    
+	    query += " select * from Evt_Mst where Evt_CD='" + m_junpyo +"';";
 	    Log.i("qeury", query);
 		
 		// 로딩 다이알로그 
@@ -532,7 +693,9 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 				dialog.dismiss();
 				dialog.cancel();
 
-				deleteListAll();
+		        m_evtList.add(tempMap);
+		        m_adapter.notifyDataSetChanged();    
+		        
 				clearInputBox();
 				Toast.makeText(getApplicationContext(), "전송완료.", Toast.LENGTH_SHORT).show();
 			}
@@ -551,7 +714,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 
 		// 쿼리 작성하기
 		String query =  "";
-	    query += " select * from Evt_Mst where Evt_CD='" + junpyo +"';";
+	    query += " select * from Evt_Mst inner join Goods on Evt_Mst.BarCode = Goods.BarCode where Evt_CD='" + junpyo +"';";
 	    Log.i("qeury", query);
 		
 		// 로딩 다이알로그 
@@ -577,6 +740,16 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 			            	JSONObject json = results.getJSONObject(i);
 			            	HashMap<String, String> map = JsonHelper.toStringHashMap(json);
 
+			            	String Evt_Gubun = map.get("Evt_Gubun");
+			            	String Sdate = map.get("Evt_SDate");
+			            	String Edate = map.get("Evt_EDate");
+			            	m_period1.setText(Sdate);
+			            	m_period2.setText(Edate);
+			            	m_eventName.setText(map.get("Evt_Name"));
+
+			            	if (Evt_Gubun.equals("1")) m_spinEvent.setSelection(0);
+			            	else m_spinEvent.setSelection(1);
+			            	
 			                m_evtList.add(map);			                
 			                m_adapter.notifyDataSetChanged();  
 					 
@@ -600,17 +773,17 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 			
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
-
+	
 	//전표갯수를 구함
 	public void getInTSeq() {
 
-		String period = m_period1.getText().toString();
-		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		String currentDate = sdf.format(new Date());
+
 		// 쿼리 작성하기
 		String query =  "";
-	    query += "SELECT TOP 1 Evt_CD FROM Evt_Mst WHERE Evt_SDate='"+period
-	    		+"' AND (Evt_CD NOT IN(SELECT TOP 0 Evt_CD FROM Evt_Mst)) order by Evt_CD DESC;";
-	    
+	    query = "SELECT Right(Max(Evt_CD), 3) As Evt_CD From Evt_Mst Where Write_date ='"+currentDate+"';";
+	    		
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
@@ -626,14 +799,17 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 				dialog.cancel();
 				if (results.length()>0) {
 					try {
-						m_junpyoInTIdx = results.getJSONObject(0).getInt("St_Seq")+1;
+						m_junpyoInTIdx = results.getJSONObject(0).getInt("Evt_CD")+1;
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}
 				}
 				else {
 					m_junpyoInTIdx =1;
-				}				
+				}			
+
+				//TODO: 새로운 전표생성
+				m_junpyo = makeJunPyo();
 			}
 
 			@Override
@@ -644,6 +820,57 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 			}
 			
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	}
+	
+	public void getFinishDate() {
+
+		// 쿼리 작성하기
+		String query =  "";
+	    query += " Select Finish_Date from finish;";
+	    		
+	    // 콜백함수와 함께 실행
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				if (results.length()>0) {
+					try {
+						String Finish_Date = results.getJSONObject(0).getString("Finish_Date");
+						Calendar cal = Calendar.getInstance();
+						cal.setTime(makeTimeWithStringDateFormat(Finish_Date));
+						cal.add(Calendar.DATE, 1);  // number of days to add
+						m_Finish_Date = cal.getTime();
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				else {
+					m_junpyoInTIdx =1;
+				}			
+
+				//TODO: 새로운 전표생성
+				m_junpyo = makeJunPyo();
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				Toast.makeText(getApplicationContext(), "실패("+String.valueOf(code)+"):" + msg, Toast.LENGTH_SHORT).show();
+			}
+			
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	}
+
+	public Date makeTimeWithStringDateFormat(String date) {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar c = Calendar.getInstance();
+		try {
+			c.setTime(sdf.parse(date));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return c.getTime();
 	}
 
 	public void OnClickModify(View v) {
@@ -942,7 +1169,6 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 				
 				if (results.length() > 0) {
 					try {
-						
 						m_textProductName.setText(results.getJSONObject(0).getString("G_Name"));						
 						m_et_purchasePrice.setText(results.getJSONObject(0).getString("Pur_Pri"));
 						m_et_salePrice.setText(results.getJSONObject(0).getString("Sell_Pri"));

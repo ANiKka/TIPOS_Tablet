@@ -86,17 +86,13 @@ public class ComparePriceDetailActivity extends Activity {
 	
 	private void setupActionBar() {
 
-		ActionBar actionbar = getActionBar();         
-//		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-//		actionbar.setCustomView(custom_action_bar);
-
+		ActionBar actionbar = getActionBar();
 		actionbar.setDisplayShowHomeEnabled(false);
 		actionbar.setDisplayShowTitleEnabled(true);
 		actionbar.setDisplayShowCustomEnabled(true);
 		actionbar.setTitle("가격비교");
 		
 		getActionBar().setDisplayHomeAsUpEnabled(false);
-
 	}
 
 	@Override
