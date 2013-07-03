@@ -15,8 +15,7 @@ import android.os.Bundle;
 import android.telephony.TelephonyManager;
 
 public class TIPSSplashActivity extends Activity {
-	
-	
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,6 +45,7 @@ public class TIPSSplashActivity extends Activity {
             return;
 		}
     }
+    
 	private void savePhoneNumber(Context ctx)
     {
 		//check phone number

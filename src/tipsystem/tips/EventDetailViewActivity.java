@@ -35,13 +35,12 @@ public class EventDetailViewActivity extends Activity {
 		TextView evtPeriod = (TextView)findViewById(R.id.textView5);
 		TextView evtGubun = (TextView)findViewById(R.id.textView9);
 		
-		
 		Intent intent = getIntent();
 		
 		evtName.setText(intent.getExtras().getString("Evt_Name"));
 		evtPeriod.setText(intent.getExtras().getString("Evt_Period"));
 		evtGubun.setText(intent.getExtras().getString("Evt_Gubun"));
-				
+		
 		 // create the grid item mapping
 		String[] from = new String[] {"BarCode", "G_Name", "Sale_Pur", "Sale_Sell"};
 		int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
@@ -56,8 +55,6 @@ public class EventDetailViewActivity extends Activity {
 		map.put("Sale_Pur", intent.getExtras().getString("Sale_Pur"));
 		map.put("Sale_Sell", intent.getExtras().getString("Sale_Sell"));
 	    fillMaps.add(map);
-	
-				
 		*/
 
 		// prepare the list of all records

@@ -2,6 +2,7 @@ package tipsystem.tips;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -15,26 +16,22 @@ import tipsystem.utils.MSSQL2;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AbsListView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -49,7 +46,7 @@ import com.dm.zbar.android.scanner.ZBarScannerActivity;
 /*
  * 기본관리 -> 상품관리
  * */
-public class ManageProductActivity extends Activity{
+public class ManageProductActivity extends Activity {
 	private static final int ZBAR_SCANNER_REQUEST = 0;
 	private static final int ZBAR_QR_SCANNER_REQUEST = 1;
 	private static final int BARCODE_MANAGER_REQUEST = 2;
@@ -63,9 +60,9 @@ public class ManageProductActivity extends Activity{
 	TextView m_textProductName;
 	TextView m_textCustomerCode;
 	TextView m_textCustomerName;
-	TextView m_textCustomerClassification1;
-	TextView m_textCustomerClassification2;
-	TextView m_textCustomerClassification3;
+	Button m_buttonCustomerClassification1;
+	Button m_buttonCustomerClassification2;
+	Button m_buttonCustomerClassification3;
 	TextView m_textStandard;
 	TextView m_textAcquire;
 	TextView m_textPurchasePrice;
@@ -79,6 +76,11 @@ public class ManageProductActivity extends Activity{
 	SimpleAdapter m_adapter; 
 
 	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
+	HashMap<String, String> m_tempProduct =new HashMap<String, String>();
+
+	List<HashMap<String, String>> m_Ltype = new ArrayList<HashMap<String, String>>();
+	List<HashMap<String, String>> m_Mtype = new ArrayList<HashMap<String, String>>();
+	List<HashMap<String, String>> m_Stype = new ArrayList<HashMap<String, String>>();
 
     // loading bar
     public ProgressDialog dialog; 
@@ -126,9 +128,9 @@ public class ManageProductActivity extends Activity{
 		m_textProductName = (TextView)findViewById(R.id.editTextProductName);
 		m_textCustomerCode = (TextView)findViewById(R.id.editTextCustomerCode);
 		m_textCustomerName = (TextView)findViewById(R.id.editTextCustomerName);
-		m_textCustomerClassification1 = (TextView)findViewById(R.id.editTextCustomerClassification1);
-		m_textCustomerClassification2 = (TextView)findViewById(R.id.editTextCustomerClassification2);
-		m_textCustomerClassification3 = (TextView)findViewById(R.id.editTextCustomerClassification3);
+		m_buttonCustomerClassification1 = (Button)findViewById(R.id.buttonClassificationType1);
+		m_buttonCustomerClassification2 = (Button)findViewById(R.id.buttonClassificationType2);
+		m_buttonCustomerClassification3 = (Button)findViewById(R.id.buttonClassificationType3);
 		m_spinTaxation = (Spinner)findViewById(R.id.spinnerTaxationType);
 		m_checkSurtax = (CheckBox)findViewById(R.id.checkBoxSurtax);
 		m_spinGroup = (Spinner)findViewById(R.id.spinnerGroupType);
@@ -142,7 +144,9 @@ public class ManageProductActivity extends Activity{
 		m_listProduct.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            	fillCustomerForm(position);
+            	
+            	m_tempProduct = mfillMaps.get(position);
+            	updateFormView(m_tempProduct);
             }
         });
 		m_listProduct.setOnScrollListener(customScrollListener);
@@ -189,7 +193,6 @@ public class ManageProductActivity extends Activity{
 	        	doClear();
 	        }
 		});
-
 		// 바코드 입력 후 포커스 딴 곳을 옮길 경우
 		m_textBarcode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 			//@Override
@@ -269,6 +272,8 @@ public class ManageProductActivity extends Activity{
 		
 		String barcode = getIntent().getStringExtra("barcode");
 		m_textBarcode.setText(barcode);
+		
+		fetchLName();
 	}
 
 	/**
@@ -311,14 +316,12 @@ public class ManageProductActivity extends Activity{
 
 
 	private void fillRatioFromSalePriceAndPurchasePrice(float salesPrice, float purchasePrice) {
-		// TODO Auto-generated method stub
 		float f_ratio = (salesPrice - purchasePrice) / purchasePrice;
 		String ratio = Float.toString(f_ratio);
 		m_textDifferentRatio.setText(ratio);
     }
 	
 	private void fillSalePriceFromRatioAndPurchasePrice(float ratio, float purchasePrice) {
-		// TODO Auto-generated method stub
 		float f_salesPrice = (purchasePrice * ratio) + purchasePrice;
 		String salesPrice = Float.toString(f_salesPrice);
 		m_textSalesPrice.setText(salesPrice);
@@ -349,89 +352,9 @@ public class ManageProductActivity extends Activity{
 		m_adapter.notifyDataSetChanged();
 	}
 	
-    // 입력 폼 채우기
-    public void fillCustomerForm(int position){
-    	HashMap<String, String> object = mfillMaps.get(position);
-
-		m_textBarcode.setText(object.get("BarCode"));
-		m_textProductName.setText(object.get("G_Name"));
-		m_textCustomerCode.setText(object.get("Bus_Code"));
-		m_textCustomerName.setText(object.get("Bus_Name"));
-		m_textStandard.setText(object.get("Std_Size"));
-		m_textAcquire.setText(object.get("Obtain"));
-		m_textPurchasePrice.setText(object.get("Pur_Pri"));
-		m_textSalesPrice.setText(object.get("Sell_Pri"));
-		m_textPurchasePriceOriginal.setText(object.get("Pur_Cost"));
-		m_textDifferentRatio.setText(object.get("Profit_Rate"));
-		
-		String class1 = "[" + object.get("L_Code") + "]" + "" + "[" + object.get("L_Name") + "]";
-		String class2 = "[" + object.get("M_Code") + "]" + "" + "[" + object.get("M_Name") + "]";
-		String class3 = "[" + object.get("S_Code") + "]" + "" + "[" + object.get("S_Name") + "]";
-		m_textCustomerClassification1.setText(class1);
-		m_textCustomerClassification2.setText(class2);
-		m_textCustomerClassification3.setText(class3);
-		
-		if(object.get("Tax_YN").equals("0")) {
-			m_spinTaxation.setSelection(1);
-		} else {
-			m_spinTaxation.setSelection(0);
-		}
-		if(object.get("Add_Tax").equals("0")){
-			m_checkSurtax.setChecked(false);
-		} else {
-			m_checkSurtax.setChecked(true);
-		}
-		
-		if(object.get("G_grade").equals("0"))
-			m_spinGroup.setSelection(0);
-		else if(object.get("G_grade").equals("A"))
-			m_spinGroup.setSelection(1);
-    }
-    
-    // 입력 폼 채우기
-    public void fillCustomerFormFromJSONObject(JSONObject object){
-
-		try {
-			m_textProductName.setText(object.getString("G_Name"));
-			m_textCustomerCode.setText(object.getString("Bus_Code"));
-			m_textCustomerName.setText(object.getString("Bus_Name"));
-			m_textStandard.setText(object.getString("Std_Size"));
-			m_textAcquire.setText(object.getString("Obtain"));
-			m_textPurchasePrice.setText(object.getString("Pur_Pri"));
-			m_textSalesPrice.setText(object.getString("Sell_Pri"));
-			m_textPurchasePriceOriginal.setText(object.getString("Pur_Cost"));
-			m_textDifferentRatio.setText(object.getString("Profit_Rate"));
-			
-			String class1 = "[" + object.getString("L_Code") + "]" + "" + "[" + object.getString("L_Name") + "]";
-			String class2 = "[" + object.getString("M_Code") + "]" + "" + "[" + object.getString("M_Name") + "]";
-			String class3 = "[" + object.getString("S_Code") + "]" + "" + "[" + object.getString("S_Name") + "]";
-			m_textCustomerClassification1.setText(class1);
-			m_textCustomerClassification2.setText(class2);
-			m_textCustomerClassification3.setText(class3);
-			
-			if(object.getString("Tax_YN").equals("0")) {
-				m_spinTaxation.setSelection(1);
-			} else {
-				m_spinTaxation.setSelection(0);
-			}
-			if(object.getString("Add_Tax").equals("0")){
-				m_checkSurtax.setChecked(false);
-			} else {
-				m_checkSurtax.setChecked(true);
-			}
-			
-			if(object.getString("G_grade").equals("0"))
-				m_spinGroup.setSelection(0);
-			else if(object.getString("G_grade").equals("A"))
-				m_spinGroup.setSelection(1);
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-    }
-	
     // 새로 입력
     public void doClear(){
-    	
+    	m_tempProduct = null;
 		m_textBarcode.setText("");
 		m_textProductName.setText("");
 		m_textCustomerCode.setText("");
@@ -442,9 +365,6 @@ public class ManageProductActivity extends Activity{
 		m_textSalesPrice.setText(""); //판매가
 		m_textPurchasePriceOriginal.setText(""); //매입원가
 		m_textDifferentRatio.setText(""); // 이의율
-		m_textCustomerClassification1.setText("");
-		m_textCustomerClassification2.setText("");
-		m_textCustomerClassification3.setText("");
 		m_spinTaxation.setSelection(0);
 		m_checkSurtax.setChecked(false);
 	}
@@ -456,11 +376,14 @@ public class ManageProductActivity extends Activity{
 	    String productName = m_textProductName.getText().toString();
 	    String customerCode = m_textCustomerCode.getText().toString();
 	    String customerName = m_textCustomerName.getText().toString();
-	    String customerClass1 = m_textCustomerClassification1.getText().toString();
-	    String customerClass2 = m_textCustomerClassification2.getText().toString();
-	    String customerClass3 = m_textCustomerClassification3.getText().toString();
+
+	    String lname = m_buttonCustomerClassification1.getText().toString();
+	    String mname = m_buttonCustomerClassification2.getText().toString();
+	    String sname = m_buttonCustomerClassification3.getText().toString();
+	    String lcode = getCodeFromListByName(m_Ltype, lname);
+	    String mcode = getCodeFromListByName(m_Mtype, mname);
+	    String scode = getCodeFromListByName(m_Stype, sname);
 	    String taxation = m_spinTaxation.getSelectedItem().toString();
-		String group = m_spinGroup.getSelectedItem().toString();
 		String standard = m_textStandard.getText().toString();
 		String acquire = m_textAcquire.getText().toString();
 		String purchasePrice = m_textPurchasePrice.getText().toString();
@@ -468,6 +391,7 @@ public class ManageProductActivity extends Activity{
 		String salesPrice = m_textSalesPrice.getText().toString();
 		String ratio = m_textDifferentRatio.getText().toString();
 		String surtax = null;
+	    String good_use = String.valueOf(m_spinGroup.getSelectedItemPosition());
 		
 		if(m_checkSurtax.isChecked())
 			surtax = "1";
@@ -480,21 +404,19 @@ public class ManageProductActivity extends Activity{
 			taxation = "1";
 		
 		if (barcode.equals("") || productName.equals("") || customerCode.equals("") || customerName.equals("") ||
-			customerClass1.equals("") || customerClass2.equals("") || customerClass3.equals("") || standard.equals("") || acquire.equals("") ||
+			standard.equals("") || acquire.equals("") || lname.equals("") || mname.equals("") || sname.equals("") ||
 			purchasePrice.equals("") || purchasePriceOriginal.equals("") || salesPrice.equals("") || ratio.equals("")) {
 			Toast.makeText(getApplicationContext(), "비어있는 필드가 있습니다", Toast.LENGTH_SHORT).show();
 			return;
     	}
 		
     	query += "insert into Goods(BarCode, G_Name, Bus_Code, Bus_Name, Tax_YN, Std_Size, Obtain, Pur_Pri, Pur_Cost," +
-    			" Sell_Pri, Profit_Rate, L_Code, M_Code, S_Code, VAT_CHK, G_grade) values('" + barcode + "', '" + productName + "'," +
+    			" Sell_Pri, Profit_Rate, L_Code, L_Name, M_Code, M_Name, S_Code, S_Name, VAT_CHK, good_use) values('" + barcode + "', '" + productName + "'," +
     			"'"+ customerCode + "', '" + customerName + "', '" + taxation + "', '" + standard + "', '" + acquire + "'," +
     			"'" + purchasePrice + "', '" + purchasePriceOriginal + "', '" + salesPrice + "', '" + ratio + "'," +
-    			"'" + customerClass1 + "', '" + customerClass2 + "', '" + customerClass3 + "', '" + surtax + "', ";
-    	if(group.equals(""))
-    		query += "NULL);";
-    	else
-    		query += "'" + group + "');";
+    			"'" + lcode + "', '" + lname + "', '" + mcode + "', '" + mname + "', '" + scode + "', '" + sname + 
+    			"', '" + surtax + "', " + "'" + good_use + "');";
+    	
     	query += "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods WHERE BarCode = '" +
     			  barcode + "') A JOIN (SELECT * FROM Goods WHERE BarCode = '" + barcode + "') B ON A.BarCode = B.BarCode;";
     	
@@ -534,7 +456,21 @@ public class ManageProductActivity extends Activity{
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
-	
+
+
+	public String getCodeFromListByName (List<HashMap<String, String>> l, String name) {
+		
+		Iterator<HashMap<String, String>> it = l.iterator();
+		while(it.hasNext()) {
+			HashMap<String, String> obj = it.next();
+			if (obj.get("name").equals(name) ) {
+				return obj.get("code");
+			}
+		}
+		
+		return "";
+	}
+
 	public void doModify(){
 
 		String query = "";
@@ -542,11 +478,15 @@ public class ManageProductActivity extends Activity{
 	    String productName = m_textProductName.getText().toString();
 	    String customerCode = m_textCustomerCode.getText().toString();
 	    String customerName = m_textCustomerName.getText().toString();
-	    String customerClass1 = m_textCustomerClassification1.getText().toString();
-	    String customerClass2 = m_textCustomerClassification2.getText().toString();
-	    String customerClass3 = m_textCustomerClassification3.getText().toString();
+
+	    String lname = m_buttonCustomerClassification1.getText().toString();
+	    String mname = m_buttonCustomerClassification2.getText().toString();
+	    String sname = m_buttonCustomerClassification3.getText().toString();
+	    String lcode = getCodeFromListByName(m_Ltype, lname);
+	    String mcode = getCodeFromListByName(m_Mtype, mname);
+	    String scode = getCodeFromListByName(m_Stype, sname);
+	    
 	    String taxation = m_spinTaxation.getSelectedItem().toString();
-		String group = m_spinGroup.getSelectedItem().toString();
 		String standard = m_textStandard.getText().toString();
 		String acquire = m_textAcquire.getText().toString();
 		String purchasePrice = m_textPurchasePrice.getText().toString();
@@ -554,19 +494,10 @@ public class ManageProductActivity extends Activity{
 		String salesPrice = m_textSalesPrice.getText().toString();
 		String ratio = m_textDifferentRatio.getText().toString();
 		String surtax = null;
-		
-		String class1 = "";
-		String class2 = "";
-		String class3 = "";
-		int stringLoc1 = customerClass1.indexOf("]");
-		int stringLoc2 = customerClass2.indexOf("]");
-		int stringLoc3 = customerClass3.indexOf("]");
-		class1 = customerClass1.substring(1, stringLoc1);
-		class2 = customerClass2.substring(1, stringLoc2);
-		class3 = customerClass3.substring(1, stringLoc3);
+	    String good_use = String.valueOf(m_spinGroup.getSelectedItemPosition());
 		
 		if(m_checkSurtax.isChecked())
-		surtax = "1";
+			surtax = "1";
 		else
 			surtax = "0";
 		
@@ -576,7 +507,7 @@ public class ManageProductActivity extends Activity{
 			taxation = "1";
 		
 		if (barcode.equals("") || productName.equals("") || customerCode.equals("") || customerName.equals("") ||
-			customerClass1.equals("") || customerClass2.equals("") || customerClass3.equals("") || standard.equals("") || acquire.equals("") ||
+				standard.equals("") || acquire.equals("") || lname.equals("") || mname.equals("") || sname.equals("") ||
 			purchasePrice.equals("") || purchasePriceOriginal.equals("") || salesPrice.equals("") || ratio.equals("")) {
 			Toast.makeText(getApplicationContext(), "비어있는 필드가 있습니다", Toast.LENGTH_SHORT).show();
 			return;
@@ -584,9 +515,10 @@ public class ManageProductActivity extends Activity{
 		
     	query += "Update Goods Set BarCode = '" + barcode + "', G_Name = '" + productName + "', Bus_Code = '" + customerCode + "', " +
     			  "Bus_Name = '" + customerName + "', Tax_YN = '" + taxation + "', Std_Size = '" + standard + "', Obtain = '" + acquire + "', " +
-    			  "Pur_Pri = '" + purchasePrice + "', Pur_Cost = '" + purchasePriceOriginal + "', Sell_Pri = '" + salesPrice + "', " + 
-    			  "Profit_Rate = '" + ratio + "', L_Code = '" + class1 + "', M_Code = '" + class2 + "', S_Code = '" + class3 +
-    			  "', VAT_CHK = '" + surtax + "' WHERE BarCode = '" + barcode + "';"; 
+    			  "Pur_Pri = '" + purchasePrice + "', Pur_Cost = '" + purchasePriceOriginal + "', Sell_Pri = '" + salesPrice + "', " + "Profit_Rate = '" + ratio +
+    			   "', L_Code = '" + lcode + "', M_Code = '" + mcode + "', S_Code = '" + scode +
+    			   "', L_Name = '" + lname + "', M_Name = '" + mname + "', S_Name = '" + sname +
+    			  "', VAT_CHK = '" + surtax + "', good_use='"+ good_use+"' WHERE BarCode = '" + barcode + "';"; 
     	//query += "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods) A JOIN (SELECT TOP 50 * FROM Goods WHERE BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods)) B ON A.BarCode = B.BarCode;";
     	query += "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods WHERE BarCode = '" +
   			  barcode + "') A JOIN (SELECT * FROM Goods WHERE BarCode = '" + barcode + "') B ON A.BarCode = B.BarCode;";
@@ -627,7 +559,6 @@ public class ManageProductActivity extends Activity{
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
-		
 	
 	public void doSearch(){
 
@@ -720,6 +651,7 @@ public class ManageProductActivity extends Activity{
 					String barcode = m_textBarcode.getText().toString();
 					Intent intent = new Intent(ManageProductActivity.this, ManageProductListActivity.class);
 					intent.putExtra("barcode", barcode);
+					intent.putExtra("good_use", "no");
 			    	startActivityForResult(intent, BARCODE_MANAGER_REQUEST);
 				} else { // 스캔할 경우
 					Intent intent = new Intent(ManageProductActivity.this, ZBarScannerActivity.class);
@@ -773,7 +705,6 @@ public class ManageProductActivity extends Activity{
 
 	// 거래처 코드로 거래처명 자동 완성
 	private void fillBusNameFromBusCode(String customerCode) {
-		// TODO Auto-generated method stub
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
@@ -794,7 +725,6 @@ public class ManageProductActivity extends Activity{
 						String bus_name = json.getString("Office_Name");
 						m_textCustomerName.setText(bus_name);
 					} catch (JSONException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 		            Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
@@ -831,8 +761,9 @@ public class ManageProductActivity extends Activity{
 				dialog.cancel();
 				
 				if (results.length() > 0) {
-					try {						
-						fillCustomerFormFromJSONObject(results.getJSONObject(0));
+					try {
+						m_tempProduct = JsonHelper.toStringHashMap(results.getJSONObject(0));
+						updateFormView(m_tempProduct);
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}
@@ -842,5 +773,256 @@ public class ManageProductActivity extends Activity{
 				}
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
+	}
+
+    // 입력 폼 채우기
+    public void updateFormView(HashMap<String, String> object) {
+
+		m_textBarcode.setText(object.get("BarCode"));
+		m_textProductName.setText(object.get("G_Name"));
+		m_textCustomerCode.setText(object.get("Bus_Code"));
+		m_textCustomerName.setText(object.get("Bus_Name"));
+		m_textStandard.setText(object.get("Std_Size"));
+		m_textAcquire.setText(object.get("Obtain"));
+		m_textPurchasePrice.setText(object.get("Pur_Pri"));
+		m_textSalesPrice.setText(object.get("Sell_Pri"));
+		m_textPurchasePriceOriginal.setText(object.get("Pur_Cost"));
+		m_textDifferentRatio.setText(object.get("Profit_Rate"));
+		
+		//int l = getIndexFromListByCode(m_Ltype, object.get("L_Code"));
+		///int m = getIndexFromListByCode(m_Mtype, object.get("M_Code"));
+		//int s = getIndexFromListByCode(m_Stype, object.get("S_Code"));
+		//m_spinCustomerClassification1.setSelection(l);
+		//m_spinCustomerClassification1.setSelection(m);
+		//m_spinCustomerClassification1.setSelection(s);
+
+		m_buttonCustomerClassification1.setText(object.get("L_Name"));
+		m_buttonCustomerClassification2.setText(object.get("M_Name"));
+		m_buttonCustomerClassification3.setText(object.get("S_Name"));
+		
+		if(object.get("Tax_YN").equals("0")) {
+			m_spinTaxation.setSelection(1);
+		} else {
+			m_spinTaxation.setSelection(0);
+		}
+		if(object.get("Add_Tax").equals("0")){
+			m_checkSurtax.setChecked(false);
+		} else {
+			m_checkSurtax.setChecked(true);
+		}
+		if(object.get("Goods_Use").equals("0"))
+			m_spinGroup.setSelection(0);
+		else if(object.get("Goods_Use").equals("1"))
+			m_spinGroup.setSelection(1);
+    }
+    
+    private void fetchLName() {
+    	String query = "";
+		query = "SELECT L_Name, L_Code FROM Goods GROUP BY L_Name, L_Code;";
+	
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+
+	    // 콜백함수와 함께 실행
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				
+				if (results.length() > 0) {   
+
+					for(int index = 0; index < results.length() ; index++)
+					{
+						HashMap<String, String> data =new HashMap<String, String>();
+						JSONObject son;
+						try {
+							son = results.getJSONObject(index);
+							String name = son.getString("L_Name");
+							String code = son.getString("L_Code");
+							
+							data.put("name", name);
+							data.put("code", code);
+							m_Ltype.add(data);
+							
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+					}					
+				}
+				else {
+					Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+				}
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	}
+    
+	public void onClassification1(View view)
+	{
+		m_buttonCustomerClassification2.setText("");
+		m_buttonCustomerClassification3.setText("");
+		
+		ArrayList<String> lSpList = new ArrayList<String>();       
+		for(int index = 0; index < m_Ltype.size() ; index++)
+		{
+			HashMap<String, String> data = m_Ltype.get(index);
+			String name = data.get("name");
+			lSpList.add(name);
+		}
+
+		final CharSequence[] charSequenceItems = lSpList.toArray(new CharSequence[lSpList.size()]);
+		
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	    builder.setTitle("선택하세요");
+	    builder.setItems(charSequenceItems, new DialogInterface.OnClickListener() {
+	    	public void onClick(DialogInterface dialog, int item) {
+	    		String name = charSequenceItems[item].toString();
+	    		m_buttonCustomerClassification1.setText(name);
+	        }
+	    });
+	    AlertDialog alert = builder.create();
+	    alert.show();
+	}
+	
+	public void onClassification2(View view)
+	{
+		String lname = m_buttonCustomerClassification1.getText().toString();
+		if (lname.equals("")) {
+			Toast.makeText(getApplicationContext(), "먼저 대분류를 먼저 선택하세요", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		
+		m_buttonCustomerClassification3.setText("");
+		String query = "";
+		query = "SELECT M_Name, M_Code FROM Goods WHERE L_Name='"+lname+"' GROUP BY M_Name, M_Code;";
+	
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+
+	    // 콜백함수와 함께 실행
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				
+				if (results.length() > 0) {
+					m_Mtype.removeAll(m_Mtype);
+					
+					ArrayList<String> lSpList = new ArrayList<String>();       
+					for(int index = 0; index < results.length() ; index++)
+					{
+						HashMap<String, String> data =new HashMap<String, String>();
+						JSONObject son;
+						try {
+							son = results.getJSONObject(index);
+							String name = son.getString("M_Name");
+							String code = son.getString("M_Code");
+							lSpList.add(name);
+
+							data.put("name", name);
+							data.put("code", code);
+							m_Mtype.add(data);
+
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+					}
+
+					final CharSequence[] charSequenceItems = lSpList.toArray(new CharSequence[lSpList.size()]);
+					
+					AlertDialog.Builder builder = new AlertDialog.Builder(ManageProductActivity.this);
+				    builder.setTitle("선택하세요");
+				    builder.setItems(charSequenceItems, new DialogInterface.OnClickListener() {
+				    	public void onClick(DialogInterface dialog, int item) {
+				    		String name = charSequenceItems[item].toString();
+				    		m_buttonCustomerClassification2.setText(name);
+				        }
+				    });
+				    AlertDialog alert = builder.create();
+				    alert.show();
+				}
+				else {
+					Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+				}
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	}
+	
+	public void onClassification3(View view)
+	{
+		String lname = m_buttonCustomerClassification1.getText().toString();
+		String mname = m_buttonCustomerClassification2.getText().toString();
+		if (lname.equals("")||mname.equals("")) {
+			Toast.makeText(getApplicationContext(), "먼저 대분류,중분류를 먼저 선택하세요", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		
+		String query = "";
+		query = "SELECT S_Name, S_Code FROM Goods WHERE L_Name='"+lname+"' AND M_Name='"+mname+"' GROUP BY S_Name, S_Code;";
+
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+
+	    // 콜백함수와 함께 실행
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				
+				if (results.length() > 0) {
+					m_Stype.removeAll(m_Stype);
+
+					ArrayList<String> lSpList = new ArrayList<String>();       
+					for(int index = 0; index < results.length() ; index++)
+					{
+						JSONObject son;
+						try {
+							HashMap<String, String> data =new HashMap<String, String>();
+							son = results.getJSONObject(index);
+							String name = son.getString("S_Name");
+							String code = son.getString("S_Code");
+							lSpList.add(name);
+							
+							data.put("name", name);
+							data.put("code", code);
+							m_Stype.add(data);
+							
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+					}
+					
+					final CharSequence[] charSequenceItems = lSpList.toArray(new CharSequence[lSpList.size()]);
+					
+					AlertDialog.Builder builder = new AlertDialog.Builder(ManageProductActivity.this);
+				    builder.setTitle("선택하세요");
+				    builder.setItems(charSequenceItems, new DialogInterface.OnClickListener() {
+				    	public void onClick(DialogInterface dialog, int item) {
+				    		String name = charSequenceItems[item].toString();
+				    		m_buttonCustomerClassification3.setText(name);
+				        }
+				    });
+				    AlertDialog alert = builder.create();
+				    alert.show();
+				}
+				else {
+					Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+				}
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
 }

@@ -109,6 +109,10 @@
         <item>기간행사</item>
         <item>연속행사</item>
     </string-array>
+    <string-array name="good_use">
+        <item>미사용</item>
+        <item>사용</item>
+    </string-array>
 
     <string name="choose_event_type">행사구분 선택</string>
     <string name="choose_group_type">그룹 선택</string>

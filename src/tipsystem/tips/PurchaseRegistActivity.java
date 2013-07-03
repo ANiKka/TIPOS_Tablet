@@ -425,7 +425,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
         rmap.put("Tax_YN", Tax_YN);
         rmap.put("Tax_Gubun", Tax_Gubun);
         rmap.put("In_Count", amount);			// 수량 
-        rmap.put("Pur_Pri", purchasePrice);		//매입가
+        rmap.put("Pur_Pri", purchasePrice);		// 매입가
         rmap.put("Org_PurPri", Org_PurPri);
         rmap.put("Pur_Cost", Pur_Cost);
         rmap.put("Add_Tax", Add_Tax);
@@ -469,8 +469,8 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	    
 		Iterator<HashMap<String, String>> iterator = m_purList.iterator();		
 	    while (iterator.hasNext()) {
-			boolean isNew = true;
-			HashMap<String, String> element = iterator.next();
+			 boolean isNew = true;
+			 HashMap<String, String> element = iterator.next();
 	         String Office_Code = element.get("Office_Code");
 	        
 	         Iterator<HashMap<String, String>> fm_iterator = fm.iterator();
@@ -529,7 +529,6 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		}
 	};
 
-	 
 	// MSSQL
 	public void sendAllData(){
 		

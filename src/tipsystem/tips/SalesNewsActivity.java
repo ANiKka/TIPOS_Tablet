@@ -290,7 +290,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	
 	public void onClickSetDatePrevious(View view)
 	{
-		
 		m_dateCalender1.add(Calendar.DAY_OF_MONTH, -1);
 		m_buttonSetDate.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
 		
@@ -339,7 +338,6 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	 		case 2:
 	 			queryComboBoxInTab3(0, "", "", ""); break;
  		}
-		
 	}
 	
 	@Override
