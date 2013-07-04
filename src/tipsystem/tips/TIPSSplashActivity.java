@@ -85,7 +85,7 @@ public class TIPSSplashActivity extends Activity {
 		int year = 2013;
 		int month = 6;
 		
-		tableName = String.format("StD_%04d%02d", year, month);
+		tableName = " V_OFFICE_USER";// String.format("StD_%04d%02d", year, month);
 		
 		// 쿼리 작성하기
 		String query =  "";
@@ -103,6 +103,8 @@ public class TIPSSplashActivity extends Activity {
 			public void onRequestFailed(int code, String msg) {
 			}
 			
-	    }).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+	    //}).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
+		}).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query);
+	
 	}
 }

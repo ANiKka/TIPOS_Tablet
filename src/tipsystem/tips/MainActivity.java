@@ -190,7 +190,12 @@ public class MainActivity extends Activity {
 	    		+ " on APP_USER.OFFICE_CODE = V_OFFICE_USER.Sto_CD "
 	    		+ " JOIN APP_SETTLEMENT on APP_USER.OFFICE_CODE = APP_SETTLEMENT.OFFICE_CODE " 
 	    		+ " where APP_HP =" + phoneNumber + "AND DEL_YN = 0 ;";
+	    query = "select * " 
+	    		+"  from APP_SETTLEMENT as A inner join V_OFFICE_USER as B " 
+	    		+ " on A.OFFICE_CODE = B.Sto_CD "
+	    		+ " where B.Office_Mobile1 ='" + phoneNumber + "' AND A.DEL_YN = 0 ;";
 
+    	
 	    // 콜백함수와 함께 실행
 	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
@@ -198,14 +203,19 @@ public class MainActivity extends Activity {
 			public void onRequestCompleted(JSONArray results) {
 				dialog.dismiss();
 				dialog.cancel();
-				didAuthentication(results);
+				if (results.length()>0) {
+					didAuthentication(results);
+				}
+				else {
+		            showDialog("등록된 매장정보가 없습니다");
+				}
 			}
 
 			@Override
 			public void onRequestFailed(int code, String msg) {
 				dialog.dismiss();
 				dialog.cancel();
-		    	Toast.makeText(getApplicationContext(), "알수없는 에러가 발생하였습니다", Toast.LENGTH_SHORT).show();
+		    	Toast.makeText(getApplicationContext(), "매장목록을 가져오는데 실패하였습니다", Toast.LENGTH_SHORT).show();
 			}
 	    }).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query);
     }
@@ -227,13 +237,8 @@ public class MainActivity extends Activity {
 
     	// 쿼리 작성하기
 	    String query =  "";
-	    //query = "select * from V_OFFICE_USER where Sto_CD =" + code + ";";
-	    query = "select * " 
-	    		+"  from APP_USER inner join V_OFFICE_USER " 
-	    		+ " on APP_USER.OFFICE_CODE = V_OFFICE_USER.Sto_CD AND APP_USER.OFFICE_CODE="+code
-	    		+ " JOIN APP_SETTLEMENT on APP_USER.OFFICE_CODE = APP_SETTLEMENT.OFFICE_CODE " 
-	    		+ " where APP_HP =" + phoneNumber + "AND DEL_YN = 0 ;";
-
+	    query = "select * from  APP_USER where OFFICE_CODE =" + code + " and APP_HP='"+phoneNumber +"';";
+	    
 	    // 콜백함수와 함께 실행
 	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
@@ -242,15 +247,15 @@ public class MainActivity extends Activity {
 				dialog.dismiss();
 				dialog.cancel();
 				if (results.length()>0) {
-			    	Toast.makeText(getApplicationContext(), "인증성공", Toast.LENGTH_SHORT).show();
 			    	EditText textView = (EditText) findViewById(R.id.editTextShopCode);
 			    	String code = textView.getText().toString();
 			        LocalStorage.setString(getApplicationContext(), "officeCode", code); 
-			        
+
+			    	Toast.makeText(getApplicationContext(), "인증에 성공하였습니다. 매장목록을 불러옵니다", Toast.LENGTH_SHORT).show();
 			        fetchOffices();
 				}
 				else {
-			    	Toast.makeText(getApplicationContext(), "오피스코드가 없거나 등록되지 않은 휴대폰 번호입니다", Toast.LENGTH_SHORT).show();
+		            showDialog("오피스코드가 없거나 등록되지 않은 휴대폰 번호입니다");
 				}
 			}
 
@@ -258,32 +263,31 @@ public class MainActivity extends Activity {
 			public void onRequestFailed(int code, String msg) {
 				dialog.dismiss();
 				dialog.cancel();
-		    	Toast.makeText(getApplicationContext(), "알수없는 에러가 발생하였습니다", Toast.LENGTH_SHORT).show();
+		    	Toast.makeText(getApplicationContext(), "인증에 실패하였습니다", Toast.LENGTH_SHORT).show();
 			}
 	    }).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query);
     }
     
     // DB에 접속후 호출되는 함수
     public void didAuthentication(JSONArray results) {
-    	Toast.makeText(getApplicationContext(), "인증 완료", Toast.LENGTH_SHORT).show();
+    	
+		Toast.makeText(getApplicationContext(), "인증 완료", Toast.LENGTH_SHORT).show();
 
-    	if (results.length() > 0) {
-    		Toast.makeText(getApplicationContext(), "인증 완료", Toast.LENGTH_SHORT).show();
+		LocalStorage.setJSONArray(MainActivity.this, "shopsData", results);
+    	showSelectShop();
+    }
+    
+    public void showDialog(String msg) {
 
-    		LocalStorage.setJSONArray(MainActivity.this, "shopsData", results);
-        	showSelectShop();
-    	}
-    	else {
-    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("알림");
-            builder.setMessage("인증에 실패했습니다.\r\n관리자에게 문의하세요\r\n1600-1833");
-            builder.setNeutralButton("확인", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                }
-            });
-            builder.show();
-    	}
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("알림");
+        builder.setMessage(msg);
+        builder.setNeutralButton("확인", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+        builder.show();
     }
 
 	class ShopListAdapter extends BaseAdapter 

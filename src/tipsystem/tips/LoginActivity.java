@@ -57,10 +57,10 @@ public class LoginActivity extends Activity {
         textView.setTypeface(typeface);
 
         // test
-		EditText editTextLoginID = (EditText) findViewById(R.id.editTextLoginID);
-		EditText editTextLoginPW = (EditText) findViewById(R.id.editTextLoginPW);
-		editTextLoginID.setText("3");
-		editTextLoginPW.setText("3");
+		//EditText editTextLoginID = (EditText) findViewById(R.id.editTextLoginID);
+		//EditText editTextLoginPW = (EditText) findViewById(R.id.editTextLoginPW);
+		//editTextLoginID.setText("3");
+		//editTextLoginPW.setText("3");
 	}
 	
 	protected void onResume() {
