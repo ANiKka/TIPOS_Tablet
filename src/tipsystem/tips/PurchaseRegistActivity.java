@@ -868,7 +868,9 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	
 	public void onCustomerSearch(View view)
 	{
-		Intent intent = new Intent(PurchaseRegistActivity.this, ManageCustomerListActivity.class);
+		String customer = m_customerCode.getText().toString();
+		Intent intent = new Intent(this, ManageCustomerListActivity.class);
+		intent.putExtra("customer", customer);
     	startActivityForResult(intent, CUSTOMER_MANAGER_REQUEST);
 	}
 	
@@ -885,7 +887,9 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 			public void onClick(DialogInterface dialog, int which) {
 
 				if(which == 0){ // 목록으로 조회할 경우
+					String barcode = m_textBarcode.getText().toString();
 					Intent intent = new Intent(PurchaseRegistActivity.this, ManageProductListActivity.class);
+					intent.putExtra("barcode", barcode);
 			    	startActivityForResult(intent, BARCODE_MANAGER_REQUEST);
 				} else { // 스캔할 경우
 					Intent intent = new Intent(PurchaseRegistActivity.this, ZBarScannerActivity.class);

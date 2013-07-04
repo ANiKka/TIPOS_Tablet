@@ -391,7 +391,9 @@ public class ComparePriceActivity extends Activity{
 	
 	public void onCustomerSearch(View view)
 	{
+		String customer = m_customerCode.getText().toString();
 		Intent intent = new Intent(this, ManageCustomerListActivity.class);
+		intent.putExtra("customer", customer);
     	startActivityForResult(intent, CUSTOMER_MANAGER_REQUEST);
 	}
 	
@@ -408,7 +410,9 @@ public class ComparePriceActivity extends Activity{
 			public void onClick(DialogInterface dialog, int which) {
 
 				if(which == 0){ // 목록으로 조회할 경우
+					String barcode = m_barcode.getText().toString();
 					Intent intent = new Intent(ComparePriceActivity.this, ManageProductListActivity.class);
+					intent.putExtra("barcode", barcode);
 			    	startActivityForResult(intent, BARCODE_MANAGER_REQUEST);
 				} else { // 스캔할 경우
 					Intent intent = new Intent(ComparePriceActivity.this, ZBarScannerActivity.class);

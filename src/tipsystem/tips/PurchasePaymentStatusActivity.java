@@ -918,7 +918,9 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 	
 	public void onCustomerSearch(View view)
 	{
+		String customer = m_customerCode.getText().toString();
 		Intent intent = new Intent(this, ManageCustomerListActivity.class);
+		intent.putExtra("customer", customer);
     	startActivityForResult(intent, CUSTOMER_MANAGER_REQUEST);
 	}
 	
@@ -935,7 +937,9 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 			public void onClick(DialogInterface dialog, int which) {
 
 				if(which == 0){ // 목록으로 조회할 경우
+					String barcode = m_barCode.getText().toString();
 					Intent intent = new Intent(PurchasePaymentStatusActivity.this, ManageProductListActivity.class);
+					intent.putExtra("barcode", barcode);
 			    	startActivityForResult(intent, BARCODE_MANAGER_REQUEST);
 				} else { // 스캔할 경우
 					Intent intent = new Intent(PurchasePaymentStatusActivity.this, ZBarScannerActivity.class);

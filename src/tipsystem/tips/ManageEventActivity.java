@@ -1133,7 +1133,9 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 			public void onClick(DialogInterface dialog, int which) {
 
 				if(which == 0){ // 목록으로 조회할 경우
+					String barcode = m_textBarcode.getText().toString();
 					Intent intent = new Intent(ManageEventActivity.this, ManageProductListActivity.class);
+					intent.putExtra("barcode", barcode);
 			    	startActivityForResult(intent, 1);
 				} else { // 스캔할 경우
 					Intent intent = new Intent(ManageEventActivity.this, ZBarScannerActivity.class);

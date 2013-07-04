@@ -129,8 +129,7 @@ public class CustomerProductDetailInNewsActivity extends Activity {
         int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
 		
 		// fill in the grid_item layout
-		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
-				from, to);
+		SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4_2, from, to);
 		
 		m_listPurchaseDetail.setAdapter(adapter);
 	}
@@ -171,8 +170,7 @@ public class CustomerProductDetailInNewsActivity extends Activity {
 		}
 		
 		query = query + ";";
-    			
-			
+    	
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
 			@Override

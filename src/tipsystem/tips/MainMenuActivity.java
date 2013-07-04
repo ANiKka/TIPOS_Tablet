@@ -178,7 +178,7 @@ public class MainMenuActivity extends Activity {
         // 부관리자인경우
         if (m_APP_USER_GRADE.equals("1")) {
     		Toast.makeText(getApplicationContext(), "부관리자는 사용할수 없습니다", Toast.LENGTH_SHORT).show(); 
-        	return;
+        	//return;
         }
         
 		Intent intent = new Intent(this, SalesNewsActivity.class);
@@ -190,7 +190,7 @@ public class MainMenuActivity extends Activity {
 		// 부관리자인경우
         if (m_APP_USER_GRADE.equals("1")) {
     		Toast.makeText(getApplicationContext(), "부관리자는 사용할수 없습니다", Toast.LENGTH_SHORT).show(); 
-        	return;
+        	//return;
         }
         
 		Intent intent = new Intent(this, ManageSalesActivity.class);

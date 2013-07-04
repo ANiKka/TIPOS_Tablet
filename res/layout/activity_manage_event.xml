@@ -143,7 +143,7 @@
             android:layout_weight="0.5"
             android:textColor="#000000"
             android:background="@drawable/white_text_box_small"
-            android:inputType="text"
+            android:inputType="number"
             android:ems="10"
             android:textSize="14sp"  />
         

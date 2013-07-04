@@ -1,15 +1,10 @@
 package tipsystem.tips;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -23,7 +18,6 @@ import com.dm.zbar.android.scanner.ZBarScannerActivity;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -32,7 +26,6 @@ import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -309,12 +302,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	
 		m_CalendarDay = String.format("%04d-%02d-%02d", year, month, dayOfMonth);
 		
-		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
- 		
  		switch (m_tabHost.getCurrentTab())
  		{
 	 		case 0:
@@ -342,12 +329,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	public void OnClickSearch(View v) {
 		//Toast.makeText(this, "Search Click.", Toast.LENGTH_SHORT).show();		
 		
-		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
- 		
  		switch (m_tabHost.getCurrentTab())
  		{
 	 		case 0:
@@ -364,14 +345,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	    
 	@Override
 	public void onTabChanged(String tabId) {
-		// TODO Auto-generated method stub
-		//Toast.makeText(this, "Tab Click.", Toast.LENGTH_SHORT).show();
 	
-		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.show();
- 		
  		switch (m_tabHost.getCurrentTab())
  		{
 	 		case 0:
@@ -480,15 +454,20 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 				query = query + "select Office_Code, Office_Name, TSell_Pri, TSell_RePri, DC_Pri, ProFit_Pri, Sale_Date from " + tableName;
 				query = query + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
 				
-				if ( constraint.equals("") != true )
-				{
+				if ( constraint.equals("") != true ) {
 					query = query + " and " + constraint;
 				}
 				
 				query = query + "; ";
 			}
 		}
-		
+
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
 			@Override
@@ -571,7 +550,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
     	            fillMaps.add(map);
         		}
         		
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
+				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4_2, 
 						from, to);
 				
 				m_listSalesTab1.setAdapter(adapter);
@@ -581,7 +560,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 			else 
 			{
 				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
+				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4_2, 
 						from, to);
 				
 				m_listSalesTab1.setAdapter(adapter);
@@ -624,26 +603,26 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 				
 				if ( barCode.equals("") != true )
 				{
-					constraint = setConstraint(constraint, "Barcode", "=", barCode);
+					constraint = setConstraint(constraint, "A.Barcode", "=", barCode);
 				}
 				
 				if ( productName.equals("") != true )
 				{
-					constraint = setConstraint(constraint, "G_Name", "=", productName);
+					constraint = setConstraint(constraint, "A.G_Name", "=", productName);
 				}
 				
 				if ( customerCode.equals("") != true )
 				{
-					constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
+					constraint = setConstraint(constraint, "A.Office_Code", "=", customerCode);
 				}
 				
 				if ( customerName.equals("") != true)
 				{
-					constraint = setConstraint(constraint, "Office_Name", "=", customerName);
+					constraint = setConstraint(constraint, "A.Office_Name", "=", customerName);
 				}
 				
-    			query = query + "select Barcode, G_Name, Sale_Count, TSell_Pri, TSell_RePri, DC_Pri from " + tableName;
-    			query = query + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
+    			query = query + "select A.Barcode, A.G_Name, A.Sale_Count, A.TSell_Pri, A.TSell_RePri, A.DC_Pri from " + tableName + " as A inner join Goods as B on A.Barcode = B.BarCode ";
+    			query = query + " where B.Goods_Use='1' AND B.Pur_Use='1' AND A.Sale_Date between '" + period1 + "' and '" + period2 + "'";
    			
     			if ( constraint.equals("") != true )
     			{
@@ -653,7 +632,13 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 				query = query + "; ";
 			}
 		}
-		
+
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
 			@Override
@@ -736,7 +721,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		            fillMaps.add(map);
 				}
         		
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
+				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4_2, 
 						from, to);
 				
 				m_listSalesTab2.setAdapter(adapter);
@@ -746,7 +731,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 			else 
 			{
 				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
+				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4_2, 
 						from, to);
 				
 				m_listSalesTab2.setAdapter(adapter);
@@ -820,7 +805,13 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 				query = query + "; ";
 			}
 		}
-		
+
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
 			@Override
@@ -836,11 +827,9 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		
 	private void updateListForTab3(JSONArray results)
 	{
-
 		String[] from = new String[] {"Office_Code", "Office_Name", "rSale"};
 	    int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
         
-		
 		try {
 			
 			if ( results.length() > 0 )
@@ -935,14 +924,19 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		
 		query = "select TSell_Pri, Sale_Num, Sale_Pri, TPur_Pri from " + tableName;
 		query = query + " where Sale_Date = '" + period + "'";
-		
+
+		// 로딩 다이알로그 
+    	//dialog = new ProgressDialog(this);
+ 		///dialog.setMessage("Loading....");
+ 		//dialog.show();
+ 		
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
 
-				dialog.dismiss();
-				dialog.cancel();
+				//dialog.dismiss();
+				//dialog.cancel();
 				updateListForTab4(results);
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
@@ -1058,23 +1052,16 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 			// 목록 검색을 통한 바코드 검색				
 			case BARCODE_MANAGER_REQUEST :
 				if(resultCode == RESULT_OK && data != null) {
-					
-		        	ArrayList<String> fillMaps = data.getStringArrayListExtra("fillmaps");		        	
-		        	m_barCode.setText(fillMaps.get(0));
+		        	HashMap<String, String> hashMap = (HashMap<String, String>)data.getSerializableExtra("fillmaps");        	
+		        	m_barCode.setText(hashMap.get("BarCode"));
 					doQueryWithBarcode(); 
 		        }
 				break;
 			case CUSTOMER_MANAGER_REQUEST :
 				if(resultCode == RESULT_OK && data != null) {
-					String result = data.getStringExtra("result");
-					try {
-						JSONObject json = new JSONObject(result);
-						m_customerCode.setText(json.getString("Office_Code"));
-						m_customerName.setText(json.getString("Office_Name"));
-			        	//m_textBarcode.setText(fillMaps.get(0));
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
+					HashMap<String, String> hashMap = (HashMap<String, String>)data.getSerializableExtra("fillmaps");     	
+					m_customerCode.setText(hashMap.get("Office_Code"));
+					m_customerName.setText(hashMap.get("Office_Name"));
 		        }
 				break;
 			}
@@ -1082,7 +1069,9 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	
 	public void onCustomerSearch(View view)
 	{
+		String customer = m_customerCode.getText().toString();
 		Intent intent = new Intent(this, ManageCustomerListActivity.class);
+		intent.putExtra("customer", customer);
     	startActivityForResult(intent, CUSTOMER_MANAGER_REQUEST);
 	}
 	
@@ -1099,7 +1088,9 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 			public void onClick(DialogInterface dialog, int which) {
 
 				if(which == 0){ // 목록으로 조회할 경우
+					String barcode = m_barCode.getText().toString();
 					Intent intent = new Intent(ManageSalesActivity.this, ManageProductListActivity.class);
+					intent.putExtra("barcode", barcode);
 			    	startActivityForResult(intent, BARCODE_MANAGER_REQUEST);
 				} else { // 스캔할 경우
 					Intent intent = new Intent(ManageSalesActivity.this, ZBarScannerActivity.class);
@@ -1110,7 +1101,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		builder.show();
 	}
 	
-
 	// MSSQL
 	// SQL QUERY 실행
 	public void doQueryWithBarcode () {
@@ -1150,39 +1140,39 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	}
 	
 	// 거래처 코드로 거래처명 자동 완성
-		private void fillBusNameFromBusCode(String customerCode) {
-			// TODO Auto-generated method stub
-			// 로딩 다이알로그 
-	    	dialog = new ProgressDialog(this);
-	 		dialog.setMessage("Loading....");
-	 		dialog.setCancelable(false);
-	 		dialog.show();
-	 		
-			// TODO Auto-generated method stub
-			String query = "";
-			
-			query = "SELECT Office_Name From Office_Manage WHERE Office_Code = '" + customerCode + "';";
-		    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+	private void fillBusNameFromBusCode(String customerCode) {
+		// TODO Auto-generated method stub
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+		// TODO Auto-generated method stub
+		String query = "";
+		
+		query = "SELECT Office_Name From Office_Manage WHERE Office_Code = '" + customerCode + "';";
+	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
-				@Override
-				public void onRequestCompleted(JSONArray results) {
-					dialog.dismiss();
-					dialog.cancel();
-					if (results.length() > 0) {
-						try {
-							JSONObject json = results.getJSONObject(0);
-							String bus_name = json.getString("Office_Name");
-							m_customerName.setText(bus_name);
-						} catch (JSONException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-			            Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				if (results.length() > 0) {
+					try {
+						JSONObject json = results.getJSONObject(0);
+						String bus_name = json.getString("Office_Name");
+						m_customerName.setText(bus_name);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
-					else {
-			            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();					
-					}
+		            Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
 				}
-		    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-		}
+				else {
+		            Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();					
+				}
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	}
 }

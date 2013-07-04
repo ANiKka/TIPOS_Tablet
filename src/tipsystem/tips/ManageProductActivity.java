@@ -631,7 +631,9 @@ public class ManageProductActivity extends Activity {
 
 	public void onCustomerSearch(View view)
 	{
+		String customer = m_textCustomerCode.getText().toString();
 		Intent intent = new Intent(this, ManageCustomerListActivity.class);
+		intent.putExtra("customer", customer);
     	startActivityForResult(intent, CUSTOMER_MANAGER_REQUEST);
 	}
 	

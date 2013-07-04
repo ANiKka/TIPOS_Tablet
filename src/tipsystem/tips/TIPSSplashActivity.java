@@ -27,7 +27,7 @@ public class TIPSSplashActivity extends Activity {
         
         startMainActivity();
         
-        //testQuery();
+        testQuery();
     }
 
     private void checkNetwork() {
@@ -90,6 +90,7 @@ public class TIPSSplashActivity extends Activity {
 		// 쿼리 작성하기
 		String query =  "";
 	    query += " select * from " + tableName + " ;";
+
 		
 	    // 콜백함수와 함께 실행
 	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
