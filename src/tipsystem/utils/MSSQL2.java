@@ -33,7 +33,6 @@ public class MSSQL2 extends AsyncTask<String, Integer, JSONArray> {
 	}
 
     protected JSONArray doInBackground(String... params) {
-    	Log.i("MSSQL"," MSSQL Connect Example.");
     	Connection conn = null;
     	JSONArray json = new JSONArray();
     	String ip = params[0];
@@ -41,26 +40,27 @@ public class MSSQL2 extends AsyncTask<String, Integer, JSONArray> {
     	String dbid = params[2];
     	String dbpw = params[3];
     	String query = params[4];
-        Log.e("MSSQL","query: " + query );
     	
     	try {
     	    Class.forName("net.sourceforge.jtds.jdbc.Driver").newInstance();
     	    Log.i("MSSQL","MSSQL driver load");
 
-    	    conn = DriverManager.getConnection("jdbc:jtds:sqlserver://" +ip +"/"+ dbname, dbid, dbpw);
-    	    Log.i("MSSQL","MSSQL open");
-    	    Statement stmt = conn.createStatement();
+    	    String url = "jdbc:jtds:sqlserver://" +ip +"/"+ dbname;
+    	    conn = DriverManager.getConnection(url, dbid, dbpw);
+    	    Log.i("MSSQL","MSSQL open: " + url);
     	    
+    	    Statement stmt = conn.createStatement();            
         	ResultSet rs =null;
+        	Log.w("MSSQL","query: " + query );
             rs = stmt.executeQuery(query);	            
         	json = ResultSetConverter.convert(rs);
         	
    	 	} catch (SQLException e) {
-    	    Log.w("Error connection","" + e.getMessage());
+    	    Log.e("Error connection","" + e.getMessage());
     	    errCode = 1;
     	    errMsg = e.getMessage();
     	} catch (Exception e) {
-    	    Log.w("Error connection","" + e.getMessage());	
+    	    Log.e("Error connection","" + e.getMessage());	
     	    errCode = 2;
     	    errMsg = e.getMessage();
     	}

@@ -15,8 +15,10 @@ import org.json.JSONObject;
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 
+import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.MSSQL2;
 
 import android.os.Bundle;
 import android.app.ActionBar;
@@ -45,12 +47,10 @@ import android.widget.TabHost.OnTabChangeListener;
 import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 
-@SuppressWarnings("deprecation")
 public class PurchasePaymentStatusActivity extends Activity implements OnItemClickListener, 
 																		OnDateChangeListener,
 																		OnTabChangeListener,
-																		DatePickerDialog.OnDateSetListener{
-
+																		DatePickerDialog.OnDateSetListener {
 	private static final int ZBAR_SCANNER_REQUEST = 0;
 	private static final int BARCODE_MANAGER_REQUEST = 2;
 	private static final int CUSTOMER_MANAGER_REQUEST = 3;
@@ -64,7 +64,13 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 	ListView m_listPurchaseTab1;
 	ListView m_listPurchaseTab2;
 	ListView m_listPurchaseTab3;
-	
+
+	SimpleAdapter adapter1;
+	SimpleAdapter adapter2;
+	SimpleAdapter adapter3;
+	List<HashMap<String, String>> mfillMaps1 = new ArrayList<HashMap<String, String>>();
+	List<HashMap<String, String>> mfillMaps2 = new ArrayList<HashMap<String, String>>();
+	List<HashMap<String, String>> mfillMaps3 = new ArrayList<HashMap<String, String>>();
 	Button m_period1;
 	Button m_period2;
 	TextView m_barCode;
@@ -119,19 +125,34 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		
 		m_listPurchaseTab1.setOnItemClickListener(this);
 		m_listPurchaseTab2.setOnItemClickListener(this);
-		m_listPurchaseTab3.setOnItemClickListener(this);
+		m_listPurchaseTab3.setOnItemClickListener(this);		
 		
+		String[] from1 = new String[] {"In_Num", "In_Date", "Office_Name", "In_Pri"};
+		int[] to1 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
+			
+		adapter1 = new SimpleAdapter(this, mfillMaps1, R.layout.activity_listview_item4_2, from1, to1);		
+		m_listPurchaseTab1.setAdapter(adapter1);	
 		
+		String[] from2= new String[] {"Office_Code", "Office_Name", "이월", "지급금액", "미지급금액"};
+		int[] to2 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5};
+			
+		adapter2 = new SimpleAdapter(this, mfillMaps2, R.layout.activity_listview_item5, from2, to2);		
+		m_listPurchaseTab2.setAdapter(adapter2);	
+
+	    String[] from3 = new String[] {"Office_Code", "Office_Name", "순매입", "순매출"};
+		int[] to3 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
+
+		adapter3 = new SimpleAdapter(this, mfillMaps3, R.layout.activity_listview_item4_3, from3, to3);		
+		m_listPurchaseTab3.setAdapter(adapter3);
+
 		m_dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
-		m_numberFormat = NumberFormat.getInstance();
-		
+		m_numberFormat = NumberFormat.getInstance();		
 		
 		m_dateCalender1 = Calendar.getInstance();
 		m_dateCalender2 = Calendar.getInstance();
 				
 		m_period1.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
-		m_period2.setText(m_dateFormatter.format(m_dateCalender2.getTime()));
-		
+		m_period2.setText(m_dateFormatter.format(m_dateCalender2.getTime()));		
 		
 		m_tabHost = (TabHost) findViewById(R.id.tabhostPurchasePaymentStatus);
         m_tabHost.setup();
@@ -170,68 +191,22 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
         
         textView = (TextView) findViewById(R.id.textView6);
         textView.setTypeface(typeface);
-	}
+	}	
 	
-	
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();         
-//		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-//		actionbar.setCustomView(custom_action_bar);
-
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("매입/대금 결제현황");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
-
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.purchase_payment_status, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case android.R.id.home:
-			// This ID represents the Home or Up button. In the case of this
-			// activity, the Up button is shown. Use NavUtils to allow users
-			// to navigate up one level in the application structure. For
-			// more details, see the Navigation pattern on Android Design:
-			//
-			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
-			//
-			NavUtils.navigateUpFromSameTask(this);
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
-
 	@Override
 	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-		// TODO Auto-generated method stub
 		
 		if ( m_listPurchaseTab1.getId() == arg0.getId() )
 		{
 			Intent intent = new Intent(this, PurchaseListDetailViewActivity.class);
 			
-//			String period1 = m_period1.getText().toString();
-//			String period2 = m_period2.getText().toString();
-			
-			String inDate = ((TextView) arg1.findViewById(R.id.item2)).getText().toString();
+			String In_Num = mfillMaps1.get(arg2).get("In_Num");
+			String In_Date = mfillMaps1.get(arg2).get("In_Date");
 			String name = ((TextView) arg1.findViewById(R.id.item3)).getText().toString();
-			
-	    	intent.putExtra("IN_DATE", inDate);
+
+	    	intent.putExtra("In_Num", In_Num);
+	    	intent.putExtra("In_Date", In_Date);
 	    	intent.putExtra("OFFICE_NAME", name);
-		
 	    	startActivity(intent);	
 		}
 		else if ( m_listPurchaseTab2.getId() == arg0.getId() )
@@ -240,12 +215,14 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 			
 			String period1 = m_period1.getText().toString();
 			String period2 = m_period2.getText().toString();
-			
+
+			String officeCode = ((TextView) arg1.findViewById(R.id.item1)).getText().toString();
 			String officeName = ((TextView) arg1.findViewById(R.id.item2)).getText().toString();
 			
 	    	intent.putExtra("PERIOD1", period1);
 	    	intent.putExtra("PERIOD2", period2);
 	    	intent.putExtra("OFFICE_NAME", officeName);
+	    	intent.putExtra("OFFICE_CODE", officeCode);
 	    	
 	    	startActivity(intent);	
 		}
@@ -254,17 +231,21 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 			Intent intent = new Intent(this, CustomerPurchasePaymentDetailActivity.class);
 			String period1 = m_period1.getText().toString();
 			String period2 = m_period2.getText().toString();
-			
+
+			String officeCode = ((TextView) arg1.findViewById(R.id.item1)).getText().toString();
 			String officeName = ((TextView) arg1.findViewById(R.id.item2)).getText().toString();
+			String pur = ((TextView) arg1.findViewById(R.id.item3)).getText().toString();
+			String sale = ((TextView) arg1.findViewById(R.id.item4)).getText().toString();
 			
 	    	intent.putExtra("PERIOD1", period1);
 	    	intent.putExtra("PERIOD2", period2);
 	    	intent.putExtra("OFFICE_NAME", officeName);
+	    	intent.putExtra("OFFICE_CODE", officeCode);
+	    	intent.putExtra("PUR", pur);
+	    	intent.putExtra("SALE", sale);
 	    	
 	    	startActivity(intent);	
 		}
-		
-		//Toast.makeText(this, "Item Click." + m_listPurchaseTab1.getId() + " ,  " + arg0.getId(), Toast.LENGTH_SHORT).show();
 	}
 	
 	public void OnClickRenew(View v) {
@@ -277,36 +258,29 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 	
 	public void OnClickSearch(View v) {
 		
-		String period1 = m_period1.getText().toString();
-		String period2 = m_period2.getText().toString();
-		String barCode = m_barCode.getText().toString();
-		String productName = m_productName.getText().toString();
-		String customerCode = m_customerCode.getText().toString();
-		String customerName = m_customerName.getText().toString();
-		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
-		
- 		
-		executeQuery(tabIndex, period1, period2, barCode, productName, customerCode, customerName);
+		doQuery();
 	};
+	
+	public void doQuery() {
 
+ 		switch (m_tabHost.getCurrentTab())
+ 		{
+	 		case 0:
+	 			queryListForTab1(); break;
+	 		case 1:
+	 			queryListForTab2(); break;
+	 		case 2:
+	 			queryListForTab3(); break;
+ 		}
+	}
 
 	@Override
 	public void onTabChanged(String tabId) {
 		
-		String period1 = m_period1.getText().toString();
-		String period2 = m_period2.getText().toString();
-		String barCode = m_barCode.getText().toString();
-		String productName = m_productName.getText().toString();
-		String customerCode = m_customerCode.getText().toString();
-		String customerName = m_customerName.getText().toString();		
-		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
-		
-		executeQuery(tabIndex, period1, period2, barCode, productName, customerCode, customerName);
 	}
 
 	public void onClickSetDate1(View v) {
-		// TODO Auto-generated method stub
-				
+		
 		DatePickerDialog newDlg = new DatePickerDialog(this, this,
 				m_dateCalender1.get(Calendar.YEAR),
 				m_dateCalender1.get(Calendar.MONTH),
@@ -321,558 +295,315 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		DatePickerDialog newDlg = new DatePickerDialog(this, this, 
 				m_dateCalender2.get(Calendar.YEAR),
 				m_dateCalender2.get(Calendar.MONTH),
-				m_dateCalender2.get(Calendar.DAY_OF_MONTH));
-		
+				m_dateCalender2.get(Calendar.DAY_OF_MONTH));		
 		newDlg.show();
 		
 		m_dateMode = 2;
 	};
 	
 	@Override
-	public void onDateSet(DatePicker view, int year, int monthOfYear,
-			int dayOfMonth) {
+	public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
 		
-		if ( m_dateMode == 1 )
-		{
+		if ( m_dateMode == 1 ) {
 			m_dateCalender1.set(year, monthOfYear, dayOfMonth);
 			m_period1.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
 		}
-		else if ( m_dateMode == 2 )
-		{
+		else if ( m_dateMode == 2 ) {
 			m_dateCalender2.set(year, monthOfYear, dayOfMonth);
 			m_period2.setText(m_dateFormatter.format(m_dateCalender2.getTime()));
 		}
 		
-		m_dateMode = 0;
-		
+		m_dateMode = 0;		
 	}
 
 	@Override
-	public void onSelectedDayChange(CalendarView view, int year, int month,
-			int dayOfMonth) {
-		// TODO Auto-generated method stub
-		String period1 = String.format("%04d-%02d-%02d", year, month, dayOfMonth);
-		String tabIndex = String.format("%d", m_tabHost.getCurrentTab());
-		
-		//new MyAsyncTask().execute(tabIndex, period1, period1 , "", "", "", "");
+	public void onSelectedDayChange(CalendarView view, int year, int month, int dayOfMonth) {
 	}
-
-	private void executeQuery(String... urls)
+	
+	private void queryListForTab1()
 	{
+		mfillMaps1.removeAll(mfillMaps1);
+		
+		String period1 = m_period1.getText().toString();
+		String period2 = m_period2.getText().toString();
+		String barCode = m_barCode.getText().toString();
+		String productName = m_productName.getText().toString();
+		String customerCode = m_customerCode.getText().toString();
+		String customerName = m_customerName.getText().toString();
+		
+		String query = "";
+	    
+		int year1 = Integer.parseInt(period1.substring(0, 4));
+		int month1 = Integer.parseInt(period1.substring(5, 7));
+		
+		int year2 = Integer.parseInt(period2.substring(0, 4));
+		int month2 = Integer.parseInt(period2.substring(5, 7));
+		
+		String tableName = null;
+
+		String constraint = "";
+		for ( int y = year1; y <= year2; y++ ) {
+			for ( int m = month1; m <= month2; m++ ) {
+				
+				tableName = String.format("InT_%04d%02d", y, m);
+					
+				if ( productName.equals("") != true ) {
+					constraint = setConstraint(constraint, "G_Name", "=", productName);
+				}
+				
+				if ( barCode.equals("") != true ) {
+					constraint = setConstraint(constraint, "Barcode", "=", barCode);
+				}
+				
+				if ( customerCode.equals("") != true ) {
+					constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
+				}
+				
+				if ( customerName.equals("") != true) {
+					constraint = setConstraint(constraint, "Office_Name", "=", customerName);
+				}
+
+     			query = "select In_Num, Office_Name, In_Date, SUM(In_Pri) In_Pri " 
+				    		+"  from " + tableName + "  " 
+				    		+ " where In_Date between '" + period1 + "' and '" + period2 + "'";
+	    		
+     			if ( constraint.equals("") != true ) {
+     				query = query + " and " + constraint;
+     			}
+
+				query += " union all ";				
+			}
+		}
+		query = query.substring(0, query.length()-11);		
+		query += " GROUP BY In_Num, Office_Name, In_Date; ";
+
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
  		dialog.setCancelable(false);
  		dialog.show();
- 		
-		String tabIndex = urls[0];
- 	    
- 	    String period1 = urls[1];
- 		String period2 = urls[2];
- 		String barCode = urls[3];
- 		String productName = urls[4];
- 		String customerCode = urls[5];
- 		String customerName = urls[6];
- 		
- 		String query = "";
- 	    
- 		int year1 = Integer.parseInt(period1.substring(0, 4));
- 		int year2 = Integer.parseInt(period2.substring(0, 4));
- 		
- 		int month1 = Integer.parseInt(period1.substring(5, 7));
- 		int month2 = Integer.parseInt(period2.substring(5, 7));
- 		
- 		String tableName = null;
- 		String constraint = "";
- 		
- 		String rBarCode = null;
- 		
- 		int iTabIndex = Integer.parseInt(tabIndex);
- 		
- 		if ( iTabIndex == 0 ) // 매입목록
- 		{
- 			// prepare the list of all records
- 			final List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
- 			
- 			final ArrayList<String> lSpListInNum = new ArrayList<String>();
- 			final ArrayList<String> lSpListInDate = new ArrayList<String>();
- 			final ArrayList<String> lSpListName = new ArrayList<String>();
- 			final ArrayList<Integer> lSpListInPri = new ArrayList<Integer>();
- 			
- 			m_queryCount1 = 0;
- 			
-	 		for ( int y = year1; y <= year2; y++ )
-	 		{
-	 			for ( int m = month1; m <= month2; m++ )
-	 			{	
- 					tableName = String.format("InD_%04d%02d", y, m);
- 					
- 					if ( productName.equals("") != true )
- 					{
- 						constraint = setConstraint(constraint, "G_Name", "=", productName);
- 					}
- 					
- 					if ( barCode.equals("") != true )
- 					{
- 						constraint = setConstraint(constraint, "Barcode", "=", barCode);
- 					}
- 					
- 					if ( customerCode.equals("") != true )
- 					{
- 						constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
- 					}
- 					
- 					if ( customerName.equals("") != true)
- 					{
- 						constraint = setConstraint(constraint, "Office_Name", "=", customerName);
- 					}
 
-         			query = "select * " 
-    	    		+"  from " + tableName + " inner join Goods " 
-    	    		+ " on " + tableName + ".BARCODE = GOODS.BARCODE " 
-    	    		+ " where In_Date between '" + period1 + "' and '" + period2 + "'";
-    	    		
-         			if ( constraint.equals("") != true )
-         			{
-         				query = query + " and " + constraint;
-         			}
-         			
-         			query = query + ";";
-         			
-         			m_queryCount1 = m_queryCount1 + 1;
-         		// 콜백함수와 함께 실행
-				    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+		new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
-						@Override
-						public void onRequestCompleted(JSONArray results) {
-							try {
+			@Override
+			public void onRequestCompleted(JSONArray results) {
 
-						 		dialog.cancel();
-						 		dialog.dismiss();
-						 		
-								m_queryCount1 = m_queryCount1 - 1;
-								
-								if ( results.length() > 0 )
- 								{
-									for(int i = 0; i < results.length() ; i++)
-									{
-										JSONObject son = results.getJSONObject(i);
-										
-										String code = son.getString("In_Num");
-				        				String date = son.getString("In_Date");
-				        				String name = son.getString("Office_Name");
-				        				int inPri = son.getInt("In_Pri");
-				        				
-				        				boolean isExist = false;
-				        				               		
-				                		for ( int j = 0; j < lSpListName.size(); j++ )
-				                		{
-				                			if ( lSpListName.get(j).toString().equals(name) == true
-				                					&& lSpListInDate.get(j).toString().equals(date) == true)
-				                			{
-				                				Integer sInPri = lSpListInPri.get(j).intValue() + inPri;
+				dialog.dismiss();
+				dialog.cancel();
+				if ( results.length() > 0 ) 
+					updateListForTab1(results);	
+				adapter1.notifyDataSetChanged();
+				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();	
+			}
 
-				                				lSpListInPri.set(j, sInPri);
-				                				isExist = true;
-				                				break;
-				                			}
-				                		}
-				                		
-				                		if ( isExist == false )
-				                		{
-				                			Integer sInPri = inPri;
-			                				
-				                			lSpListInNum.add(code);
-				                			lSpListName.add(name);
-				                			lSpListInDate.add(date);
-				                			lSpListInPri.add(sInPri);
-				                		}
-									}
-									
-									if ( m_queryCount1 == 0 )
-									{
-										// create the grid item mapping
-							 			String[] from = new String[] {"In_Num", "In_Date", "Office_Name", "In_Pri"};
-							 			int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
-							 			
-										for(int i = 0; i < lSpListName.size() ; i++)
-										{
-											HashMap<String, String> map = new HashMap<String, String>();
-											
-											map.put("In_Num", lSpListInNum.get(i) );
-											map.put("In_Date", lSpListInDate.get(i) );
-											map.put("Office_Name", lSpListName.get(i) );
-											map.put("In_Pri", m_numberFormat.format( lSpListInPri.get(i) ));
-											fillMaps.add(map);
-										}	
-										
-										// fill in the grid_item layout
-										SimpleAdapter adapter = new SimpleAdapter(PurchasePaymentStatusActivity.this, 
-												fillMaps, R.layout.activity_listview_product_list, 
-												from, to);
-										
-										m_listPurchaseTab1.setAdapter(adapter);
-										Toast.makeText(getApplicationContext(), "조회 완료" + results.length(), Toast.LENGTH_SHORT).show();
-										
-									}
- 								}
-								else 
-								{
-								}
-				    		} catch (JSONException e) {
-				    			e.printStackTrace();
-				    		}
-							
-						}
-				    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-						         			
-         		}
- 			}
- 		}
- 		else if ( iTabIndex == 1 ) // 결재현황
- 		{
- 			// prepare the list of all records
- 			final List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
- 			
- 			m_queryCount2 = 0;
- 			
- 			final ArrayList<String> lSpListCode = new ArrayList<String>();
- 			final ArrayList<String> lSpListName = new ArrayList<String>();
- 			final ArrayList<Integer> lSpListSellInPri = new ArrayList<Integer>();
- 			final ArrayList<Integer> lSpListSellPayPri = new ArrayList<Integer>();
- 			final ArrayList<Integer> lSpListDecPri = new ArrayList<Integer>();
- 			
- 			
- 			
-	 		for ( int y = year1; y <= year2; y++ )
-	 		{
-	 			for ( int m = month1; m <= month2; m++ )
-	 			{	
- 					tableName = String.format("InD_%04d%02d", y, m);
- 					String tableName2 = String.format("SaD_%04d%02d", y, m);
- 					
-// 					if ( productName.equals("") != true )
-// 					{
-// 						constraint = setConstraint(constraint, "G_Name", "=", productName);
-// 					}
- 					
- 					if ( barCode.equals("") != true )
- 					{
- 						constraint = setConstraint(constraint, "Barcode", "=", barCode);
- 					}
- 					
- 					if ( customerCode.equals("") != true )
- 					{
- 						constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
- 					}
- 					
- 					if ( customerName.equals("") != true)
- 					{
- 						constraint = setConstraint(constraint, "Office_Name", "=", customerName);
- 					}
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				adapter1.notifyDataSetChanged();
+				Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
+	}
 
-         			query = "select * " 
-    	    		+"from OFFICE_MANAGE inner join OFFICE_SASETTLEMENT " 
-    	    		+ "on OFFICE_MANAGE.OFFICE_CODE = OFFICE_SASETTLEMENT.OFFICE_CODE " 
-    	    		//+ "join " + tableName + " on OFFICE_MANAGE.OFFICE_CODE = " + tableName + ".OFFICE_CODE "
-    	    		//+ " join " + tableName2 + " on OFFICE_MANAGE.OFFICE_CODE = " + tableName2 + ".OFFICE_CODE"
-    	    		+ "where PRO_DATE between '" + period1 + "' and '" + period2 + "'";
-    	    		
-         			if ( constraint.equals("") != true )
-         			{
-         				query = query + " and " + constraint;
-         			}
-         			
-         			m_queryCount2 = m_queryCount2 + 1;
-         			
-         		// 콜백함수와 함께 실행
-				    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-						@Override
-						public void onRequestCompleted(JSONArray results) {
-							try {
-
-						 		dialog.cancel();
-						 		dialog.dismiss();
-						 		
-								m_queryCount2 = m_queryCount2 - 1;
-								
-								if ( results.length() > 0 )
- 								{
-									for(int i = 0; i < results.length() ; i++)
-									{
-										JSONObject son = results.getJSONObject(i);
-										
-										String code = son.getString("OFFICE_CODE");
-				        				String name = son.getString("OFFICE_NAME");
-				        				int sellInPri = son.getInt("SELLIN_PRI");
-				        				int sellPayPri = son.getInt("SELLPAY_PRI");
-				        				int decPri = son.getInt("DEC_PRI");
-				        				
-				        				boolean isExist = false;
-				        				               		
-				                		for ( int j = 0; j < lSpListCode.size(); j++ )
-				                		{
-				                			if ( lSpListCode.get(j).toString().equals(code) == true )
-				                			{
-				                				Integer sInPri = lSpListSellInPri.get(j).intValue() + sellInPri;
-				                				Integer sPayPri = lSpListSellPayPri.get(j).intValue() + sellPayPri;
-				                				Integer dPri = lSpListDecPri.get(j).intValue() + decPri;
-				                				
-				                				lSpListSellInPri.set(j, sInPri);
-				                				lSpListSellPayPri.set(j, sPayPri);
-				                				lSpListDecPri.set(j, dPri);
-				                				
-				                				isExist = true;
-				                				break;
-				                			}
-				                		}
-				                		
-				                		if ( isExist == false )
-				                		{
-				                			Integer sInPri = sellInPri;
-			                				Integer sPayPri = sellPayPri;
-			                				Integer dPri = decPri;
-			                				
-				            				lSpListCode.add(code);
-				            				lSpListName.add(name);
-				            				lSpListSellInPri.add(sInPri);
-				            				lSpListSellPayPri.add(sPayPri);
-				            				lSpListDecPri.add(dPri);
-				                		}
-									}
-									
-									if ( m_queryCount2 == 0 )
-									{
-										// create the grid item mapping
-							 			String[] from = new String[] {"OFFICE_CODE", "OFFICE_NAME", "SELLIN_PRI", "SELLPAY_PRI", "DEC_PRI"};
-							 			int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5};
-							 			
-										for(int i = 0; i < lSpListCode.size() ; i++)
-										{
-											
-											HashMap<String, String> map = new HashMap<String, String>();
-
-											map.put("OFFICE_CODE", lSpListCode.get(i) );
-											map.put("OFFICE_NAME", lSpListName.get(i) );
-											map.put("SELLIN_PRI", m_numberFormat.format( lSpListSellInPri.get(i)) );
-											map.put("SELLPAY_PRI", m_numberFormat.format( lSpListSellPayPri.get(i)) );
-											map.put("DEC_PRI", m_numberFormat.format( lSpListDecPri.get(i)) );
-											
-											fillMaps.add(map);
-										}	
-										
-										// fill in the grid_item layout
-										SimpleAdapter adapter = new SimpleAdapter(PurchasePaymentStatusActivity.this, 
-												fillMaps, R.layout.activity_listview_product_list, 
-												from, to);
-										
-										m_listPurchaseTab2.setAdapter(adapter);
-										Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
-										//dialog.cancel();
-									}
- 								}
-								else 
-								{
-									//dialog.cancel();
-								}
-				    		} catch (JSONException e) {
-				    			e.printStackTrace();
-				    			//dialog.cancel();
-				    		}
-							
-						}
-				    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-						         			
-         		}
- 			}
- 		}
- 		else if ( iTabIndex == 2 ) // 결재현황
- 		{
- 			// prepare the list of all records
- 			final List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
- 			
- 			m_queryCount2 = 0;
- 			
- 			final ArrayList<String> lSpListCode = new ArrayList<String>();
- 			final ArrayList<String> lSpListName = new ArrayList<String>();
- 			final ArrayList<Integer> lSpListPurCost = new ArrayList<Integer>();
- 			final ArrayList<Integer> lSpListRSell = new ArrayList<Integer>();
- 			
- 			
-	 		for ( int y = year1; y <= year2; y++ )
-	 		{
-	 			for ( int m = month1; m <= month2; m++ )
-	 			{	
- 					tableName = String.format("InD_%04d%02d", y, m);
- 					String tableName2 = String.format("SaD_%04d%02d", y, m);
- 					
- 					if ( productName.equals("") != true )
- 					{
- 						constraint = setConstraint(constraint, "G_Name", "=", productName);
- 					}
- 					
- 					if ( barCode.equals("") != true )
- 					{
- 						constraint = setConstraint(constraint, "Barcode", "=", barCode);
- 					}
- 					
- 					if ( customerCode.equals("") != true )
- 					{
- 						constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
- 					}
- 					
- 					if ( customerName.equals("") != true)
- 					{
- 						constraint = setConstraint(constraint, "Office_Name", "=", customerName);
- 					}
-
-         			query = "select " + tableName + ".OFFICE_CODE, " + tableName + ".OFFICE_NAME, " + tableName + ".PUR_COST, " 
-         			+ tableName2 + ".TSell_Pri, " + tableName2 + ".TSell_RePri, " + tableName2 + ".DC_Pri, " + tableName2 + ".ProFit_Pri "
- 					//query = "select * "
-    	    		+"from " + tableName + " inner join " + tableName2 + " on "
-    	    		+ tableName + ".BARCODE = " + tableName2 + ".BARCODE " 
-    	    		//+ "join " + tableName + " on OFFICE_MANAGE.OFFICE_CODE = " + tableName + ".OFFICE_CODE "
-    	    		//+ " join " + tableName2 + " on OFFICE_MANAGE.OFFICE_CODE = " + tableName2 + ".OFFICE_CODE"
-    	    		+ "where " + tableName2 + ".Sale_Date between '" + period1 + "' and '" + period2 + "'";
-    	    		
-         			if ( constraint.equals("") != true )
-         			{
-         				query = query + " and " + constraint;
-         			}
-         			
-         			m_queryCount3 = m_queryCount3 + 1;
-         		// 콜백함수와 함께 실행
-				    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-						@Override
-						public void onRequestCompleted(JSONArray results) {
-							try {
-
-						 		dialog.cancel();
-						 		dialog.dismiss();
-						 		
-								m_queryCount3 = m_queryCount3 - 1;
-								
-								if ( results.length() > 0 )
- 								{
-									
-									for(int i = 0; i < results.length() ; i++)
-									{
-										JSONObject son = results.getJSONObject(i);
-										
-										String code = son.getString("OFFICE_CODE");
-				        				String name = son.getString("OFFICE_NAME");
-				        				
-				        				int purCost = son.getInt("PUR_COST");
-										int rSell = son.getInt("TSell_Pri") - (son.getInt("TSell_RePri") + son.getInt("ProFit_Pri"));
-										
-				        				boolean isExist = false;
-				        				               		
-				                		for ( int j = 0; j < lSpListCode.size(); j++ )
-				                		{
-				                			if ( lSpListCode.get(j).toString().equals(code) == true )
-				                			{
-				                				Integer pCost = lSpListPurCost.get(j).intValue() + purCost;
-				                				Integer rsell = lSpListRSell.get(j).intValue() + rSell;
-				                				
-				                				lSpListPurCost.set(j, pCost);
-				                				lSpListRSell.set(j, rsell);
-				                				
-				                				isExist = true;
-				                				break;
-				                			}
-				                		}
-				                		
-				                		if ( isExist == false )
-				                		{
-				                			Integer pCost = purCost;
-			                				Integer rsell = rSell;
-			                				
-				            				lSpListCode.add(code);
-				            				lSpListName.add(name);
-				            				lSpListPurCost.add(pCost);
-				            				lSpListRSell.add(rsell);
-				                		}
-									}
-									
-									if ( m_queryCount3 == 0 )
-									{
-										
-										// create the grid item mapping
-							 			String[] from = new String[] {"OFFICE_CODE", "OFFICE_NAME", "PUR_COST", "R_SELL"};
-							 			int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
-							 			
-										for(int i = 0; i < lSpListCode.size() ; i++)
-										{
-											
-											HashMap<String, String> map = new HashMap<String, String>();
-											
-											map.put("OFFICE_CODE", lSpListCode.get(i) );
-											map.put("OFFICE_NAME", lSpListName.get(i) );
-											map.put("PUR_COST", m_numberFormat.format( lSpListPurCost.get(i)) );
-											map.put("R_SELL", m_numberFormat.format( lSpListRSell.get(i)) );
-											
-											fillMaps.add(map);
-										}	
-										
-										// fill in the grid_item layout
-										SimpleAdapter adapter = new SimpleAdapter(PurchasePaymentStatusActivity.this, 
-												fillMaps, R.layout.activity_listview_product_list, 
-												from, to);
-										
-										m_listPurchaseTab3.setAdapter(adapter);
-										Toast.makeText(getApplicationContext(), "조회 완료", Toast.LENGTH_SHORT).show();
-										//dialog.cancel();
-									}
- 								}
-								else 
-								{
-									//dialog.cancel();
-								}
-				    		} catch (JSONException e) {
-				    			e.printStackTrace();
-				    			//dialog.cancel();
-				    		}
-							
-						}
-				    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-						         			
-         		}
- 			}
- 		}
+	private void updateListForTab1(JSONArray results) {		
+		try { 			
+			for(int index = 0; index < results.length() ; index++) {
+				HashMap<String, String> map = JsonHelper.toStringHashMap(results.getJSONObject(index));				
+				mfillMaps1.add(map);			
+			}
+		} catch(JSONException e) {
+			e.printStackTrace();			
+		}
 	}
 	
+	private void queryListForTab2()
+	{
+		mfillMaps2.removeAll(mfillMaps2);
+		
+		String period1 = m_period1.getText().toString();
+		String period2 = m_period2.getText().toString();
+		String barCode = m_barCode.getText().toString();
+		String customerCode = m_customerCode.getText().toString();
+		String customerName = m_customerName.getText().toString();
+		
+		String query = "";
+	    
+		int year1 = Integer.parseInt(period1.substring(0, 4));
+		int month1 = Integer.parseInt(period1.substring(5, 7));
+		
+		int year2 = Integer.parseInt(period2.substring(0, 4));
+		int month2 = Integer.parseInt(period2.substring(5, 7));
+		
+		String constraint = "";
+		for ( int y = year1; y <= year2; y++ ) {
+			for ( int m = month1; m <= month2; m++ ) {
 
-    private String setConstraint(String str, String field, String op, String value)
-    {
-    	if ( str.equals("") != true )
-    	{
+				if ( customerCode.equals("") != true ) {
+					constraint = setConstraint(constraint, "A.Office_Code", "=", customerCode);
+				}
+				
+				if ( customerName.equals("") != true) {
+					constraint = setConstraint(constraint, "A.Office_Name", "=", customerName);
+				}
+				
+     			query = "select A.Office_Code, A.Office_Name, SUM(B.Pay_Pri-B.Buy_Pri) 이월, SUM(B.Pay_Pri) 지급금액, SUM(B.Buy_Pri) 미지급금액 " 
+		    	    		+ " from OFFICE_MANAGE as A inner join OFFICE_SETTLEMENT as B on A.OFFICE_CODE = B.OFFICE_CODE " 
+		    	    		+ " where B.PRO_DATE between '" + period1 + "' and '" + period2 + "'";
+
+     			if ( constraint.equals("") != true ) {
+     				query = query + " and " + constraint;
+     			}
+
+				query += " union all ";				
+			}
+		}
+		query = query.substring(0, query.length()-11);		
+		query += " GROUP BY A.Office_Code, A.Office_Name; ";
+
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+
+		new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+
+				dialog.dismiss();
+				dialog.cancel();
+				if ( results.length() > 0 ) 
+					updateListForTab2(results);
+				adapter2.notifyDataSetChanged();
+				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();	
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				adapter2.notifyDataSetChanged();
+				Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
+	}
+		
+	private void updateListForTab2(JSONArray results) {		
+		try { 			
+			for(int index = 0; index < results.length() ; index++) {
+				HashMap<String, String> map = JsonHelper.toStringHashMap(results.getJSONObject(index));				
+				mfillMaps2.add(map);				
+			}
+		} catch(JSONException e) {
+			e.printStackTrace();			
+		}
+	}
+	
+	private void queryListForTab3()
+	{
+		mfillMaps3.removeAll(mfillMaps3);
+		
+		String period1 = m_period1.getText().toString();
+		String period2 = m_period2.getText().toString();
+		String barCode = m_barCode.getText().toString();
+		String productName = m_productName.getText().toString();
+		String customerCode = m_customerCode.getText().toString();
+		String customerName = m_customerName.getText().toString();
+		
+		String query = "";
+	    
+		int year1 = Integer.parseInt(period1.substring(0, 4));
+		int month1 = Integer.parseInt(period1.substring(5, 7));
+		
+		int year2 = Integer.parseInt(period2.substring(0, 4));
+		int month2 = Integer.parseInt(period2.substring(5, 7));
+		
+		String tableDate = null;
+
+		String constraint = "";
+		for ( int y = year1; y <= year2; y++ ) {
+			for ( int m = month1; m <= month2; m++ ) {
+
+				tableDate = String.format("%04d%02d", y, m);
+				
+				if ( productName.equals("") != true ) {
+					constraint = setConstraint(constraint, "G_Name", "=", productName);
+				}
+				
+				if ( barCode.equals("") != true ) {
+					constraint = setConstraint(constraint, "Barcode", "=", barCode);
+				}
+				
+				if ( customerCode.equals("") != true ) {
+					constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
+				}
+				
+				if ( customerName.equals("") != true) {
+					constraint = setConstraint(constraint, "Office_Name", "=", customerName);
+				}
+
+     			query = "select A.Office_Code, A.Office_Name, SUM(A.In_Pri) 순매입, SUM(B.TSell_Pri-B.TSell_RePri-B.DC_Pri) 순매출 "
+			    		+ " from InD_" + tableDate + " as A inner join SaD_" + tableDate + " as B on A.BARCODE = B.BARCODE " 
+			    		+ " where B.Sale_Date between '" + period1 + "' and '" + period2 + "'";
+	    		
+     			if ( constraint.equals("") != true ) {
+     				query = query + " and " + constraint;
+     			}
+
+				query += " union all ";
+			}
+		}
+		query = query.substring(0, query.length()-11);
+		query += " GROUP BY A.Office_Code, A.Office_Name; ";
+
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+
+		new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+
+				dialog.dismiss();
+				dialog.cancel();
+				if ( results.length() > 0 ) 
+					updateListForTab3(results);
+				adapter3.notifyDataSetChanged();
+				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();	
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				adapter3.notifyDataSetChanged();
+				Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
+	}
+		
+	private void updateListForTab3(JSONArray results) {		
+		try { 			
+			for(int index = 0; index < results.length() ; index++) {
+				HashMap<String, String> map = JsonHelper.toStringHashMap(results.getJSONObject(index));				
+				mfillMaps3.add(map);				
+			}
+		} catch(JSONException e) {
+			e.printStackTrace();			
+		}
+	}
+	
+    private String setConstraint(String str, String field, String op, String value) {
+    	if ( str.equals("") != true ) {
     		str = str + " and ";
     	}
     	
-    	str = str + field + " " + op + " '" + value + "'";
-    	
-    	return str;
-    }
-    
-    
-    // DB에 접속후 호출되는 함수
-    public void checkProductName(JSONArray results) {
-    	if (results.length() > 0) {
-    		// 저장소에 저장
-    		//LocalStorage.setJSONArray(this, "PPSPrductResults", results);
-    		
-    		try {
-    			m_rBarCode = results.getString(0);
-    	     	
-    		} catch (JSONException e) {
-    			e.printStackTrace();
-    		}
-    	}
-    	else {
-    		
-    	}
+    	return str + field + " " + op + " '" + value + "'";
     }
     
 	@Override
@@ -950,7 +681,6 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		builder.show();
 	}
 	
-
 	// MSSQL
 	// SQL QUERY 실행
 	public void doQueryWithBarcode () {
@@ -988,4 +718,48 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
 	}    
+	
+
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	private void setupActionBar() {
+
+		ActionBar actionbar = getActionBar();         
+//		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
+//		actionbar.setCustomView(custom_action_bar);
+
+		actionbar.setDisplayShowHomeEnabled(false);
+		actionbar.setDisplayShowTitleEnabled(true);
+		actionbar.setDisplayShowCustomEnabled(true);
+		actionbar.setTitle("매입/대금 결제현황");
+		
+		getActionBar().setDisplayHomeAsUpEnabled(false);
+
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.purchase_payment_status, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			// This ID represents the Home or Up button. In the case of this
+			// activity, the Up button is shown. Use NavUtils to allow users
+			// to navigate up one level in the application structure. For
+			// more details, see the Navigation pattern on Android Design:
+			//
+			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
+			//
+			NavUtils.navigateUpFromSameTask(this);
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
 }

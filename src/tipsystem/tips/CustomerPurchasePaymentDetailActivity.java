@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
@@ -63,8 +64,11 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 		
 		String period1 = intent.getExtras().getString("PERIOD1");
 		String period2 = intent.getExtras().getString("PERIOD1");
-		
+
+		String officeCode = intent.getExtras().getString("OFFICE_CODE");
 		String customerName = intent.getExtras().getString("OFFICE_NAME");
+		String PUR = intent.getExtras().getString("PUR");
+		String SALE = intent.getExtras().getString("SALE");
 		
 		m_period1 = (TextView)findViewById(R.id.textViewPeriod1);
 		m_period2 = (TextView)findViewById(R.id.textViewPeriod2);
@@ -78,21 +82,30 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 		m_customerName.setText(customerName);
 		
 		int year1 = Integer.parseInt(period1.substring(0, 4));
- 		//int year2 = Integer.parseInt(period2.substring(0, 4));
+ 		int year2 = Integer.parseInt(period2.substring(0, 4));
  		
  		int month1 = Integer.parseInt(period1.substring(5, 7));
- 		//int month2 = Integer.parseInt(period2.substring(5, 7));
+ 		int month2 = Integer.parseInt(period2.substring(5, 7));
  		
-		String tableName = String.format("SaD_%04d%02d", year1, month1);
-		
-		String query;
-		
-    	query = "select BARCODE, G_NAME, PURE_PRI, TSell_PRI, TSell_REPRI, DC_PRI form "
-    			+ tableName 
-	    		+ " where SALE_DATE between '" + period1 + "' and '" + period2 + "' "
-	    		+ "and OFFICE_NAME = '" + customerName + "'";
+		m_realPurchase.setText(PUR);
+		m_realPayment.setText(SALE);
+
+    	String query = "";
+		for ( int y = year1; y <= year2; y++ ) {
+			for ( int m = month1; m <= month2; m++ ) {
+
+				String tableDate = String.format("%04d%02d", y, m);
+				
+     			query = "select B.BARCODE, B.G_NAME, A.In_Pri 순매입, (B.TSell_Pri-B.TSell_RePri-B.DC_Pri) 순매출 "
+			    		+ " from InD_" + tableDate + " as A inner join SaD_" + tableDate + " as B on A.BARCODE = B.BARCODE " 
+			    		+ " where A.Office_Code = '"+officeCode+"' and B.Sale_Date between '" + period1 + "' and '" + period2 + "'";
 	    		
-     			
+				query += " union all ";
+			}
+		}
+		query = query.substring(0, query.length()-11);
+		query += ";";
+
 		// 콜백함수와 함께 실행
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 		
@@ -104,6 +117,39 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 		
 
 	}
+	
+	void setListItems(JSONArray results)
+	{
+		try {
+			if ( results.length() > 0 ) { 
+				// create the grid item mapping
+				String[] from = new String[] {"BARCODE", "G_NAME", "순매입", "순매출"};
+				int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
+				
+				// prepare the list of all records
+				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+ 			
+				for(int i = 0; i < results.length() ; i++) {
+
+					JSONObject son = results.getJSONObject(i);
+					HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+					fillMaps.add(map);
+				}	
+			
+				// fill in the grid_item layout
+				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4_4, from, to);
+				
+				m_listDetailView.setAdapter(adapter);
+			}
+			
+			Toast.makeText(getApplicationContext(), "조회 완료 : " + results.length(), Toast.LENGTH_SHORT).show();
+
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+
+
 
 	/**
 	 * Set up the {@link android.app.ActionBar}.
@@ -148,62 +194,4 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 
-	
-	void setListItems(JSONArray results)
-	{
-		try {
-		
-			int rPurchase = 0;
-			int rPayment = 0;
-			
-			if ( results.length() > 0 )
-			{
-								
-				// create the grid item mapping
-				String[] from = new String[] {"BARCODE", "G_NAME", "PUR_PRI", "RSALE"};
-				int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-				
-				// prepare the list of all records
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
- 			
-				for(int i = 0; i < results.length() ; i++)
-				{
-					JSONObject son = results.getJSONObject(i);
-					
-					HashMap<String, String> map = new HashMap<String, String>();
-					map.put("BARCODE", son.getString("BARCODE") );
-					map.put("G_NAME", son.getString("G_NAME"));
-					
-					map.put("PUR_PRI", String.format("%d", son.getInt("PUR_PRI")) );
-					
-					int rSale = son.getInt("TSell_PRI") - (son.getInt("TSell_REPRI") + son.getInt("DC_PRI"));
-					
-					map.put("RSALE", String.format("%d", rSale));
-					
-					rPayment = rPayment + rSale;
-					rPurchase = rPurchase + son.getInt("PUR_PRI");
-					
-					fillMaps.add(map);
-				}	
-			
-				// fill in the grid_item layout
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item5, 
-						from, to);
-				
-				m_listDetailView.setAdapter(adapter);
-				
-				m_realPurchase.setText(String.format("%d", rPurchase));
-				m_realPayment.setText(String.format("%d", rPayment));
-								
-			}
-			
-			Toast.makeText(getApplicationContext(), "조회 완료 : " + results.length(), Toast.LENGTH_SHORT).show();
-
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-		
-	}
-
-	
 }

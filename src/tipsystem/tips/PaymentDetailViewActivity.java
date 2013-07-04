@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import android.os.Bundle;
@@ -62,6 +63,7 @@ public class PaymentDetailViewActivity extends Activity {
 		String period2 = intent.getExtras().getString("PERIOD1");
 		
 		String customerName = intent.getExtras().getString("OFFICE_NAME");
+		String customerCode = intent.getExtras().getString("OFFICE_CODE");
 		
 		m_period1 = (TextView)findViewById(R.id.textViewPeriod1);
 		m_period2 = (TextView)findViewById(R.id.textViewPeriod2);
@@ -71,27 +73,27 @@ public class PaymentDetailViewActivity extends Activity {
 		m_period2.setText(period2);
 		
 		m_customerName.setText(customerName);
-				
-//		int year1 = Integer.parseInt(period1.substring(0, 4));
-// 		int year2 = Integer.parseInt(period2.substring(0, 4));
-// 		
-// 		int month1 = Integer.parseInt(period1.substring(5, 7));
-// 		int month2 = Integer.parseInt(period2.substring(5, 7));
-// 		
-//		String tableName = String.format("InD_%04d%02d", year1, month1);
- 		
+
+		int year1 = Integer.parseInt(period1.substring(0, 4));
+		int month1 = Integer.parseInt(period1.substring(5, 7));
 		
-    	String query;
+		int year2 = Integer.parseInt(period2.substring(0, 4));
+		int month2 = Integer.parseInt(period2.substring(5, 7));
 		
-    	//query = "select SA_SEQ, PRO_DATE, SALE_CODE, GUBUN, 이월, 매입금액, SELL_REPRI, SELLSALE_PRI, "
-    	//		+"장려금, SELLPAY_PRI, SELLIN_PRI, 미지급금액, BIGO "
-    	query = "select SA_SEQ, PRO_DATE, SALE_CODE, GUBUN, SELL_REPRI, SELLSALE_PRI, "
-    			+" SELLPAY_PRI, SELLIN_PRI, BIGO "
-	    		+"from OFFICE_SASETTLEMENT " 
-	    		+ " where PRO_DATE between '" + period1 + "' and '" + period2 + "' "
-	    		+ "and OFFICE_NAME = '" + customerName + "'";
-	    		
-     			
+    	String query ="";
+		for ( int y = year1; y <= year2; y++ ) {
+			for ( int m = month1; m <= month2; m++ ) {
+
+     			query = "select * " 
+		    	    		+ " from OFFICE_SETTLEMENT " 
+		    	    		+ " where Office_Code='"+customerCode+"' and PRO_DATE between '" + period1 + "' and '" + period2 + "'";
+
+				query += " union all ";				
+			}
+		}
+		query = query.substring(0, query.length()-11);
+		query += "; ";
+		
 		// 콜백함수와 함께 실행
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 		
@@ -101,22 +103,40 @@ public class PaymentDetailViewActivity extends Activity {
 			}
 		}).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 		
+		Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
+        TextView textView = (TextView) findViewById(R.id.textView1);
+        textView.setTypeface(typeface);
+	}
 
-	
-		
-		 Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
-	        TextView textView = (TextView) findViewById(R.id.textView1);
-	        textView.setTypeface(typeface);
-	        
-	        textView = (TextView) findViewById(R.id.textView3);
-	        textView.setTypeface(typeface);
-	        
-	        textView = (TextView) findViewById(R.id.textView2);
-	        textView.setTypeface(typeface);
-	        
-	        textView = (TextView) findViewById(R.id.textView4);
-	        textView.setTypeface(typeface);
-	        
+	void setListItems(JSONArray results)
+	{
+		try {
+			if ( results.length() > 0 ) {
+				// create the grid item mapping
+				String[] from = new String[] {"In_Seq", "Pro_Date", "Sale_Code", "Gubun", "이월", "Buy_Pri", "Buy_RePri", "Sale_Pri", 
+												"Sub_Pri", "Pay_Pri", "In_Pri", "In_Pri", "Bigo"};
+				int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5, R.id.item6, R.id.item7, R.id.item8,
+										R.id.item9, R.id.item10, R.id.item11, R.id.item12, R.id.item13};
+				
+				// prepare the list of all records
+				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+ 			
+				for(int i = 0; i < results.length() ; i++) {
+
+					JSONObject son = results.getJSONObject(i);
+					HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+					fillMaps.add(map);
+				}	
+				// fill in the grid_item layout
+				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item13, from, to);				
+				m_listPaymentView.setAdapter(adapter);		
+			}
+			
+			Toast.makeText(getApplicationContext(), "조회 완료 : " + results.length(), Toast.LENGTH_SHORT).show();
+
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -134,8 +154,6 @@ public class PaymentDetailViewActivity extends Activity {
 		actionbar.setTitle("대금결제 상세보기");
 		
 		getActionBar().setDisplayHomeAsUpEnabled(false);
-
-
 	}
 
 	@Override
@@ -162,82 +180,4 @@ public class PaymentDetailViewActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 	
-	void setListItems(JSONArray results)
-	{
-		try {
-		
-			if ( results.length() > 0 )
-			{
-				// create the grid item mapping
-				 // create the grid item mapping
-				String[] from = new String[] {"SA_SEQ", "PRO_DATE", "SALE_CODE", "GUBUN", "이월",
-											  "매입금액", "SELL_REPRI", "SELLSALE_PRI", "장려금", "SELLPAY_PRI",
-											  "SELLIN_PRI", "미지급금액", "BIGO"};
-				int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5,
-										R.id.item6, R.id.item7, R.id.item8, R.id.item9, R.id.item10,
-										R.id.item11, R.id.item12, R.id.item13};
-				
-				// prepare the list of all records
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-				
-				for(int i = 0; i < results.length(); i++)
-				{
-					JSONObject son = results.getJSONObject(i);
-					
-				    HashMap<String, String> map = new HashMap<String, String>();
-				    
-				    map.put("SA_SEQ", String.format("%d", son.getInt("SA_SEQ")));
-					map.put("PRO_DATE", son.getString("PRO_DATE"));
-					map.put("SALE_CODE", son.getString("SALE_CODE"));
-					
-					String gubun = son.getString("GUBUN");
-					
-					if ( gubun.equals("1") == true )
-					{
-						map.put("GUBUN", "입금");
-					}
-					else if ( gubun.equals("2") == true )
-					{
-						map.put("GUBUN", "매출");
-					}
-					else if ( gubun.equals("3") == true )
-					{
-						map.put("GUBUN", "지급");
-					} 
-					else if ( gubun.equals("4") == true )
-					{
-						map.put("GUBUN", "반품");
-					} 
-					
-					map.put("이월", "이월" + i);
-					
-					map.put("매입금액", "매입금액" + i);
-					map.put("SELL_REPRI", String.format("%d", son.getInt("SELL_REPRI")));
-					map.put("SELLSALE_PRI", String.format("%d", son.getInt("SELLSALE_PRI")));
-					map.put("장려금", "장려금" + i);
-					map.put("SELLPAY_PRI", String.format("%d", son.getInt("SELLPAY_PRI")));
-					
-					map.put("SELLIN_PRI", String.format("%d", son.getInt("SELLIN_PRI")));
-					map.put("미지급금액", "미지급금액" + i);
-					map.put("BIGO", son.getString("BIGO"));
-								
-				    fillMaps.add(map);
-				}
-				
-				// fill in the grid_item layout
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item13, 
-						from, to);
-				
-				m_listPaymentView.setAdapter(adapter);
-								
-			}
-			
-			Toast.makeText(getApplicationContext(), "조회 완료 : " + results.length(), Toast.LENGTH_SHORT).show();
-
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-		
-	}
-
 }

@@ -131,7 +131,7 @@ public class MainActivity extends Activity {
 		                finish();
 						   
 					} catch (ParseException e) {
-						
+						e.printStackTrace();
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}

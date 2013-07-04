@@ -30,7 +30,6 @@ public class PurchaseListDetailViewActivity extends Activity {
 	
 	ListView m_listPurchaseDetail;
 	
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -47,29 +46,24 @@ public class PurchaseListDetailViewActivity extends Activity {
 			e.printStackTrace();
 		}
         
-        
 		m_listPurchaseDetail= (ListView)findViewById(R.id.listviewPurchaseDetailViewList);
 		
 		Intent intent = getIntent();
 		
 		String customerName = intent.getExtras().getString("OFFICE_NAME");
-		String inDate = intent.getExtras().getString("IN_DATE");
+		String In_Date = intent.getExtras().getString("In_Date");
+		String In_Num = intent.getExtras().getString("In_Num");
+
+		int y = Integer.parseInt(In_Date.substring(0, 4));
+		int m = Integer.parseInt(In_Date.substring(5, 7));
 		
-		int year1 = Integer.parseInt(inDate.substring(0, 4));
- 		int month1 = Integer.parseInt(inDate.substring(5, 7));
- 		
-		String tableName = String.format("InD_%04d%02d", year1, month1);
-		
-    	String query;
-		
-    	query = "select " + tableName + ".BARCODE, " + "Goods.G_NAME, " + tableName + ".PUR_PRI, " 
-     			+ tableName + ".SELL_PRI, " + tableName + ".IN_COUNT "
-					//query = "select * "
-	    		+"from " + tableName + " inner join GOODS on "
-	    		+ tableName + ".BARCODE = GOODS.BARCODE " 
-	    		+ "where " + tableName + ".IN_DATE = '" + inDate + "' and OFFICE_NAME = '" + customerName + "'";
-	    		
-     			
+    	String query ="";
+
+		String tableName = String.format("InD_%04d%02d", y, m);
+		query = "select A.BARCODE, " + "B.G_NAME, A.PUR_PRI, A.SELL_PRI, A.IN_COUNT "
+	    		+"from " + tableName + " as A inner join GOODS as B on A.BARCODE = B.BARCODE " 
+	    		+ "where A.In_Num = '" + In_Num + "' and A.IN_DATE = '" + In_Date + "' and OFFICE_NAME = '" + customerName + "'";
+
 		// 콜백함수와 함께 실행
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 		
@@ -78,8 +72,48 @@ public class PurchaseListDetailViewActivity extends Activity {
 				setListItems(results);
 			}
 		}).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	}
+
+	void setListItems(JSONArray results)
+	{
+		try {
 		
-		 
+			if ( results.length() > 0 )
+			{
+				// create the grid item mapping
+				String[] from = new String[] {"BARCODE", "G_NAME", "PUR_PRI", "SELL_PRI", "IN_COUNT"};
+				int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5};
+				
+				// prepare the list of all records
+				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+ 			
+				for(int i = 0; i < results.length() ; i++)
+				{
+					JSONObject son = results.getJSONObject(i);
+					
+					HashMap<String, String> map = new HashMap<String, String>();
+					map.put("BARCODE", son.getString("BARCODE") );
+					map.put("G_NAME", son.getString("G_NAME"));
+					
+					map.put("PUR_PRI", String.format("%d", son.getInt("PUR_PRI")) );
+					map.put("SELL_PRI", String.format("%d", son.getInt("SELL_PRI")) );
+					map.put("IN_COUNT", String.format("%d", son.getInt("IN_COUNT")) );
+					
+					fillMaps.add(map);
+				}	
+			
+				// fill in the grid_item layout
+				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item5_2, from, to);
+				m_listPurchaseDetail.setAdapter(adapter);
+								
+			}
+			
+			Toast.makeText(getApplicationContext(), "조회 완료 : " + results.length(), Toast.LENGTH_SHORT).show();
+
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	/**
@@ -124,48 +158,4 @@ public class PurchaseListDetailViewActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 	
-	void setListItems(JSONArray results)
-	{
-		try {
-		
-			if ( results.length() > 0 )
-			{
-				// create the grid item mapping
-				String[] from = new String[] {"BARCODE", "G_NAME", "PUR_PRI", "SELL_PRI", "IN_COUNT"};
-				int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5};
-				
-				// prepare the list of all records
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
- 			
-				for(int i = 0; i < results.length() ; i++)
-				{
-					JSONObject son = results.getJSONObject(i);
-					
-					HashMap<String, String> map = new HashMap<String, String>();
-					map.put("BARCODE", son.getString("BARCODE") );
-					map.put("G_NAME", son.getString("G_NAME"));
-					
-					map.put("PUR_PRI", String.format("%d", son.getInt("PUR_PRI")) );
-					map.put("SELL_PRI", String.format("%d", son.getInt("SELL_PRI")) );
-					map.put("IN_COUNT", String.format("%d", son.getInt("IN_COUNT")) );
-					
-					fillMaps.add(map);
-				}	
-			
-				// fill in the grid_item layout
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item5, 
-						from, to);
-				
-				m_listPurchaseDetail.setAdapter(adapter);
-								
-			}
-			
-			Toast.makeText(getApplicationContext(), "조회 완료 : " + results.length(), Toast.LENGTH_SHORT).show();
-
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-		
-	}
-
 }

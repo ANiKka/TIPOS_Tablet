@@ -9,11 +9,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
@@ -114,7 +116,7 @@ public class ChargeCustomerDetailActivity extends Activity {
 		m_contents[23] = (TextView)findViewById(R.id.content24);
 		
 		m_isCashDeduction = (CheckBox)findViewById(R.id.checkBoxIsCashDeduction);
-		m_ratioDeduction = (TextView)findViewById(R.id.editTextCashDeduction);
+		//m_ratioDeduction = (TextView)findViewById(R.id.editTextCashDeduction);
 		
 		Intent intent = getIntent();
 		
@@ -129,7 +131,8 @@ public class ChargeCustomerDetailActivity extends Activity {
 		String customerCode = m_customerCode.getText().toString();
 		String customerName = m_customerName.getText().toString();
 		
-		
+		doCalculate();
+		/*
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
@@ -144,6 +147,7 @@ public class ChargeCustomerDetailActivity extends Activity {
 		
 		executeQuery3("0", period1, period2, customerCode, customerName, "1", "1");
 		executeQuery3("0", period1, period2, customerCode, customerName, "0", "1");
+		*/
 	}
 
 	/**
@@ -267,10 +271,44 @@ public class ChargeCustomerDetailActivity extends Activity {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
-				updateList1(results);
-				
+				updateList(results);				
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	}
+	
+	private void updateList(JSONArray results)
+	{
+		try {
+			HashMap<String, String> obj = JsonHelper.toStringHashMap(results.getJSONObject(0));
+
+			m_contents[0].setText(obj.get("판매"));
+			m_contents[1].setText(obj.get("반품"));
+			m_contents[2].setText(obj.get("할인"));
+			m_contents[3].setText(obj.get("순매출"));
+			m_contents[4].setText(obj.get("과세매출"));
+			m_contents[5].setText(obj.get("면세매출"));
+			m_contents[6].setText(obj.get("현금매출"));
+			m_contents[7].setText(obj.get("현금과세"));
+			m_contents[8].setText(obj.get("현금면세"));
+			m_contents[9].setText(obj.get("카드매출"));
+			m_contents[10].setText(obj.get("카드과세"));
+			m_contents[11].setText(obj.get("카드면세"));
+			m_contents[12].setText(obj.get("현영매출"));
+			m_contents[13].setText(obj.get("현영과세"));
+			m_contents[14].setText(obj.get("현영면세"));
+			m_contents[15].setText(obj.get("수_카드금액"));
+			m_contents[16].setText(obj.get("매장수수료"));
+			m_contents[17].setText(obj.get("카드수수료"));
+			m_contents[18].setText(obj.get("포인트"));
+			m_contents[19].setText(obj.get("캐쉬백"));
+			m_contents[20].setText(obj.get("현영공제"));
+			m_contents[21].setText(obj.get("공제금액"));
+			m_contents[22].setText(obj.get("공제후지급액"));
+			m_contents[23].setText(obj.get("점유율"));
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}		
 	}
 	
 	private void executeQuery1(String... urls)

@@ -1,29 +1,23 @@
 package tipsystem.tips;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
@@ -63,7 +57,6 @@ public class CustomerProductDetailViewActivity extends Activity {
 			e.printStackTrace();
 		}
         
-		
 		m_numberFormat = NumberFormat.getInstance();
 		
 		m_listDetailView= (ListView)findViewById(R.id.listviewCustomerProductDetailViewList);
@@ -80,20 +73,98 @@ public class CustomerProductDetailViewActivity extends Activity {
 		m_customerCode.setText(intent.getExtras().getString("OFFICE_CODE"));
 		m_customerName.setText(intent.getExtras().getString("OFFICE_NAME"));
 		
-		
 		String period1 = m_period1.getText().toString();
 		String period2 = m_period2.getText().toString();
 		String customerCode = m_customerCode.getText().toString();
 		String customerName = m_customerName.getText().toString();
 		
+		executeQuery(period1, period2, customerCode, customerName);
+	}
+
+	
+	private void executeQuery(String... urls)
+	{
+	    String period1 = urls[0];
+		String period2 = urls[1];
+		String customerCode = urls[2];
+		String customerName = urls[3];
+		
+		String query = "";
+	    
+		int year1 = Integer.parseInt(period1.substring(0, 4));
+		int year2 = Integer.parseInt(period2.substring(0, 4));
+		
+		int month1 = Integer.parseInt(period1.substring(5, 7));
+		int month2 = Integer.parseInt(period2.substring(5, 7));
+		
+		String tableName = null;
+
+		for ( int y = year1; y <= year2; y++ ) {
+			for ( int m = month1; m <= month2; m++ ) {
+
+				tableName = String.format("SaD_%04d%02d", y, m);
+				
+    			query = query + "select Barcode, G_Name, SUM(Sale_Count) 수량, SUM(Sale_Count) 순수량 from " + tableName;
+    			query = query + " where Office_Code='"+customerCode+"' and Sale_Date between '" + period1 + "' and '" + period2 + "'";
+    			
+				query += " union all ";
+			}
+		}
+		query = query.substring(0, query.length()-11);
+		query += " Group by Barcode, G_Name;";
+
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
  		dialog.setCancelable(false);
  		dialog.show();
  		
-		executeQuery(period1, period2, customerCode, customerName);
+		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+				
+				updateList(results);			
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
 	}
+	
+	private void updateList(JSONArray results)
+	{
+		String[] from = new String[] {"Barcode", "G_Name", "수량", "순수량"};
+        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
+		
+		try {
+			
+			if ( results.length() > 0 )
+			{
+				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+
+				for(int i = 0; i < results.length() ; i++)
+				{
+					JSONObject son = results.getJSONObject(i);
+					HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+					fillMaps.add(map);
+				}	
+						
+				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4_5, from, to);
+				m_listDetailView.setAdapter(adapter);
+			}
+			else  {
+				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4_5, from, to);
+				m_listDetailView.setAdapter(adapter);
+			}
+			
+			Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+
 
 	/**
 	 * Set up the {@link android.app.ActionBar}.
@@ -136,137 +207,4 @@ public class CustomerProductDetailViewActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-
-	
-	private void executeQuery(String... urls)
-	{
-        	    
-	    String period1 = urls[0];
-		String period2 = urls[1];
-		String customerCode = urls[2];
-		String customerName = urls[3];
-		
-		String query = "";
-	    
-		int year1 = Integer.parseInt(period1.substring(0, 4));
-		int year2 = Integer.parseInt(period2.substring(0, 4));
-		
-		int month1 = Integer.parseInt(period1.substring(5, 7));
-		int month2 = Integer.parseInt(period2.substring(5, 7));
-		
-		String tableName = null;
-		String constraint = "";
-
-		for ( int y = year1; y <= year2; y++ )
-		{
-			for ( int m = month1; m <= month2; m++ )
-			{
-				tableName = String.format("SaD_%04d%02d", y, m);
-				
-				if ( customerCode.equals("") != true )
-				{
-					constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
-				}
-				
-				if ( customerName.equals("") != true)
-				{
-					constraint = setConstraint(constraint, "Office_Name", "=", customerName);
-				}
-				
-    			query = query + "select Barcode, G_Name, Sale_Count, TSell_Pri, TSell_RePri, DC_Pri from " + tableName;
-    			query = query + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
-   			
-    			if ( constraint.equals("") != true )
-    			{
-    				query = query + " and " + constraint;
-    			}
-    			
-    			query = query + "; ";
-    			
-			}
-		}
-		
-		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-			@Override
-			public void onRequestCompleted(JSONArray results) {
-				updateList(results);
-				
-			}
-	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-		
-		
-	}
-	
-	private void updateList(JSONArray results)
-	{
-
-		String[] from = new String[] {"Barcode", "G_Name", "Sale_Count", "rSale"};
-        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-		
-		try {
-			
-			if ( results.length() > 0 )
-			{
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-				
-				for(int i = 0; i < results.length() ; i++)
-				{
-					JSONObject son = results.getJSONObject(i);
-					
-					String code = son.getString("Barcode");
-    				String name = son.getString("G_Name");
-    				int saleCount = son.getInt("Sale_Count");
-    				int tSell = son.getInt("TSell_Pri");
-    				int tRSell = son.getInt("TSell_RePri");
-    				int dcPri = son.getInt("DC_Pri");
-    				int rSale = tSell - (tRSell + dcPri);
-    				
-    				HashMap<String, String> map = new HashMap<String, String>();
-					map.put("Barcode", code );
-					map.put("G_Name", name);
-					map.put("Sale_Count", m_numberFormat.format(saleCount) );
-					map.put("rSale", m_numberFormat.format(rSale) );
-					fillMaps.add(map);
-					
-				}
-								
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
-						from, to);
-				
-				m_listDetailView.setAdapter(adapter);
-
-			}
-			else 
-			{
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
-						from, to);
-				
-				m_listDetailView.setAdapter(adapter);
-
-			}
-			
-			dialog.cancel();
-			Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
-			
-		} catch (JSONException e) {
-			e.printStackTrace();
-			dialog.cancel();
-		}
-	}
- 
-    private String setConstraint(String str, String field, String op, String value)
-    {
-    	if ( str.equals("") != true )
-    	{
-    		str = str + " and ";
-    	}
-    	
-    	str = str + field + " " + op + " '" + value + "'";
-    	
-    	return str;
-    }
-
-	
 }

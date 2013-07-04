@@ -17,6 +17,7 @@ import com.dm.zbar.android.scanner.ZBarScannerActivity;
 
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.MSSQL2;
 
 import android.os.Bundle;
 import android.app.ActionBar;
@@ -26,6 +27,7 @@ import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -67,6 +69,14 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	ListView m_listSalesTab2;
 	ListView m_listSalesTab3;
 	ListView m_listSalesTab4;
+	
+	SimpleAdapter adapter1;
+	SimpleAdapter adapter2;
+	SimpleAdapter adapter3;
+
+	List<HashMap<String, String>> mfillMaps1 = new ArrayList<HashMap<String, String>>();
+	List<HashMap<String, String>> mfillMaps2 = new ArrayList<HashMap<String, String>>();
+	List<HashMap<String, String>> mfillMaps3 = new ArrayList<HashMap<String, String>>();
 	
 	Button m_period1;
 	Button m_period2;
@@ -139,9 +149,27 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		m_listSalesTab2= (ListView)findViewById(R.id.listviewSalesListTab2);
 		m_listSalesTab3= (ListView)findViewById(R.id.listviewSalesListTab3);
 		m_listSalesTab4= (ListView)findViewById(R.id.listviewSalesListTab4);
-				
+		
+		String[] from1 = new String[] {"Office_Code", "Office_Name", "rSale", "ProFit_Pri"};
+        int[] to1 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
+        
+		adapter1 = new SimpleAdapter(this, mfillMaps1, R.layout.activity_listview_item4_2, from1, to1);		
+		m_listSalesTab1.setAdapter(adapter1);	
+		
+		String[] from2 = new String[] {"Barcode", "G_Name", "Sale_Count", "rSale"};
+        int[] to2 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
+        
+		adapter2 = new SimpleAdapter(this, mfillMaps2, R.layout.activity_listview_item4_2, from2, to2);		
+		m_listSalesTab2.setAdapter(adapter2);	
+
+		String[] from3 = new String[] {"Office_Code", "Office_Name", "rSale"};
+	    int[] to3 = new int[] { R.id.item1, R.id.item2, R.id.item3 };
+        
+		adapter3 = new SimpleAdapter(this, mfillMaps3, R.layout.activity_listview_item3, from3, to3);		
+		m_listSalesTab3.setAdapter(adapter3);
+		
 		m_tabHost = (TabHost) findViewById(R.id.tabhostManageSales);
-        m_tabHost.setup();
+        m_tabHost.setup();        
         
         TabHost.TabSpec spec = m_tabHost.newTabSpec("tag1");
         
@@ -209,50 +237,8 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         }
 	}
 
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();         
-//		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-//		actionbar.setCustomView(custom_action_bar);
-
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("매출관리");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.manage_payment, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case android.R.id.home:
-			// This ID represents the Home or Up button. In the case of this
-			// activity, the Up button is shown. Use NavUtils to allow users
-			// to navigate up one level in the application structure. For
-			// more details, see the Navigation pattern on Android Design:
-			//
-			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
-			//
-			NavUtils.navigateUpFromSameTask(this);
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
-	
 	@Override
 	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-		// TODO Auto-generated method stub
 		
 		if ( m_listSalesTab1.getId() == arg0.getId() )
 		{
@@ -290,30 +276,14 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	    	
 	    	startActivity(intent);
 		}
-		
-		//Toast.makeText(this, "Item Click." + m_calendar.getId() + " ,  " + arg0.getId(), Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
-	public void onSelectedDayChange(CalendarView view, int year, int month,
-			int dayOfMonth) {
-		// TODO Auto-generated method stub
-		//Toast.makeText(this, "Item Click." + m_calendar.getId() + " ,  " + view.getId(), Toast.LENGTH_SHORT).show();
+	public void onSelectedDayChange(CalendarView view, int year, int month, int dayOfMonth) {
 	
 		m_CalendarDay = String.format("%04d-%02d-%02d", year, month, dayOfMonth);
-		
- 		switch (m_tabHost.getCurrentTab())
- 		{
-	 		case 0:
-	 			queryListForTab1(); break;
-	 		case 1:
-	 			queryListForTab2(); break;
-	 		case 2:
-	 			queryListForTab3(); break;
-	 		case 3:
-	 			queryListForTab4(m_CalendarDay); break;
- 		}
-		
+
+ 		doQuery();
 	}
 	
 	public void OnClickRenew(View v) {
@@ -327,25 +297,18 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	}
 
 	public void OnClickSearch(View v) {
-		//Toast.makeText(this, "Search Click.", Toast.LENGTH_SHORT).show();		
-		
- 		switch (m_tabHost.getCurrentTab())
- 		{
-	 		case 0:
-	 			queryListForTab1(); break;
-	 		case 1:
-	 			queryListForTab2(); break;
-	 		case 2:
-	 			queryListForTab3(); break;
-	 		case 3:
-	 			queryListForTab4(m_CalendarDay); break;
- 		}
+
+ 		doQuery();
 	};
 	
-	    
 	@Override
 	public void onTabChanged(String tabId) {
 	
+ 		//doQuery();
+	}
+	
+	public void doQuery() {
+
  		switch (m_tabHost.getCurrentTab())
  		{
 	 		case 0:
@@ -357,7 +320,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	 		case 3:
 	 			queryListForTab4(m_CalendarDay); break;
  		}
- 		
 	}
 
 	public void onClickSetDate1(View v) {
@@ -372,7 +334,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	};
 	
 	public void onClickSetDate2(View v) {
-		// TODO Auto-generated method stub
+		
 		DatePickerDialog newDlg = new DatePickerDialog(this, this, 
 				m_dateCalender2.get(Calendar.YEAR),
 				m_dateCalender2.get(Calendar.MONTH),
@@ -384,17 +346,13 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	};
 
 	@Override
-	public void onDateSet(DatePicker view, int year, int monthOfYear,
-			int dayOfMonth) {
-		// TODO Auto-generated method stub
+	public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
 		
-		if ( m_dateMode == 1 )
-		{
+		if ( m_dateMode == 1 ) {
 			m_dateCalender1.set(year, monthOfYear, dayOfMonth);
 			m_period1.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
 		}
-		else if ( m_dateMode == 2 )
-		{
+		else if ( m_dateMode == 2 ) {
 			m_dateCalender2.set(year, monthOfYear, dayOfMonth);
 			m_period2.setText(m_dateFormatter.format(m_dateCalender2.getTime()));
 		}
@@ -402,10 +360,10 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		m_dateMode = 0;
 	}
 	
-	
-	
 	private void queryListForTab1()
 	{
+		mfillMaps1.removeAll(mfillMaps1);
+		
 		String period1 = m_period1.getText().toString();
 		String period2 = m_period2.getText().toString();
 		String barCode = m_barCode.getText().toString();
@@ -424,151 +382,124 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		String tableName = null;
 
 		String constraint = "";
-		for ( int y = year1; y <= year2; y++ )
-		{
-			for ( int m = month1; m <= month2; m++ )
-			{
+		for ( int y = year1; y <= year2; y++ ) {
+			for ( int m = month1; m <= month2; m++ ) {
 				
 				tableName = String.format("SaD_%04d%02d", y, m);
 				
-				if ( barCode.equals("") != true )
-				{
+				if ( barCode.equals("") != true ) {
 					constraint = setConstraint(constraint, "Barcode", "=", barCode);
 				}
 				
-				if ( productName.equals("") != true )
-				{
+				if ( productName.equals("") != true ) {
 					constraint = setConstraint(constraint, "G_Name", "=", productName);
 				}
 				
-				if ( customerCode.equals("") != true )
-				{
+				if ( customerCode.equals("") != true ) {
 					constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
 				}
 				
-				if ( customerName.equals("") != true)
-				{
+				if ( customerName.equals("") != true) {
 					constraint = setConstraint(constraint, "Office_Name", "=", customerName);
 				}
 				
-				query = query + "select Office_Code, Office_Name, TSell_Pri, TSell_RePri, DC_Pri, ProFit_Pri, Sale_Date from " + tableName;
+				query = query + "select Office_Code, Office_Name, SUM(TSell_Pri) TSell_Pri, SUM(TSell_RePri) TSell_RePri, SUM(DC_Pri) DC_Pri, SUM(ProFit_Pri) ProFit_Pri, Sale_Date from " + tableName;
 				query = query + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
 				
 				if ( constraint.equals("") != true ) {
 					query = query + " and " + constraint;
 				}
-				
-				query = query + "; ";
+
+				query += " union all ";				
 			}
 		}
+		query = query.substring(0, query.length()-11);		
+		query += " GROUP BY Office_Code, Office_Name, Sale_Date; ";
 
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
  		dialog.setCancelable(false);
  		dialog.show();
- 		
-		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+		new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
 
 				dialog.dismiss();
 				dialog.cancel();
-				updateListForTab1(results);
+				if ( results.length() > 0 ) 
+					updateListForTab1(results);
+				adapter1.notifyDataSetChanged();	
+				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();	
 			}
-	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-		
-	}
-		
-	private void updateListForTab1(JSONArray results)
-	{
 
-		String[] from = new String[] {"Office_Code", "Office_Name", "rSale", "ProFit_Pri"};
-        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-        
-		
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				adapter1.notifyDataSetChanged();
+				Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
+	}
+
+	private void updateListForTab1(JSONArray results)
+	{		
 		try {
-			
-			if ( results.length() > 0 )
+			ArrayList<String> lSpListCode = new ArrayList<String>();
+	        ArrayList<String> lSpListName = new ArrayList<String>();
+	        ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
+	        ArrayList<Integer> lSpListProfit = new ArrayList<Integer>();
+ 			
+			for(int index = 0; index < results.length() ; index++)
 			{
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		        
-				ArrayList<String> lSpListCode = new ArrayList<String>();
-    	        ArrayList<String> lSpListName = new ArrayList<String>();
-    	        ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
-    	        ArrayList<Integer> lSpListProfit = new ArrayList<Integer>();
-	 			
-				for(int index = 0; index < results.length() ; index++)
-				{
-					JSONObject son = results.getJSONObject(index);
-					
-					String code = son.getString("Office_Code");
-    				String name = son.getString("Office_Name");
-    				int tSell = son.getInt("TSell_Pri");
-    				int tRSell = son.getInt("TSell_RePri");
-    				int dcPri = son.getInt("DC_Pri");
-    				        				
-    				boolean isExist = false;
-               		
-            		for ( int i = 0; i < lSpListCode.size(); i++ )
-            		{
-            			if ( lSpListCode.get(i).toString().equals(code) == true )
-            			{
-            				Integer rsale = lSpListSale.get(i).intValue() + ((tSell - (tRSell + dcPri)));
-            				Integer profit = lSpListProfit.get(i).intValue() + son.getInt("ProFit_Pri");
-            				
-            				lSpListSale.set(i, rsale);
-            				lSpListProfit.set(i, profit);
-            				
-            				isExist = true;
-            				break;
-            			}
-            		}
-            		
-            		if ( isExist == false )
-            		{
-            			Integer rsale = tSell - (tRSell + dcPri);
-        				Integer profit = son.getInt("ProFit_Pri");
-        				
-        				lSpListCode.add(code);
-        				lSpListName.add(name);
-        				lSpListSale.add(rsale);
-        				lSpListProfit.add(profit);
-            		}
-				}	
+				JSONObject son = results.getJSONObject(index);
 				
-				for ( int i = 0; i < lSpListCode.size(); i++ )
-        		{
-        			// prepare the list of all records
-    	            HashMap<String, String> map = new HashMap<String, String>();
-    	            
-    	            map.put("Office_Code", lSpListCode.get(i));
-    	            map.put("Office_Name", lSpListName.get(i));
-    	            map.put("rSale", m_numberFormat.format(lSpListSale.get(i).intValue()) );
-    	            map.put("ProFit_Pri", m_numberFormat.format(lSpListProfit.get(i).intValue()));
-    	            fillMaps.add(map);
+				String code = son.getString("Office_Code");
+				String name = son.getString("Office_Name");
+				int tSell = son.getInt("TSell_Pri");
+				int tRSell = son.getInt("TSell_RePri");
+				int dcPri = son.getInt("DC_Pri");
+				        				
+				boolean isExist = false;
+           		
+        		for ( int i = 0; i < lSpListCode.size(); i++ ) {
+        			if ( lSpListCode.get(i).toString().equals(code) == true ) {
+        				Integer rsale = lSpListSale.get(i).intValue() + ((tSell - (tRSell + dcPri)));
+        				Integer profit = lSpListProfit.get(i).intValue() + son.getInt("ProFit_Pri");
+        				
+        				lSpListSale.set(i, rsale);
+        				lSpListProfit.set(i, profit);
+        				
+        				isExist = true;
+        				break;
+        			}
         		}
         		
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4_2, 
-						from, to);
-				
-				m_listSalesTab1.setAdapter(adapter);
-				Toast.makeText(getApplicationContext(), "조회 완료: " + lSpListCode.size(), Toast.LENGTH_SHORT).show();
-				
-			}
-			else 
-			{
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4_2, 
-						from, to);
-				
-				m_listSalesTab1.setAdapter(adapter);
-				
-				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
-				
-			}
+        		if ( isExist == false ) {
+        			Integer rsale = tSell - (tRSell + dcPri);
+    				Integer profit = son.getInt("ProFit_Pri");
+    				
+    				lSpListCode.add(code);
+    				lSpListName.add(name);
+    				lSpListSale.add(rsale);
+    				lSpListProfit.add(profit);
+        		}
+			}	
 			
+			for ( int i = 0; i < lSpListCode.size(); i++ ) {
+    			// prepare the list of all records
+	            HashMap<String, String> map = new HashMap<String, String>();
+	            
+	            map.put("Office_Code", lSpListCode.get(i));
+	            map.put("Office_Name", lSpListName.get(i));
+	            map.put("rSale", m_numberFormat.format(lSpListSale.get(i).intValue()) );
+	            map.put("ProFit_Pri", m_numberFormat.format(lSpListProfit.get(i).intValue()));
+	            mfillMaps1.add(map);
+    		}		
+
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -576,6 +507,8 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	
 	private void queryListForTab2()
 	{
+		mfillMaps2.removeAll(mfillMaps2);
+		
 		String period1 = m_period1.getText().toString();
 		String period2 = m_period2.getText().toString();
 		String barCode = m_barCode.getText().toString();
@@ -594,44 +527,40 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		String tableName = null;
 		String constraint = "";
 		
-		for ( int y = year1; y <= year2; y++ )
-		{
-			for ( int m = month1; m <= month2; m++ )
-			{
+		for ( int y = year1; y <= year2; y++ ) {
+			
+			for ( int m = month1; m <= month2; m++ ) {
 				
 				tableName = String.format("SaD_%04d%02d", y, m);
 				
-				if ( barCode.equals("") != true )
-				{
+				if ( barCode.equals("") != true ) {
 					constraint = setConstraint(constraint, "A.Barcode", "=", barCode);
 				}
 				
-				if ( productName.equals("") != true )
-				{
+				if ( productName.equals("") != true ) {
 					constraint = setConstraint(constraint, "A.G_Name", "=", productName);
 				}
 				
-				if ( customerCode.equals("") != true )
-				{
+				if ( customerCode.equals("") != true ) {
 					constraint = setConstraint(constraint, "A.Office_Code", "=", customerCode);
 				}
 				
-				if ( customerName.equals("") != true)
-				{
+				if ( customerName.equals("") != true) {
 					constraint = setConstraint(constraint, "A.Office_Name", "=", customerName);
 				}
 				
-    			query = query + "select A.Barcode, A.G_Name, A.Sale_Count, A.TSell_Pri, A.TSell_RePri, A.DC_Pri from " + tableName + " as A inner join Goods as B on A.Barcode = B.BarCode ";
+    			query = query + "select A.Barcode, A.G_Name, SUM(A.Sale_Count) Sale_Count, SUM(A.TSell_Pri) TSell_Pri, SUM(A.TSell_RePri) TSell_RePri, SUM(A.DC_Pri) DC_Pri from " + tableName + " as A inner join Goods as B on A.Barcode = B.BarCode ";
     			query = query + " where B.Goods_Use='1' AND B.Pur_Use='1' AND A.Sale_Date between '" + period1 + "' and '" + period2 + "'";
    			
-    			if ( constraint.equals("") != true )
-    			{
+    			if ( constraint.equals("") != true ) {
     				query = query + " and " + constraint;
     			}
-				
-				query = query + "; ";
+
+				query += " union all ";				
 			}
 		}
+		query = query.substring(0, query.length()-11);		
+		query += " GROUP BY A.Barcode, A.G_Name; ";
 
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
@@ -639,115 +568,94 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
  		dialog.setCancelable(false);
  		dialog.show();
  		
-		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+		new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
 
 				dialog.dismiss();
 				dialog.cancel();
-				updateListForTab2(results);
+				if ( results.length() > 0 ) 
+					updateListForTab2(results);
+				adapter2.notifyDataSetChanged();
+				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
 			}
-	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-		
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				adapter2.notifyDataSetChanged();
+				Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
 	}
 		
 	private void updateListForTab2(JSONArray results)
 	{
-
-		String[] from = new String[] {"Barcode", "G_Name", "Sale_Count", "rSale"};
-        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-        
-		
-		try {
-			
-			if ( results.length() > 0 )
+		try {			
+			ArrayList<String> lSpListCode = new ArrayList<String>();
+	        ArrayList<String> lSpListName = new ArrayList<String>();
+	        ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
+	        ArrayList<Integer> lSpListSaleCnt = new ArrayList<Integer>();
+ 			
+			for(int index = 0; index < results.length() ; index++)
 			{
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		        
-				ArrayList<String> lSpListCode = new ArrayList<String>();
-		        ArrayList<String> lSpListName = new ArrayList<String>();
-		        ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
-		        ArrayList<Integer> lSpListSaleCnt = new ArrayList<Integer>();
-	 			
-				for(int index = 0; index < results.length() ; index++)
-				{
-					JSONObject son = results.getJSONObject(index);
-					
-					String code = son.getString("Barcode");
-					String name = son.getString("G_Name");
-					int tSell = son.getInt("TSell_Pri");
-					int tRSell = son.getInt("TSell_RePri");
-					int dcPri = son.getInt("DC_Pri");
-
-					boolean isExist = false;
-	           		
-	        		for ( int i = 0; i < lSpListCode.size(); i++ )
-	        		{
-	        			if ( lSpListCode.get(i).toString().equals(code) == true )
-	        			{
-	        				Integer rsale = lSpListSale.get(i).intValue() + ((tSell - (tRSell + dcPri)));
-	        				Integer profit = lSpListSaleCnt.get(i).intValue() + son.getInt("Sale_Count");
-	        				
-	        				lSpListSale.set(i, rsale);
-	        				lSpListSaleCnt.set(i, profit);
-	        				
-	        				isExist = true;
-	        				break;
-	        			}
-	        		}
-	        		
-	        		if ( isExist == false )
-	        		{
-	        			Integer rsale = tSell - (tRSell + dcPri);
-	    				Integer count = son.getInt("Sale_Count");
-	    				
-	    				lSpListCode.add(code);
-	    				lSpListName.add(name);
-	    				lSpListSale.add(rsale);
-	    				lSpListSaleCnt.add(count);
-	        		}
-				}	
+				JSONObject son = results.getJSONObject(index);
 				
-				for ( int i = 0; i < lSpListCode.size(); i++ )
-				{
-					// prepare the list of all records
-		            HashMap<String, String> map = new HashMap<String, String>();
-		            
-		            map.put("Barcode", lSpListCode.get(i));
-		            map.put("G_Name", lSpListName.get(i));
-		            map.put("Sale_Count", String.format("%d", lSpListSaleCnt.get(i).intValue()));
-		            map.put("rSale", m_numberFormat.format(lSpListSale.get(i).intValue()));
-		            fillMaps.add(map);
-				}
+				String code = son.getString("Barcode");
+				String name = son.getString("G_Name");
+				int tSell = son.getInt("TSell_Pri");
+				int tRSell = son.getInt("TSell_RePri");
+				int dcPri = son.getInt("DC_Pri");
+
+				boolean isExist = false;
+           		
+        		for ( int i = 0; i < lSpListCode.size(); i++ )
+        		{
+        			if ( lSpListCode.get(i).toString().equals(code) == true )
+        			{
+        				Integer rsale = lSpListSale.get(i).intValue() + ((tSell - (tRSell + dcPri)));
+        				Integer profit = lSpListSaleCnt.get(i).intValue() + son.getInt("Sale_Count");
+        				
+        				lSpListSale.set(i, rsale);
+        				lSpListSaleCnt.set(i, profit);
+        				
+        				isExist = true;
+        				break;
+        			}
+        		}
         		
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4_2, 
-						from, to);
-				
-				m_listSalesTab2.setAdapter(adapter);
-				Toast.makeText(getApplicationContext(), "조회 완료: " + lSpListCode.size(), Toast.LENGTH_SHORT).show();
-				
+        		if ( isExist == false ) {
+        			Integer rsale = tSell - (tRSell + dcPri);
+    				Integer count = son.getInt("Sale_Count");
+    				
+    				lSpListCode.add(code);
+    				lSpListName.add(name);
+    				lSpListSale.add(rsale);
+    				lSpListSaleCnt.add(count);
+        		}
+			}	
+			
+			for ( int i = 0; i < lSpListCode.size(); i++ ) {
+				// prepare the list of all records
+	            HashMap<String, String> map = new HashMap<String, String>();
+	            
+	            map.put("Barcode", lSpListCode.get(i));
+	            map.put("G_Name", lSpListName.get(i));
+	            map.put("Sale_Count", String.format("%d", lSpListSaleCnt.get(i).intValue()));
+	            map.put("rSale", m_numberFormat.format(lSpListSale.get(i).intValue()));
+	            mfillMaps2.add(map);
 			}
-			else 
-			{
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4_2, 
-						from, to);
-				
-				m_listSalesTab2.setAdapter(adapter);
-				
-				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
-				
-			}			
 		} catch (JSONException e) {
 			e.printStackTrace();			
 		}
-		
 	}
-	
 	
 	private void queryListForTab3()
 	{
+		mfillMaps3.removeAll(mfillMaps3);
+		
 		String period1 = m_period1.getText().toString();
 		String period2 = m_period2.getText().toString();
 		String barCode = m_barCode.getText().toString();
@@ -767,149 +675,125 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		String tableName2 = null;
 		String constraint = "";
 		
-		for ( int y = year1; y <= year2; y++ )
-		{
-			for ( int m = month1; m <= month2; m++ )
-			{
+		for ( int y = year1; y <= year2; y++ ) {
+			for ( int m = month1; m <= month2; m++ ) {
 				
 				tableName = String.format("SaD_%04d%02d", y, m);
 				
-				if ( barCode.equals("") != true )
-				{
+				if ( barCode.equals("") != true ) {
 					constraint = setConstraint(constraint, "Barcode", "=", barCode);
 				}
 				
-				if ( productName.equals("") != true )
-				{
+				if ( productName.equals("") != true ) {
 					constraint = setConstraint(constraint, "G_Name", "=", productName);
 				}
 				
-				if ( customerCode.equals("") != true )
-				{
+				if ( customerCode.equals("") != true ) {
 					constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
 				}
 				
-				if ( customerName.equals("") != true)
-				{
+				if ( customerName.equals("") != true) {
 					constraint = setConstraint(constraint, "Office_Name", "=", customerName);
 				}
 				
-    			query = query + "select Office_Code, Office_Name, TSell_Pri, TSell_RePri, DC_Pri from " + tableName;
+    			query = query + "select Office_Code, Office_Name, SUM(TSell_Pri) TSell_Pri, SUM(TSell_RePri) TSell_RePri, SUM(DC_Pri) DC_Pri from " + tableName;
     			query = query + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
    			
-    			if ( constraint.equals("") != true )
-    			{
+    			if ( constraint.equals("") != true ) {
     				query = query + " and " + constraint;
     			}
-    			
-				query = query + "; ";
+
+				query += " union all ";				
 			}
 		}
-
+		query = query.substring(0, query.length()-11);		
+		query += " GROUP BY Office_Code, Office_Name; ";
+		
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
  		dialog.setCancelable(false);
  		dialog.show();
  		
-		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+		new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
 
 				dialog.dismiss();
 				dialog.cancel();
-				updateListForTab3(results);
+				if (results.length()>0)
+					updateListForTab3(results);
+				adapter3.notifyDataSetChanged();
+				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();	
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				adapter3.notifyDataSetChanged();
+				Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+				
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-		
 	}
 		
 	private void updateListForTab3(JSONArray results)
 	{
-		String[] from = new String[] {"Office_Code", "Office_Name", "rSale"};
-	    int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3 };
-        
 		try {
+			ArrayList<String> lSpListCode = new ArrayList<String>();
+		    ArrayList<String> lSpListName = new ArrayList<String>();
+		    ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
+ 			
+			for(int index = 0; index < results.length() ; index++)
+			{
+				JSONObject son = results.getJSONObject(index);
+				
+				String code = son.getString("Office_Code");
+				String name = son.getString("Office_Name");
+				int tSell = son.getInt("TSell_Pri");
+				int tRSell = son.getInt("TSell_RePri");
+				int dcPri = son.getInt("DC_Pri");
 			
-			if ( results.length() > 0 )
+				boolean isExist = false;
+	       		
+	    		for ( int i = 0; i < lSpListCode.size(); i++ )
+	    		{
+	    			if ( lSpListCode.get(i).toString().equals(code) == true )
+	    			{
+	    				Integer rsale = lSpListSale.get(i).intValue() + ((tSell - (tRSell + dcPri)));
+	    				
+	    				lSpListSale.set(i, rsale);
+	    				
+	    				isExist = true;
+	    				break;
+	    			}
+	    		}
+	    		
+	    		if ( isExist == false ) {
+	    			Integer rsale = tSell - (tRSell + dcPri);					
+					lSpListCode.add(code);
+					lSpListName.add(name);
+					lSpListSale.add(rsale);
+	    		}
+			}	
+			
+			for ( int i = 0; i < lSpListCode.size(); i++ )
 			{
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+				// prepare the list of all records
+		        HashMap<String, String> map = new HashMap<String, String>();
 		        
-				ArrayList<String> lSpListCode = new ArrayList<String>();
-			    ArrayList<String> lSpListName = new ArrayList<String>();
-			    ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
-	 			
-				for(int index = 0; index < results.length() ; index++)
-				{
-					JSONObject son = results.getJSONObject(index);
-					
-					String code = son.getString("Office_Code");
-					String name = son.getString("Office_Name");
-					int tSell = son.getInt("TSell_Pri");
-					int tRSell = son.getInt("TSell_RePri");
-					int dcPri = son.getInt("DC_Pri");
-				
-					boolean isExist = false;
-		       		
-		    		for ( int i = 0; i < lSpListCode.size(); i++ )
-		    		{
-		    			if ( lSpListCode.get(i).toString().equals(code) == true )
-		    			{
-		    				Integer rsale = lSpListSale.get(i).intValue() + ((tSell - (tRSell + dcPri)));
-		    				
-		    				lSpListSale.set(i, rsale);
-		    				
-		    				isExist = true;
-		    				break;
-		    			}
-		    		}
-		    		
-		    		if ( isExist == false )
-		    		{
-		    			Integer rsale = tSell - (tRSell + dcPri);
-						
-						lSpListCode.add(code);
-						lSpListName.add(name);
-						lSpListSale.add(rsale);
-		    		}
-				}	
-				
-				for ( int i = 0; i < lSpListCode.size(); i++ )
-				{
-					// prepare the list of all records
-			        HashMap<String, String> map = new HashMap<String, String>();
-			        
-			        map.put("Office_Code", lSpListCode.get(i));
-			        map.put("Office_Name", lSpListName.get(i));
-			        map.put("rSale", m_numberFormat.format(lSpListSale.get(i).intValue()) );
-			        fillMaps.add(map);
-				}
-        		
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item3, 
-						from, to);
-				
-				m_listSalesTab3.setAdapter(adapter);
-				Toast.makeText(getApplicationContext(), "조회 완료: " + lSpListCode.size(), Toast.LENGTH_SHORT).show();
-				
+		        map.put("Office_Code", lSpListCode.get(i));
+		        map.put("Office_Name", lSpListName.get(i));
+		        map.put("rSale", m_numberFormat.format(lSpListSale.get(i).intValue()) );
+		        mfillMaps3.add(map);
 			}
-			else 
-			{
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item3, 
-						from, to);
-				
-				m_listSalesTab3.setAdapter(adapter);
-				
-				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
-				
-			}
+			
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		
 	}
-	
 	
 	private void queryListForTab4(String period)
 	{
@@ -926,32 +810,28 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		query = query + " where Sale_Date = '" + period + "'";
 
 		// 로딩 다이알로그 
-    	//dialog = new ProgressDialog(this);
- 		///dialog.setMessage("Loading....");
- 		//dialog.show();
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.show();
  		
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
 
-				//dialog.dismiss();
-				//dialog.cancel();
+				dialog.dismiss();
+				dialog.cancel();
 				updateListForTab4(results);
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-		
 	}
 		
 	private void updateListForTab4(JSONArray results)
 	{
-
 		String[] from = new String[] {"content"};
 	    int[] to = new int[] { R.id.textView1};
         
-		
 		try {
-			
 			if ( results.length() > 0 )
 			{
 				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
@@ -982,49 +862,33 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		            
 		            map4.put("content", tPurPri);
 		            fillMaps.add(map4);
-		            
 				}	
 				
-				
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_text, 
-						from, to);
-				
+				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_text, from, to);
 				m_listSalesTab4.setAdapter(adapter);
-				
 				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
-				
 			}
-			else 
-			{
+			else {
 				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_text, 
-						from, to);
+				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_text, from, to);
 				
 				m_listSalesTab4.setAdapter(adapter);
-				
 				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
-				
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		
 	}
-
 	
     private String setConstraint(String str, String field, String op, String value)
     {
-    	if ( str.equals("") != true )
-    	{
+    	if ( str.equals("") != true ) {
     		str = str + " and ";
     	}
     	
-    	str = str + field + " " + op + " '" + value + "'";
-    	
-    	return str;
+    	return str + field + " " + op + " '" + value + "'";
     }
 	
-
  	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
@@ -1111,19 +975,11 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	
 		if (barcode.equals("")) return;
 		
-		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
-
 	    // 콜백함수와 함께 실행
 	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
-				dialog.dismiss();
-				dialog.cancel();
 				
 				if (results.length() > 0) {
 					try {						
@@ -1141,14 +997,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	
 	// 거래처 코드로 거래처명 자동 완성
 	private void fillBusNameFromBusCode(String customerCode) {
-		// TODO Auto-generated method stub
-		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
- 		
-		// TODO Auto-generated method stub
+		
 		String query = "";
 		
 		query = "SELECT Office_Name From Office_Manage WHERE Office_Code = '" + customerCode + "';";
@@ -1156,8 +1005,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
-				dialog.dismiss();
-				dialog.cancel();
+
 				if (results.length() > 0) {
 					try {
 						JSONObject json = results.getJSONObject(0);
@@ -1175,4 +1023,47 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
+	
+
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	private void setupActionBar() {
+
+		ActionBar actionbar = getActionBar();         
+//		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
+//		actionbar.setCustomView(custom_action_bar);
+
+		actionbar.setDisplayShowHomeEnabled(false);
+		actionbar.setDisplayShowTitleEnabled(true);
+		actionbar.setDisplayShowCustomEnabled(true);
+		actionbar.setTitle("매출관리");
+		
+		getActionBar().setDisplayHomeAsUpEnabled(false);
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.manage_payment, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			// This ID represents the Home or Up button. In the case of this
+			// activity, the Up button is shown. Use NavUtils to allow users
+			// to navigate up one level in the application structure. For
+			// more details, see the Navigation pattern on Android Design:
+			//
+			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
+			//
+			NavUtils.navigateUpFromSameTask(this);
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+	
 }

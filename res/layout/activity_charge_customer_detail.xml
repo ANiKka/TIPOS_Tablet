@@ -119,6 +119,7 @@
              android:textSize="14sp"
              android:text="현금영수증 공제 (%)" />
 
+         <!-- 
          <EditText
              android:id="@+id/editTextCashDeduction"
              android:layout_width="0dip"
@@ -142,6 +143,7 @@
             android:scaleY="0.6"
 	        android:background="@drawable/basic_inquiry_btn"
 	        android:onClick="OnClickSearch"/>
+	         -->
          
     </LinearLayout>
     

@@ -38,7 +38,6 @@ public class ManageEventListActivity extends Activity {
 	
 	ListView m_cusList;
 	SimpleAdapter m_adapter; 
-	List<HashMap<String, String>> mDataStore = new ArrayList<HashMap<String, String>>();
 	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
 
     // loading bar
@@ -100,8 +99,7 @@ public class ManageEventListActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 
-		if (!mDataStore.isEmpty()) {
-			mDataStore.removeAll(mDataStore);
+		if (!mfillMaps.isEmpty()) {
 			mfillMaps.removeAll(mfillMaps);
 			m_adapter.notifyDataSetChanged();	
 		}
@@ -121,18 +119,6 @@ public class ManageEventListActivity extends Activity {
 		startActivity(intent);
 	}
 	
-	private boolean checkExistEvent(String Evt_CD) {
-		Iterator<HashMap<String, String>> it = mDataStore.iterator();
-		while(it.hasNext()) {
-			HashMap<String, String> obj = it.next();
-			String eEvt_CD = obj.get("Evt_CD");
-			if (Evt_CD.equals(eEvt_CD)) {
-				return false;
-			}
-		}
-		return true;
-	}
-    
 	private void updateListView(JSONArray results) {
         
         for (int i = 0; i < results.length(); i++) {
@@ -141,18 +127,14 @@ public class ManageEventListActivity extends Activity {
             	JSONObject json = results.getJSONObject(i);
             	HashMap<String, String> map = JsonHelper.toStringHashMap(json);
             	
-	            String Evt_CD = map.get("Evt_CD");
-	            if (checkExistEvent(Evt_CD)) {
-	            	String Evt_Gubun = map.get("Evt_Gubun");
-	            	if (Evt_Gubun.equals("1")) map.put("Evt_Gubun_text", "기간행사");
-	            	else if(Evt_Gubun.equals("0")) map.put("Evt_Gubun_text", "시간행사");
-	            	else map.put("Evt_Gubun_text", "연속행사");
-	            	String Evt_SDate = map.get("Evt_SDate");
-	            	String Evt_EDate = map.get("Evt_EDate");
-	            	map.put("Evt_Date", Evt_SDate + " ~ " + Evt_EDate);
-		            mfillMaps.add(map);
-	            }
-	            mDataStore.add(map);
+	            String Evt_Gubun = map.get("Evt_Gubun");
+            	if (Evt_Gubun.equals("1")) map.put("Evt_Gubun_text", "기간행사");
+            	else if(Evt_Gubun.equals("0")) map.put("Evt_Gubun_text", "시간행사");
+            	else map.put("Evt_Gubun_text", "연속행사");
+            	String Evt_SDate = map.get("Evt_SDate");
+            	String Evt_EDate = map.get("Evt_EDate");
+            	map.put("Evt_Date", Evt_SDate + " ~ " + Evt_EDate);
+	            mfillMaps.add(map);
 	            		 
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -165,7 +147,7 @@ public class ManageEventListActivity extends Activity {
 	private void doSearch() {
 
 		String query = "";    	
-		query = "SELECT Evt_CD,Evt_Name,Evt_Gubun,Evt_SDate,Evt_EDate FROM Evt_Mst;";
+		query = "SELECT Evt_CD,Evt_Name,Evt_Gubun,Evt_SDate,Evt_EDate FROM Evt_Mst GROUP BY Evt_CD,Evt_Name,Evt_Gubun,Evt_SDate,Evt_EDate ;";
 
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
