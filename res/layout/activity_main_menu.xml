@@ -20,23 +20,26 @@
 	    
         <Button
 	        android:id="@+id/buttonDefaultMagage"
-	        android:layout_width="wrap_content"
+	        android:layout_width="0dp"
 	        android:layout_height="wrap_content"
+	    	android:layout_weight="1"
 	        android:background="@drawable/page_after_login_btn01"
 	        android:onClick="onClickDefaultManage" />
 	
         <Button
 	        android:id="@+id/buttonPurchaseManage"
-	        android:layout_width="wrap_content"
+	        android:layout_width="0dp"
 	        android:layout_height="wrap_content"
+	    	android:layout_weight="1"
 	        android:layout_marginLeft="20dp"
 	        android:background="@drawable/page_after_login_btn02"
 	        android:onClick="onClickPurchaseManage" />
         
          <Button
 	        android:id="@+id/buttonSalesNews"
-	        android:layout_width="wrap_content"
+	        android:layout_width="0dp"
 	        android:layout_height="wrap_content"
+	    	android:layout_weight="1"
 	        android:layout_marginLeft="20dp"
 	        android:background="@drawable/page_after_login_btn03"
 	        android:onClick="onClickSalesNews" />
@@ -54,15 +57,17 @@
 	    
         <Button
 	        android:id="@+id/buttonSalesManage"
-	        android:layout_width="wrap_content"
+	        android:layout_width="0dp"
 	        android:layout_height="wrap_content"
+	    	android:layout_weight="1"
 	        android:background="@drawable/page_after_login_btn04"
 	        android:onClick="onClickSalesManage" />
         
 	    <Button
 	        android:id="@+id/buttonEventManage"
-	        android:layout_width="wrap_content"
+	        android:layout_width="0dp"
 	        android:layout_height="wrap_content"
+	    	android:layout_weight="1"
 	        android:layout_marginLeft="20dp"
 	        android:background="@drawable/page_after_login_btn05"
 	        android:onClick="onClickEventManage" />
@@ -70,8 +75,9 @@
        
 	    <Button
 	        android:id="@+id/buttonManageStock"
-	        android:layout_width="wrap_content"
+	        android:layout_width="0dp"
 	        android:layout_height="wrap_content"
+	    	android:layout_weight="1"
 	        android:layout_marginLeft="20dp"
 	        android:background="@drawable/page_after_login_btn06"
 	        android:onClick="onClickManageStock" />

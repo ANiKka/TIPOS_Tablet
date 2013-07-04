@@ -236,17 +236,6 @@
 	        android:layout_height="wrap_content"
 	        android:scaleY="0.75"
 	        android:background="@drawable/register_btn" />
-       <!-- 
-       <Button
-	        android:id="@+id/buttonModify"
-	        style="?android:attr/buttonStyleSmall"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_marginLeft="10dip"
-	        android:scaleY="0.75"
-	        android:background="@drawable/change_btn"
-	        android:onClick="onClickModify" />
-       -->
        <Button
 	        android:id="@+id/buttonRenew"
 	        style="?android:attr/buttonStyleSmall"
@@ -281,7 +270,6 @@
 	
     <!-- Header -->
     <LinearLayout android:id="@+id/header"
-        
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
         >
@@ -339,13 +327,14 @@
     <!-- ListView (grid_items) -->
     <LinearLayout android:id="@+id/layout"
         android:layout_width="match_parent"
-        android:layout_height="220dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         >
 
         <ListView
             android:id="@+id/listviewReadyToSendEventList"
-            android:layout_width="fill_parent"
-            android:layout_height="220dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             >
 
         </ListView>
