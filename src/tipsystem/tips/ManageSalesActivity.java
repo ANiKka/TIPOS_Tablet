@@ -20,14 +20,12 @@ import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
 
 import android.os.Bundle;
-import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -47,7 +45,7 @@ import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 
 public class ManageSalesActivity extends Activity implements OnItemClickListener, 
-															OnDateChangeListener,
+//															OnDateChangeListener,
 															OnTabChangeListener,
 															DatePickerDialog.OnDateSetListener{
 
@@ -111,8 +109,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_manage_sales);
-		// Show the Up button in the action bar.
-		setupActionBar();
 		
 		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
 		m_userProfile = LocalStorage.getJSONObject(this, "userProfile"); 
@@ -196,7 +192,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         //m_tabHost.getCurrentTab();
         
         m_calendar = (CalendarView)findViewById(R.id.calendarView1);
-        m_calendar.setOnDateChangeListener(this);
+        //m_calendar.setOnDateChangeListener(this);
         
         m_listSalesTab1.setOnItemClickListener(this);
         m_listSalesTab3.setOnItemClickListener(this);
@@ -277,7 +273,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	    	startActivity(intent);
 		}
 	}
-
+/*
 	@Override
 	public void onSelectedDayChange(CalendarView view, int year, int month, int dayOfMonth) {
 	
@@ -285,7 +281,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 
  		doQuery();
 	}
-	
+	*/
 	public void OnClickRenew(View v) {
 
         if (!m_APP_USER_GRADE.equals("2")) {
@@ -295,17 +291,17 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		m_barCode.setText("");
 		m_productName.setText("");
 	}
-
-	public void OnClickSearch(View v) {
-
- 		doQuery();
-	};
 	
 	@Override
 	public void onTabChanged(String tabId) {
 	
  		//doQuery();
 	}
+
+	public void OnClickSearch(View v) {
+
+ 		doQuery();
+	};
 	
 	public void doQuery() {
 
@@ -1024,24 +1020,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
 	
-
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();         
-//		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-//		actionbar.setCustomView(custom_action_bar);
-
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("매출관리");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
-	}
-
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.

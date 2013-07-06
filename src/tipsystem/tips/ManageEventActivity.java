@@ -22,7 +22,6 @@ import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
 
-import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -108,9 +107,7 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_manage_event);
-		// Show the Up button in the action bar.
-		setupActionBar();
-				
+
 		m_shop = LocalStorage.getJSONObject(this, "currentShopData");	       
         try {
 			m_ip = m_shop.getString("SHOP_IP");
@@ -879,21 +876,6 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 			return;
 		}
 		
-	}
-	
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();      
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("행사관리");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
-
 	}
 
 	@Override

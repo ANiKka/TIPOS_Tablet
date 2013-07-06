@@ -69,12 +69,6 @@ public class MainActivity extends Activity {
 		}
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
 
 	public void showSelectShop() {
 		m_alert = new AlertDialog.Builder(this)
@@ -124,11 +118,7 @@ public class MainActivity extends Activity {
 					    }	
 
 			    		LocalStorage.setJSONObject(MainActivity.this, "currentShopData", shop);
-			        	Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-		            	intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		        		intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-			        	startActivity(intent);
-		                finish();
+			        	next();
 						   
 					} catch (ParseException e) {
 						e.printStackTrace();
@@ -139,6 +129,14 @@ public class MainActivity extends Activity {
 			}).create();
 		
 		m_alert.show();
+	}
+	
+	private void next() {
+		Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+    	intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+    	startActivity(intent);
+        finish();
 	}
 
 	private View createCustomView() {
@@ -190,11 +188,12 @@ public class MainActivity extends Activity {
 	    		+ " on APP_USER.OFFICE_CODE = V_OFFICE_USER.Sto_CD "
 	    		+ " JOIN APP_SETTLEMENT on APP_USER.OFFICE_CODE = APP_SETTLEMENT.OFFICE_CODE " 
 	    		+ " where APP_HP =" + phoneNumber + "AND DEL_YN = 0 ;";
+	   /*
 	    query = "select * " 
 	    		+"  from APP_SETTLEMENT as A inner join V_OFFICE_USER as B " 
 	    		+ " on A.OFFICE_CODE = B.Sto_CD "
 	    		+ " where B.Office_Mobile1 ='" + phoneNumber + "' AND A.DEL_YN = 0 ;";
-
+*/
     	
 	    // 콜백함수와 함께 실행
 	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
@@ -396,4 +395,11 @@ public class MainActivity extends Activity {
 			this.ctx = ctx;
 		}		
 	};
+	
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
 }

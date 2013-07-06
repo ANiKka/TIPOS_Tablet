@@ -38,8 +38,6 @@ public class InputQuestionActivity extends Activity implements OnItemSelectedLis
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_input_question);
-		// Show the Up button in the action bar.
-		setupActionBar();
 		
 		Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
 		
@@ -107,26 +105,6 @@ public class InputQuestionActivity extends Activity implements OnItemSelectedLis
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-	}
-
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		getActionBar().setDisplayHomeAsUpEnabled(true);
-		
-		ActionBar actionbar = getActionBar();         
-		//LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-		//actionbar.setCustomView(custom_action_bar);
-
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setTitle("문의하기");
-		//actionbar.setDisplayShowCustomEnabled(true);
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
-
 	}
 
 	@Override

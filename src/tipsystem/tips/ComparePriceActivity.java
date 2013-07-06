@@ -11,8 +11,6 @@ import org.json.JSONObject;
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 
-import tipsystem.tips.MainActivity.ViewHolder;
-import tipsystem.tips.models.ShopSelectItem;
 import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
@@ -44,8 +42,6 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RadioButton;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.support.v4.app.NavUtils;
@@ -102,8 +98,6 @@ public class ComparePriceActivity extends Activity{
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_compare_price);
-		// Show the Up button in the action bar.
-		setupActionBar();
 
 		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
 	       
@@ -557,20 +551,6 @@ public class ComparePriceActivity extends Activity{
 			
 			return convertView;
 		}
-	}
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();
-
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("가격비교");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
 	}
 
 	@Override

@@ -87,8 +87,6 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_manage_stock);
-		// Show the Up button in the action bar.
-		setupActionBar();
 		
 		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
 	       
@@ -772,22 +770,6 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
         rmap.put("Real_Sto", numOfReal.getText().toString());
      
         m_selectedListIndex = -1;
-	}
-
-	
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();
-
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("재고관리");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
 	}
 
 	@Override

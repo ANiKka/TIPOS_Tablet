@@ -10,7 +10,6 @@ import org.json.JSONObject;
 
 import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
-import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -18,7 +17,6 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,7 +25,6 @@ import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
-import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView.OnItemClickListener;
@@ -74,8 +71,6 @@ public class ManageCustomerListActivity extends Activity{
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_manage_customer_list);
-		// Show the Up button in the action bar.
-		setupActionBar();
 		
 		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
 	       
@@ -175,22 +170,6 @@ public class ManageCustomerListActivity extends Activity{
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
     }
     
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();         
-		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-		actionbar.setCustomView(custom_action_bar);
-
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(false);
-		actionbar.setDisplayShowCustomEnabled(true);
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
-	}
-
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.

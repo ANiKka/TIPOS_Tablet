@@ -16,24 +16,6 @@ public class ManagePurchaseActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_manage_purchase);
-		// Show the Up button in the action bar.
-		setupActionBar();
-	}
-
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();
-		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-		actionbar.setCustomView(custom_action_bar);
-
-		actionbar.setDisplayShowHomeEnabled(true);
-		actionbar.setDisplayShowTitleEnabled(false);
-		actionbar.setDisplayShowCustomEnabled(true);
-
-		getActionBar().setDisplayHomeAsUpEnabled(true);
 	}
 
 	@Override

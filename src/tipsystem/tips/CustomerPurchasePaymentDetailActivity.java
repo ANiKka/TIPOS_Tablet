@@ -45,8 +45,6 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_customer_purchase_payment_detail);
-		// Show the Up button in the action bar.
-		setupActionBar();
 		
 		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
 	       
@@ -149,26 +147,6 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 		}
 	}
 
-
-
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();         
-//		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-//		actionbar.setCustomView(custom_action_bar);
-
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("거래처 매입/매출 상세보기");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
-
-	}
-
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -193,5 +171,4 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-
 }

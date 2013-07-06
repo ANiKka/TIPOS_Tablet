@@ -112,9 +112,7 @@ public class ManageProductActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_manage_product);
-		// Show the Up button in the action bar.
-		setupActionBar();
-		
+
         m_shop = LocalStorage.getJSONObject(this, "currentShopData");
         
         try {
@@ -274,20 +272,6 @@ public class ManageProductActivity extends Activity {
 		m_textBarcode.setText(barcode);
 		
 		fetchLName();
-	}
-
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();        
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("상품등록");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
 	}
 
 	@Override

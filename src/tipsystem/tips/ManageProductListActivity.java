@@ -75,8 +75,7 @@ public class ManageProductListActivity extends Activity {
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_manage_product_list);
-		// Show the Up button in the action bar.
-		setupActionBar();
+
         m_shop = LocalStorage.getJSONObject(this, "currentShopData");
         
         try {
@@ -168,22 +167,6 @@ public class ManageProductListActivity extends Activity {
 				
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-	}
-
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();         
-
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("전체 상품 조회");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
-
 	}
 	
 	@Override

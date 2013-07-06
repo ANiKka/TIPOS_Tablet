@@ -34,8 +34,6 @@ public class PurchaseListDetailViewActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_purchase_list_detail_view);
-		// Show the Up button in the action bar.
-		setupActionBar();
 		
 		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
 	       
@@ -113,25 +111,6 @@ public class PurchaseListDetailViewActivity extends Activity {
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		
-	}
-
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();         
-//		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-//		actionbar.setCustomView(custom_action_bar);
-
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("매입목록 상세보기");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
-
 	}
 
 	@Override

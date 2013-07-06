@@ -101,8 +101,6 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_purchase_regist);
-		// Show the Up button in the action bar.
-		setupActionBar();
 		
 		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
 		m_userProfile = LocalStorage.getJSONObject(this, "userProfile"); 
@@ -1019,20 +1017,6 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 				
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
-	}
-
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("매입등록");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
 	}
 
 	@Override

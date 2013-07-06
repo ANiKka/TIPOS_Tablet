@@ -27,8 +27,6 @@ public class EventDetailViewActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_event_detail_view);
-		// Show the Up button in the action bar.
-		setupActionBar();
 		
 		m_listDetailView= (ListView)findViewById(R.id.listviewReadyToSendEventDetailViewList);
 		TextView evtName = (TextView)findViewById(R.id.textView2);
@@ -82,24 +80,6 @@ public class EventDetailViewActivity extends Activity {
 				from, to);
 		
 		m_listDetailView.setAdapter(adapter);
-	}
-
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();         
-//		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-//		actionbar.setCustomView(custom_action_bar);
-
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("행사전송대기목록");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
-
 	}
 
 	@Override

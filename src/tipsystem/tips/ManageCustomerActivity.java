@@ -3,7 +3,6 @@ package  tipsystem.tips;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -11,7 +10,6 @@ import org.json.JSONObject;
 
 import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
-import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
 
 import android.os.Bundle;
@@ -22,19 +20,16 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Typeface;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
@@ -88,8 +83,6 @@ public class ManageCustomerActivity extends Activity{
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_manage_customer);
-		// Show the Up button in the action bar.
-		setupActionBar();
 		
 		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
 	       
@@ -334,20 +327,6 @@ public class ManageCustomerActivity extends Activity{
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	 }
-
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();        
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("거래처관리");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
-	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {

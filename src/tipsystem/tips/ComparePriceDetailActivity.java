@@ -43,9 +43,6 @@ public class ComparePriceDetailActivity extends Activity {
 		
 		setContentView(R.layout.activity_compare_price_detail);
 		
-		// Show the Up button in the action bar.
-		setupActionBar();
-
 		Intent intent = getIntent();
 		HashMap<String, String> hashMap = (HashMap<String, String>)intent.getSerializableExtra("fillMaps");   
 		String BarCode = hashMap.get("BarCode");
@@ -135,21 +132,6 @@ public class ComparePriceDetailActivity extends Activity {
         SimpleAdapter adapter = new SimpleAdapter(ComparePriceDetailActivity.this, mfillMaps, R.layout. activity_listview_compare_detail_list, from, to);
         m_listPriceDetail.setAdapter(adapter);
     }
-
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("가격비교");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
-	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {

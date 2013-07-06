@@ -49,8 +49,6 @@ public class MainMenuActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main_menu);
-		// Show the Up button in the action bar.
-		setupActionBar();
 		
 		m_shop = LocalStorage.getJSONObject(this, "currentShopData"); 
 		m_userProfile = LocalStorage.getJSONObject(this, "userProfile"); 
@@ -63,7 +61,7 @@ public class MainMenuActivity extends Activity {
 			Office_Name = m_shop.getString("Office_Name");
 			OFFICE_CODE = m_shop.getString("OFFICE_CODE");
 			
-			m_APP_USER_GRADE =m_userProfile.getString("APP_USER_GRADE");
+			m_APP_USER_GRADE = m_userProfile.getString("APP_USER_GRADE");
 			OFFICE_CODE2 =m_userProfile.getString("OFFICE_CODE"); //수수료매장코드
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -92,49 +90,6 @@ public class MainMenuActivity extends Activity {
         });
         
 		fetchNotices(m_ip,m_port,OFFICE_CODE);
-	}
-
-	/**
-	 * Set up the {@link android.app.ActionBar}, if the API is available.
-	 */
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	private void setupActionBar() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-			
-			ActionBar actionbar = getActionBar();         
-			LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-			actionbar.setCustomView(custom_action_bar);
-
-			actionbar.setDisplayShowHomeEnabled(false);
-			actionbar.setDisplayShowTitleEnabled(false);
-			actionbar.setDisplayShowCustomEnabled(true);
-			
-			getActionBar().setDisplayHomeAsUpEnabled(false);
-		}
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main_menu, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case android.R.id.home:
-			// This ID represents the Home or Up button. In the case of this
-			// activity, the Up button is shown. Use NavUtils to allow users
-			// to navigate up one level in the application structure. For
-			// more details, see the Navigation pattern on Android Design:
-			//
-			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
-			//
-			NavUtils.navigateUpFromSameTask(this);
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
 	}
 
 	public void onClickQuestion(View view)
@@ -277,4 +232,28 @@ public class MainMenuActivity extends Activity {
     		m_listBoard.setAdapter(adapter);
     	}
     }
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.main_menu, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			// This ID represents the Home or Up button. In the case of this
+			// activity, the Up button is shown. Use NavUtils to allow users
+			// to navigate up one level in the application structure. For
+			// more details, see the Navigation pattern on Android Design:
+			//
+			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
+			//
+			NavUtils.navigateUpFromSameTask(this);
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
 }

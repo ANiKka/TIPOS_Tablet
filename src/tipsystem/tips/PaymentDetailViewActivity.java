@@ -38,13 +38,10 @@ public class PaymentDetailViewActivity extends Activity {
 	TextView m_customerCode;
 	TextView m_customerName;
 	
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_payment_detail_view);
-		// Show the Up button in the action bar.
-		setupActionBar();
 		
 		m_shop = LocalStorage.getJSONObject(this, "currentShopData");
 	       
@@ -139,22 +136,6 @@ public class PaymentDetailViewActivity extends Activity {
 		}
 	}
 
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();         
-//		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
-//		actionbar.setCustomView(custom_action_bar);
-
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("대금결제 상세보기");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
-	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {

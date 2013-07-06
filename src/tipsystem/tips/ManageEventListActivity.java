@@ -71,8 +71,6 @@ public class ManageEventListActivity extends Activity {
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_manage_event_list);
-		// Show the Up button in the action bar.
-		setupActionBar();
 		
         m_shop = LocalStorage.getJSONObject(this, "currentShopData");        
         try {
@@ -176,21 +174,6 @@ public class ManageEventListActivity extends Activity {
 				Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-	}
-
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	private void setupActionBar() {
-
-		ActionBar actionbar = getActionBar();         
-
-		actionbar.setDisplayShowHomeEnabled(false);
-		actionbar.setDisplayShowTitleEnabled(true);
-		actionbar.setDisplayShowCustomEnabled(true);
-		actionbar.setTitle("전체 행사 조회");
-		
-		getActionBar().setDisplayHomeAsUpEnabled(false);
 	}
 	
 	@Override
