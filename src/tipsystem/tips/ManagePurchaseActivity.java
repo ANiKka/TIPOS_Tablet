@@ -1,6 +1,8 @@
 package tipsystem.tips;
 
+import android.os.Build;
 import android.os.Bundle;
+import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
@@ -16,6 +18,27 @@ public class ManagePurchaseActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_manage_purchase);
+		// Show the Up button in the action bar.
+		setupActionBar();
+	}
+
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void setupActionBar() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+	
+			ActionBar actionbar = getActionBar();
+			LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
+			actionbar.setCustomView(custom_action_bar);
+	
+			actionbar.setDisplayShowHomeEnabled(true);
+			actionbar.setDisplayShowTitleEnabled(false);
+			actionbar.setDisplayShowCustomEnabled(true);
+	
+			getActionBar().setDisplayHomeAsUpEnabled(true);
+		}
 	}
 
 	@Override

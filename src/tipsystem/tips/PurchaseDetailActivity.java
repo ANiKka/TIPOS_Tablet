@@ -8,7 +8,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.os.Build;
 import android.os.Bundle;
+import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.graphics.Typeface;
@@ -85,6 +87,22 @@ public class PurchaseDetailActivity extends Activity {
 		textViewDate.setTypeface(typeface);
 	}
 
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void setupActionBar() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+	
+			ActionBar actionbar = getActionBar();	
+			actionbar.setDisplayShowHomeEnabled(false);
+			actionbar.setDisplayShowTitleEnabled(true);
+			actionbar.setDisplayShowCustomEnabled(true);
+			actionbar.setTitle("매입 상세보기");
+			
+			getActionBar().setDisplayHomeAsUpEnabled(false);
+		}
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {

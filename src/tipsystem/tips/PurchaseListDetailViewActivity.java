@@ -11,7 +11,9 @@ import org.json.JSONObject;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
+import android.os.Build;
 import android.os.Bundle;
+import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
@@ -110,6 +112,23 @@ public class PurchaseListDetailViewActivity extends Activity {
 
 		} catch (JSONException e) {
 			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void setupActionBar() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+	
+			ActionBar actionbar = getActionBar();
+			actionbar.setDisplayShowHomeEnabled(false);
+			actionbar.setDisplayShowTitleEnabled(true);
+			actionbar.setDisplayShowCustomEnabled(true);
+			actionbar.setTitle("매입목록 상세보기");
+			
+			getActionBar().setDisplayHomeAsUpEnabled(false);
 		}
 	}
 

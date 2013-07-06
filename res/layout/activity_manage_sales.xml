@@ -464,14 +464,14 @@
                     android:orientation="vertical"
                      >
 
+                    <!-- 3.0 이상 지원 -->
                     <CalendarView android:id="@+id/calendarView1"
 				            android:layout_height="180dip"
 				            android:layout_width="match_parent"
 				            android:showWeekNumber="false"		            
 				             >
-				        
                     </CalendarView>
-				
+                    
 				    <!-- List Divider -->
 				    <View android:layout_width="fill_parent"
 				        android:layout_height="1dip"

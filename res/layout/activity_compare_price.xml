@@ -152,6 +152,7 @@
             android:textColor="#ffffff"
             android:textSize="14sp"/>
         
+        <!-- 
          <EditText
              android:id="@+id/editTextLocal"
              android:layout_width="0dip"
@@ -162,7 +163,15 @@
              android:textColor="#000000"
              android:inputType="text"
              android:background="@drawable/white_text_box_small" />
-
+-->
+        <Spinner
+            android:id="@+id/spinnerLocationType"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:entries="@array/location_types"
+            android:prompt="@string/choose_location_type" />
+        
   		<Button
 	         android:id="@+id/buttonPriceSearch"
 	         style="?android:attr/buttonStyleSmall"

@@ -113,7 +113,26 @@
         <item>미사용</item>
         <item>사용</item>
     </string-array>
-
+	<string-array name="location_types">
+        <item>전체</item>
+        <item>서울</item>
+        <item>경기</item>
+        <item>부산</item>
+        <item>대구</item>
+        <item>인천</item>
+        <item>대전</item>
+        <item>광주</item>
+        <item>강원</item>
+        <item>충북</item>
+        <item>충남</item>
+        <item>전북</item>
+        <item>전남</item>
+        <item>경북</item>
+        <item>경남</item>        
+        <item>제주</item>
+    </string-array>
+    
+    <string name="choose_location_type">지역 선택</string>
     <string name="choose_event_type">행사구분 선택</string>
     <string name="choose_group_type">그룹 선택</string>
     <string name="title_activity_compare_price">ComparePriceActivity</string>

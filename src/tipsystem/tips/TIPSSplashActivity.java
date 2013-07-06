@@ -27,7 +27,7 @@ public class TIPSSplashActivity extends Activity {
         
         startMainActivity();
         
-        testQuery();
+        //testQuery();
     }
 
     private void checkNetwork() {
@@ -52,6 +52,9 @@ public class TIPSSplashActivity extends Activity {
     	TelephonyManager phoneManager = (TelephonyManager) 
     	getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
     	String phoneNumber = phoneManager.getLine1Number();
+    	    	
+    	String prefix = phoneNumber.substring(0, 3);
+    	if (prefix.equals("+82")) phoneNumber = "0" + phoneNumber.substring(3, phoneNumber.length());
     	
     	if (phoneNumber == null || phoneNumber.isEmpty()) {
         	AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
@@ -68,6 +71,7 @@ public class TIPSSplashActivity extends Activity {
         }
     	else {
     		LocalStorage.setString(ctx, "phoneNumber", phoneNumber);
+    		//LocalStorage.setString(ctx, "phoneNumber", "01023733901");
     	}
     }
 

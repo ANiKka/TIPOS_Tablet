@@ -12,7 +12,6 @@ import org.json.JSONObject;
 
 import tipsystem.tips.models.ShopSelectItem;
 import tipsystem.utils.LocalStorage;
-import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
 
 import android.os.Bundle;
@@ -23,8 +22,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
-import android.text.format.DateFormat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -65,7 +62,7 @@ public class MainActivity extends Activity {
         
         String officeCode = LocalStorage.getString(this, "officeCode"); 
 		if (!officeCode.equals("")) {
-			showSelectShop();
+			fetchOffices();
 		}
     }
 
@@ -184,17 +181,11 @@ public class MainActivity extends Activity {
     	// 쿼리 작성하기
 	    String query =  "";
 	    query = "select * " 
-	    		+"  from APP_USER inner join V_OFFICE_USER " 
-	    		+ " on APP_USER.OFFICE_CODE = V_OFFICE_USER.Sto_CD "
-	    		+ " JOIN APP_SETTLEMENT on APP_USER.OFFICE_CODE = APP_SETTLEMENT.OFFICE_CODE " 
-	    		+ " where APP_HP =" + phoneNumber + "AND DEL_YN = 0 ;";
-	   /*
-	    query = "select * " 
-	    		+"  from APP_SETTLEMENT as A inner join V_OFFICE_USER as B " 
+	    		+"  from APP_USER as A inner join V_OFFICE_USER as B " 
 	    		+ " on A.OFFICE_CODE = B.Sto_CD "
-	    		+ " where B.Office_Mobile1 ='" + phoneNumber + "' AND A.DEL_YN = 0 ;";
-*/
-    	
+	    		+ " JOIN APP_SETTLEMENT as C on A.OFFICE_CODE = C.OFFICE_CODE " 
+	    		+ " where A.APP_HP =" + phoneNumber + "AND C.DEL_YN = '0' ;";
+
 	    // 콜백함수와 함께 실행
 	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
@@ -236,7 +227,7 @@ public class MainActivity extends Activity {
 
     	// 쿼리 작성하기
 	    String query =  "";
-	    query = "select * from  APP_USER where OFFICE_CODE =" + code + " and APP_HP='"+phoneNumber +"';";
+	    query = "select OFFICE_CODE, APP_HP, APP_USERNAME from APP_USER where OFFICE_CODE =" + code + " and APP_HP='"+phoneNumber +"';";
 	    
 	    // 콜백함수와 함께 실행
 	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {

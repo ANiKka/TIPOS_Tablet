@@ -11,10 +11,12 @@ import org.json.JSONObject;
 import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL2;
+import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.view.Menu;
@@ -169,7 +171,26 @@ public class ManageCustomerListActivity extends Activity{
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
     }
-    
+
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void setupActionBar() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+	
+			ActionBar actionbar = getActionBar();         
+			LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
+			actionbar.setCustomView(custom_action_bar);
+	
+			actionbar.setDisplayShowHomeEnabled(false);
+			actionbar.setDisplayShowTitleEnabled(false);
+			actionbar.setDisplayShowCustomEnabled(true);
+			
+			getActionBar().setDisplayHomeAsUpEnabled(false);
+		}
+	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.

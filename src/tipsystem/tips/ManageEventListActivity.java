@@ -13,11 +13,13 @@ import org.json.JSONObject;
 import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL2;
+import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.view.Menu;
@@ -174,6 +176,24 @@ public class ManageEventListActivity extends Activity {
 				Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	}
+	
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void setupActionBar() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+		
+			ActionBar actionbar = getActionBar();         
+	
+			actionbar.setDisplayShowHomeEnabled(false);
+			actionbar.setDisplayShowTitleEnabled(true);
+			actionbar.setDisplayShowCustomEnabled(true);
+			actionbar.setTitle("전체 행사 조회");
+			
+			getActionBar().setDisplayHomeAsUpEnabled(false);
+		}
 	}
 	
 	@Override

@@ -16,7 +16,9 @@ import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
 
+import android.os.Build;
 import android.os.Bundle;
+import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -42,6 +44,9 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.SimpleAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.support.v4.app.NavUtils;
@@ -63,7 +68,7 @@ public class ComparePriceActivity extends Activity{
 	TextView m_customerName;
 	TextView m_barcode;
 	TextView m_productionName;
-	TextView m_local;	
+	Spinner m_local;	
 	
 	ListView m_listPriceSearch;
 	CompareListAdapter m_adapter; 
@@ -128,7 +133,7 @@ public class ComparePriceActivity extends Activity{
         m_customerName = (TextView)findViewById(R.id.editTextCustomer2);
 		m_barcode = (TextView)findViewById(R.id.editTextBarcord);
 		m_productionName = (TextView)findViewById(R.id.editTextProductionName);
-		m_local = (TextView)findViewById(R.id.editTextLocal);
+		m_local = (Spinner)findViewById(R.id.spinnerLocationType);
 		
 		Button searchButton = (Button) findViewById(R.id.buttonPriceSearch);
 		searchButton.setOnClickListener(new OnClickListener() {
@@ -205,7 +210,7 @@ public class ComparePriceActivity extends Activity{
     	String index = String.valueOf(mfillMaps.size());    	
     	String customer = m_customerCode.getText().toString();
 	    String barcode = m_barcode.getText().toString();
-	    String local = m_local.getText().toString();
+	    String local = m_local.getSelectedItem().toString();
 	    
 	    String query =  "";	    
 	    //query += "SELECT BarCode, G_Name, Pur_Pri, Sell_Pri  FROM Goods";
@@ -550,6 +555,22 @@ public class ComparePriceActivity extends Activity{
 			else sell_arrow.setVisibility(View.INVISIBLE);
 			
 			return convertView;
+		}
+	}
+	
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void setupActionBar() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+	
+			ActionBar actionbar = getActionBar();	
+			actionbar.setDisplayShowHomeEnabled(false);
+			actionbar.setDisplayShowTitleEnabled(true);
+			actionbar.setDisplayShowCustomEnabled(true);
+			actionbar.setTitle("가격비교");			
+			getActionBar().setDisplayHomeAsUpEnabled(false);
 		}
 	}
 

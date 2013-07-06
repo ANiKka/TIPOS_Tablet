@@ -108,6 +108,26 @@ public class ConfigActivity extends Activity {
 		});
 	}
 
+	/**
+	 * Set up the {@link android.app.ActionBar}, if the API is available.
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	private void setupActionBar() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+			
+			ActionBar actionbar = getActionBar();         
+			LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
+			actionbar.setCustomView(custom_action_bar);
+
+			actionbar.setDisplayShowHomeEnabled(true);
+			actionbar.setDisplayShowTitleEnabled(false);
+			actionbar.setDisplayShowCustomEnabled(true);
+			
+			getActionBar().setDisplayHomeAsUpEnabled(true);			
+		}
+	}
+
+
 	private void save() {
 
 		String posID = ((Spinner) findViewById(R.id.spinnerPosID)).getSelectedItem().toString();

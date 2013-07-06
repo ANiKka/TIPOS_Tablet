@@ -13,12 +13,14 @@ import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
+import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.util.Log;
@@ -193,7 +195,7 @@ public class ManageProductActivity extends Activity {
 		});
 		// 바코드 입력 후 포커스 딴 곳을 옮길 경우
 		m_textBarcode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-			//@Override
+			@Override
 			public void onFocusChange(View v, boolean hasFocus) {
 			    if(!hasFocus){
 			    	String barcode = null; 
@@ -206,7 +208,7 @@ public class ManageProductActivity extends Activity {
 
 		// 거래처 코드 입력 후 포커스 딴 곳을 옮길 경우
 		m_textCustomerCode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-			//@Override
+			@Override
 			public void onFocusChange(View v, boolean hasFocus) {
 			    if(!hasFocus){
 			    	String customerCode = m_textCustomerCode.getText().toString();
@@ -218,7 +220,7 @@ public class ManageProductActivity extends Activity {
 		
 		// 매입원가 + 이익률로 판매가
 		m_textDifferentRatio.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-			//@Override
+			@Override
 			public void onFocusChange(View v, boolean hasFocus) {
 			    if(!hasFocus){
 			    	String ratio = m_textDifferentRatio.getText().toString();
@@ -272,6 +274,23 @@ public class ManageProductActivity extends Activity {
 		m_textBarcode.setText(barcode);
 		
 		fetchLName();
+	}
+
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void setupActionBar() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+	
+			ActionBar actionbar = getActionBar();        
+			actionbar.setDisplayShowHomeEnabled(false);
+			actionbar.setDisplayShowTitleEnabled(true);
+			actionbar.setDisplayShowCustomEnabled(true);
+			actionbar.setTitle("상품등록");
+			
+			getActionBar().setDisplayHomeAsUpEnabled(false);
+		}
 	}
 
 	@Override

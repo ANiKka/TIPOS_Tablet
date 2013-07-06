@@ -20,7 +20,9 @@ import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
 
+import android.os.Build;
 import android.os.Bundle;
+import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -48,7 +50,7 @@ import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 
 public class PurchasePaymentStatusActivity extends Activity implements OnItemClickListener, 
-																		OnDateChangeListener,
+																		//OnDateChangeListener,
 																		OnTabChangeListener,
 																		DatePickerDialog.OnDateSetListener {
 	private static final int ZBAR_SCANNER_REQUEST = 0;
@@ -314,10 +316,6 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		m_dateMode = 0;		
 	}
 
-	@Override
-	public void onSelectedDayChange(CalendarView view, int year, int month, int dayOfMonth) {
-	}
-	
 	private void queryListForTab1()
 	{
 		mfillMaps1.removeAll(mfillMaps1);
@@ -717,6 +715,24 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
 	}    
 	
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void setupActionBar() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+	
+			ActionBar actionbar = getActionBar();         
+
+			actionbar.setDisplayShowHomeEnabled(false);
+			actionbar.setDisplayShowTitleEnabled(true);
+			actionbar.setDisplayShowCustomEnabled(true);
+			actionbar.setTitle("매입/대금 결제현황");
+			
+			getActionBar().setDisplayHomeAsUpEnabled(false);
+		}
+	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.

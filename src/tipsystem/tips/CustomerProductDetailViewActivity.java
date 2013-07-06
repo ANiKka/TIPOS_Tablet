@@ -13,7 +13,9 @@ import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
+import android.os.Build;
 import android.os.Bundle;
+import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -160,6 +162,26 @@ public class CustomerProductDetailViewActivity extends Activity {
 			
 		} catch (JSONException e) {
 			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void setupActionBar() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+		
+			ActionBar actionbar = getActionBar();         
+	//		LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
+	//		actionbar.setCustomView(custom_action_bar);
+	
+			actionbar.setDisplayShowHomeEnabled(false);
+			actionbar.setDisplayShowTitleEnabled(true);
+			actionbar.setDisplayShowCustomEnabled(true);
+			actionbar.setTitle("거래처별 상품 상세보기");
+			
+			getActionBar().setDisplayHomeAsUpEnabled(false);
 		}
 	}
 

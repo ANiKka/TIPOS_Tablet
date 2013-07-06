@@ -18,8 +18,16 @@ import com.dm.zbar.android.scanner.ZBarScannerActivity;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
+//import tipsystem.utils.CalendarView;
+//import tipsystem.utils.CalendarView.OnCellTouchListener;
+//import tipsystem.utils.Cell;
+import android.widget.CalendarView;
+import android.widget.CalendarView.OnDateChangeListener;
 
+import android.os.Build;
 import android.os.Bundle;
+import android.annotation.TargetApi;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -31,8 +39,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.CalendarView;
-import android.widget.CalendarView.OnDateChangeListener;
 import android.widget.DatePicker;
 import android.widget.TabHost.OnTabChangeListener;
 import android.widget.ArrayAdapter;
@@ -45,7 +51,6 @@ import android.widget.Toast;
 import android.support.v4.app.NavUtils;
 
 public class ManageSalesActivity extends Activity implements OnItemClickListener, 
-//															OnDateChangeListener,
 															OnTabChangeListener,
 															DatePickerDialog.OnDateSetListener{
 
@@ -85,7 +90,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	
 	String m_CalendarDay;
 	CalendarView m_calendar;
-		
+
 	DatePicker m_datePicker;
 	
 	SimpleDateFormat m_dateFormatter;
@@ -98,13 +103,10 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	
 	ProgressDialog dialog;
 	
-	//List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();
-    //ArrayList<CustomerList> customerArray = new ArrayList<CustomerList>();
     int index = 0;
     int size = 100;
     int firstPosition = 0;
     
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -189,17 +191,47 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         m_tabHost.addTab(spec);        
         m_tabHost.setOnTabChangedListener(this);     
         m_tabHost.setCurrentTab(0);
-        //m_tabHost.getCurrentTab();
-        
+
+        /*
         m_calendar = (CalendarView)findViewById(R.id.calendarView1);
-        //m_calendar.setOnDateChangeListener(this);
+
+        m_calendar.setOnCellTouchListener(new OnCellTouchListener() {
+        	
+        	@Override
+        	public void onTouch(Cell cell) {
+
+    			int year  = m_calendar.getYear();
+    			int month = m_calendar.getMonth();
+    			int day   = cell.getDayOfMonth();
+        		m_CalendarDay = String.format("%04d-%02d-%02d", year, month, day);
+
+         		doQuery();
+        	}
+        });*/
         
+        /* 3.0 이상 지원
+        */
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+	        m_calendar = (CalendarView)findViewById(R.id.calendarView1);
+	        m_calendar.setOnDateChangeListener(new OnDateChangeListener() {
+	
+	            @Override
+	            public void onSelectedDayChange(CalendarView view, int year, int month, int dayOfMonth) {
+	
+	        		m_CalendarDay = String.format("%04d-%02d-%02d", year, month, dayOfMonth);
+	
+	         		doQuery();
+	            }
+	        });
+        }
+       
         m_listSalesTab1.setOnItemClickListener(this);
         m_listSalesTab3.setOnItemClickListener(this);
         
         // 바코드 입력 후 포커스 딴 곳을 옮길 경우
         m_barCode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
- 			//@Override
+ 			
+        	@Override
  			public void onFocusChange(View v, boolean hasFocus) {
  			    if(!hasFocus){
  			    	String barcode = null; 
@@ -212,7 +244,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 
  		// 거래처 코드 입력 후 포커스 딴 곳을 옮길 경우
         m_customerCode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
- 			//@Override
+ 			@Override
  			public void onFocusChange(View v, boolean hasFocus) {
  			    if(!hasFocus){
  			    	String customerCode = m_customerCode.getText().toString();
@@ -228,8 +260,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         	buttonCustomer.setEnabled(false);
         	m_customerCode.setEnabled(false);
         	m_customerCode.setText(m_OFFICE_CODE); 
-        	m_customerName.setText(m_OFFICE_NAME); 
-	    	//fillBusNameFromBusCode(m_OFFICE_CODE);	    	      	
+        	m_customerName.setText(m_OFFICE_NAME);     	      	
         }
 	}
 
@@ -240,13 +271,8 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		{
 			String code = ((TextView) arg1.findViewById(R.id.item1)).getText().toString();
 			String name = ((TextView) arg1.findViewById(R.id.item2)).getText().toString();
-			
-			//Toast.makeText(this, "Item Click." + name , Toast.LENGTH_SHORT).show();
-			
+						
 			Intent intent = new Intent(this, CustomerProductDetailViewActivity.class);  	
-			
-			//String period1 = m_period1.getText().toString();
-			//String period2 = m_period2.getText().toString();
 			
 	    	intent.putExtra("PERIOD1", m_period1.getText().toString());
 	    	intent.putExtra("PERIOD2", m_period2.getText().toString());
@@ -273,15 +299,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	    	startActivity(intent);
 		}
 	}
-/*
-	@Override
-	public void onSelectedDayChange(CalendarView view, int year, int month, int dayOfMonth) {
-	
-		m_CalendarDay = String.format("%04d-%02d-%02d", year, month, dayOfMonth);
 
- 		doQuery();
-	}
-	*/
 	public void OnClickRenew(View v) {
 
         if (!m_APP_USER_GRADE.equals("2")) {
@@ -313,8 +331,9 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	 			queryListForTab2(); break;
 	 		case 2:
 	 			queryListForTab3(); break;
-	 		case 3:
+	 		case 3: {	 	        
 	 			queryListForTab4(m_CalendarDay); break;
+	 		}
  		}
 	}
 
@@ -1020,6 +1039,23 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
 	
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void setupActionBar() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+		
+			ActionBar actionbar = getActionBar();
+			actionbar.setDisplayShowHomeEnabled(false);
+			actionbar.setDisplayShowTitleEnabled(true);
+			actionbar.setDisplayShowCustomEnabled(true);
+			actionbar.setTitle("매출관리");
+			
+			getActionBar().setDisplayHomeAsUpEnabled(false);
+		}
+	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.

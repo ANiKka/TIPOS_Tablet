@@ -7,7 +7,9 @@ import org.json.JSONObject;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
+import android.os.Build;
 import android.os.Bundle;
+import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -104,6 +106,24 @@ public class InputQuestionActivity extends Activity implements OnItemSelectedLis
 			textViewShopTitle.setText(Office_Name);
 		} catch (JSONException e) {
 			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void setupActionBar() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+	
+			getActionBar().setDisplayHomeAsUpEnabled(true);		
+			ActionBar actionbar = getActionBar();         
+			//LinearLayout custom_action_bar = (LinearLayout) View.inflate(this, R.layout.activity_custom_actionbar, null);
+			//actionbar.setCustomView(custom_action_bar);
+			actionbar.setDisplayShowHomeEnabled(false);
+			actionbar.setDisplayShowTitleEnabled(true);
+			actionbar.setTitle("문의하기");		
+			getActionBar().setDisplayHomeAsUpEnabled(false);
 		}
 	}
 
