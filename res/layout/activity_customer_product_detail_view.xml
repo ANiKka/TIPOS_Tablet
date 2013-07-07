@@ -152,7 +152,7 @@
 			android:textSize="14sp"
 			android:gravity="center"
 			android:background="@drawable/gray_bar_bg"
-            android:text="순수량"
+            android:text="순매출"
         />
 	        
    	</LinearLayout>

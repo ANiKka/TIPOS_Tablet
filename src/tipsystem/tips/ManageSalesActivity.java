@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 
+import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
@@ -148,19 +149,19 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		m_listSalesTab3= (ListView)findViewById(R.id.listviewSalesListTab3);
 		m_listSalesTab4= (ListView)findViewById(R.id.listviewSalesListTab4);
 		
-		String[] from1 = new String[] {"Office_Code", "Office_Name", "rSale", "ProFit_Pri"};
+		String[] from1 = new String[] {"Office_Code", "Office_Name", "순매출", "이익금"};
         int[] to1 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
         
 		adapter1 = new SimpleAdapter(this, mfillMaps1, R.layout.activity_listview_item4_2, from1, to1);		
 		m_listSalesTab1.setAdapter(adapter1);	
 		
-		String[] from2 = new String[] {"Barcode", "G_Name", "Sale_Count", "rSale"};
+		String[] from2 = new String[] {"Barcode", "G_Name", "수량", "순매출"};
         int[] to2 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
         
 		adapter2 = new SimpleAdapter(this, mfillMaps2, R.layout.activity_listview_item4_2, from2, to2);		
 		m_listSalesTab2.setAdapter(adapter2);	
 
-		String[] from3 = new String[] {"Office_Code", "Office_Name", "rSale"};
+		String[] from3 = new String[] {"Office_Code", "Office_Name", "순매출"};
 	    int[] to3 = new int[] { R.id.item1, R.id.item2, R.id.item3 };
         
 		adapter3 = new SimpleAdapter(this, mfillMaps3, R.layout.activity_listview_item3, from3, to3);		
@@ -272,14 +273,11 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 			String code = ((TextView) arg1.findViewById(R.id.item1)).getText().toString();
 			String name = ((TextView) arg1.findViewById(R.id.item2)).getText().toString();
 						
-			Intent intent = new Intent(this, CustomerProductDetailViewActivity.class);  	
-			
+			Intent intent = new Intent(this, CustomerProductDetailViewActivity.class);			
 	    	intent.putExtra("PERIOD1", m_period1.getText().toString());
-	    	intent.putExtra("PERIOD2", m_period2.getText().toString());
-	    	
+	    	intent.putExtra("PERIOD2", m_period2.getText().toString());	    	
 	    	intent.putExtra("OFFICE_CODE", code);
-	    	intent.putExtra("OFFICE_NAME", name);
-	    	
+	    	intent.putExtra("OFFICE_NAME", name);	    	
 	    	startActivity(intent);	
 		}
 		else if ( m_listSalesTab3.getId() == arg0.getId() )
@@ -418,7 +416,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 					constraint = setConstraint(constraint, "Office_Name", "=", customerName);
 				}
 				
-				query = query + "select Office_Code, Office_Name, SUM(TSell_Pri) TSell_Pri, SUM(TSell_RePri) TSell_RePri, SUM(DC_Pri) DC_Pri, SUM(ProFit_Pri) ProFit_Pri, Sale_Date from " + tableName;
+				query = query + "select Office_Code, Office_Name, Sale_Date, SUM(TSell_Pri-TSell_RePri-DC_Pri) 순매출, SUM(ProFit_Pri) 이익금 from " + tableName;
 				query = query + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
 				
 				if ( constraint.equals("") != true ) {
@@ -462,61 +460,15 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 
 	private void updateListForTab1(JSONArray results)
 	{		
-		try {
-			ArrayList<String> lSpListCode = new ArrayList<String>();
-	        ArrayList<String> lSpListName = new ArrayList<String>();
-	        ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
-	        ArrayList<Integer> lSpListProfit = new ArrayList<Integer>();
- 			
-			for(int index = 0; index < results.length() ; index++)
-			{
-				JSONObject son = results.getJSONObject(index);
-				
-				String code = son.getString("Office_Code");
-				String name = son.getString("Office_Name");
-				int tSell = son.getInt("TSell_Pri");
-				int tRSell = son.getInt("TSell_RePri");
-				int dcPri = son.getInt("DC_Pri");
-				        				
-				boolean isExist = false;
-           		
-        		for ( int i = 0; i < lSpListCode.size(); i++ ) {
-        			if ( lSpListCode.get(i).toString().equals(code) == true ) {
-        				Integer rsale = lSpListSale.get(i).intValue() + ((tSell - (tRSell + dcPri)));
-        				Integer profit = lSpListProfit.get(i).intValue() + son.getInt("ProFit_Pri");
-        				
-        				lSpListSale.set(i, rsale);
-        				lSpListProfit.set(i, profit);
-        				
-        				isExist = true;
-        				break;
-        			}
-        		}
-        		
-        		if ( isExist == false ) {
-        			Integer rsale = tSell - (tRSell + dcPri);
-    				Integer profit = son.getInt("ProFit_Pri");
-    				
-    				lSpListCode.add(code);
-    				lSpListName.add(name);
-    				lSpListSale.add(rsale);
-    				lSpListProfit.add(profit);
-        		}
-			}	
+		for(int index = 0; index < results.length() ; index++) {
 			
-			for ( int i = 0; i < lSpListCode.size(); i++ ) {
-    			// prepare the list of all records
-	            HashMap<String, String> map = new HashMap<String, String>();
-	            
-	            map.put("Office_Code", lSpListCode.get(i));
-	            map.put("Office_Name", lSpListName.get(i));
-	            map.put("rSale", m_numberFormat.format(lSpListSale.get(i).intValue()) );
-	            map.put("ProFit_Pri", m_numberFormat.format(lSpListProfit.get(i).intValue()));
-	            mfillMaps1.add(map);
-    		}		
-
-		} catch (JSONException e) {
-			e.printStackTrace();
+			try {
+				JSONObject son = results.getJSONObject(index);
+				HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+				mfillMaps1.add(map);	
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -564,8 +516,9 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 					constraint = setConstraint(constraint, "A.Office_Name", "=", customerName);
 				}
 				
-    			query = query + "select A.Barcode, A.G_Name, SUM(A.Sale_Count) Sale_Count, SUM(A.TSell_Pri) TSell_Pri, SUM(A.TSell_RePri) TSell_RePri, SUM(A.DC_Pri) DC_Pri from " + tableName + " as A inner join Goods as B on A.Barcode = B.BarCode ";
-    			query = query + " where B.Goods_Use='1' AND B.Pur_Use='1' AND A.Sale_Date between '" + period1 + "' and '" + period2 + "'";
+    			query = query + "select A.Barcode, A.G_Name, SUM(A.Sale_Count) 수량, SUM(A.TSell_Pri-A.TSell_RePri-A.DC_Pri) 순매출 "
+    					+ " from " + tableName + " as A inner join Goods as B on A.Barcode = B.BarCode "
+    					+ " where B.Goods_Use='1' AND B.Pur_Use='1' AND A.Sale_Date between '" + period1 + "' and '" + period2 + "'";
    			
     			if ( constraint.equals("") != true ) {
     				query = query + " and " + constraint;
@@ -607,63 +560,16 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	}
 		
 	private void updateListForTab2(JSONArray results)
-	{
-		try {			
-			ArrayList<String> lSpListCode = new ArrayList<String>();
-	        ArrayList<String> lSpListName = new ArrayList<String>();
-	        ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
-	        ArrayList<Integer> lSpListSaleCnt = new ArrayList<Integer>();
- 			
-			for(int index = 0; index < results.length() ; index++)
-			{
-				JSONObject son = results.getJSONObject(index);
-				
-				String code = son.getString("Barcode");
-				String name = son.getString("G_Name");
-				int tSell = son.getInt("TSell_Pri");
-				int tRSell = son.getInt("TSell_RePri");
-				int dcPri = son.getInt("DC_Pri");
-
-				boolean isExist = false;
-           		
-        		for ( int i = 0; i < lSpListCode.size(); i++ )
-        		{
-        			if ( lSpListCode.get(i).toString().equals(code) == true )
-        			{
-        				Integer rsale = lSpListSale.get(i).intValue() + ((tSell - (tRSell + dcPri)));
-        				Integer profit = lSpListSaleCnt.get(i).intValue() + son.getInt("Sale_Count");
-        				
-        				lSpListSale.set(i, rsale);
-        				lSpListSaleCnt.set(i, profit);
-        				
-        				isExist = true;
-        				break;
-        			}
-        		}
-        		
-        		if ( isExist == false ) {
-        			Integer rsale = tSell - (tRSell + dcPri);
-    				Integer count = son.getInt("Sale_Count");
-    				
-    				lSpListCode.add(code);
-    				lSpListName.add(name);
-    				lSpListSale.add(rsale);
-    				lSpListSaleCnt.add(count);
-        		}
-			}	
+	{		
+		for(int index = 0; index < results.length() ; index++) {
 			
-			for ( int i = 0; i < lSpListCode.size(); i++ ) {
-				// prepare the list of all records
-	            HashMap<String, String> map = new HashMap<String, String>();
-	            
-	            map.put("Barcode", lSpListCode.get(i));
-	            map.put("G_Name", lSpListName.get(i));
-	            map.put("Sale_Count", String.format("%d", lSpListSaleCnt.get(i).intValue()));
-	            map.put("rSale", m_numberFormat.format(lSpListSale.get(i).intValue()));
-	            mfillMaps2.add(map);
+			try {
+				JSONObject son = results.getJSONObject(index);
+				HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+				mfillMaps2.add(map);	
+			} catch (JSONException e) {
+				e.printStackTrace();
 			}
-		} catch (JSONException e) {
-			e.printStackTrace();			
 		}
 	}
 	
@@ -687,7 +593,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		int month2 = Integer.parseInt(period2.substring(5, 7));
 		
 		String tableName = null;
-		String tableName2 = null;
 		String constraint = "";
 		
 		for ( int y = year1; y <= year2; y++ ) {
@@ -711,8 +616,9 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 					constraint = setConstraint(constraint, "Office_Name", "=", customerName);
 				}
 				
-    			query = query + "select Office_Code, Office_Name, SUM(TSell_Pri) TSell_Pri, SUM(TSell_RePri) TSell_RePri, SUM(DC_Pri) DC_Pri from " + tableName;
-    			query = query + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
+    			query = query + "select A.Office_Code, A.Office_Name, SUM(A.TSell_Pri-A.TSell_RePri-A.DC_Pri) 순매출 "
+    					+ " from " + tableName + " as A inner join Office_Manage as B on A.Office_Code = B.Office_Code "
+    					+ " where A.Sale_Date between '" + period1 + "' and '" + period2 + "' and B.Office_Sec='2' and B.Office_Use='1' ";
    			
     			if ( constraint.equals("") != true ) {
     				query = query + " and " + constraint;
@@ -722,7 +628,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 			}
 		}
 		query = query.substring(0, query.length()-11);		
-		query += " GROUP BY Office_Code, Office_Name; ";
+		query += " GROUP BY A.Office_Code, A.Office_Name; ";
 		
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
@@ -756,57 +662,15 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		
 	private void updateListForTab3(JSONArray results)
 	{
-		try {
-			ArrayList<String> lSpListCode = new ArrayList<String>();
-		    ArrayList<String> lSpListName = new ArrayList<String>();
-		    ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
- 			
-			for(int index = 0; index < results.length() ; index++)
-			{
+		for(int index = 0; index < results.length() ; index++) {
+			
+			try {
 				JSONObject son = results.getJSONObject(index);
-				
-				String code = son.getString("Office_Code");
-				String name = son.getString("Office_Name");
-				int tSell = son.getInt("TSell_Pri");
-				int tRSell = son.getInt("TSell_RePri");
-				int dcPri = son.getInt("DC_Pri");
-			
-				boolean isExist = false;
-	       		
-	    		for ( int i = 0; i < lSpListCode.size(); i++ )
-	    		{
-	    			if ( lSpListCode.get(i).toString().equals(code) == true )
-	    			{
-	    				Integer rsale = lSpListSale.get(i).intValue() + ((tSell - (tRSell + dcPri)));
-	    				
-	    				lSpListSale.set(i, rsale);
-	    				
-	    				isExist = true;
-	    				break;
-	    			}
-	    		}
-	    		
-	    		if ( isExist == false ) {
-	    			Integer rsale = tSell - (tRSell + dcPri);					
-					lSpListCode.add(code);
-					lSpListName.add(name);
-					lSpListSale.add(rsale);
-	    		}
-			}	
-			
-			for ( int i = 0; i < lSpListCode.size(); i++ )
-			{
-				// prepare the list of all records
-		        HashMap<String, String> map = new HashMap<String, String>();
-		        
-		        map.put("Office_Code", lSpListCode.get(i));
-		        map.put("Office_Name", lSpListName.get(i));
-		        map.put("rSale", m_numberFormat.format(lSpListSale.get(i).intValue()) );
-		        mfillMaps3.add(map);
+				HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+				mfillMaps3.add(map);	
+			} catch (JSONException e) {
+				e.printStackTrace();
 			}
-			
-		} catch (JSONException e) {
-			e.printStackTrace();
 		}
 	}
 	

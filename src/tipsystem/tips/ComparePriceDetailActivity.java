@@ -35,8 +35,12 @@ public class ComparePriceDetailActivity extends Activity {
 	TextView m_gNameTxt;
 	TextView m_purPriTxt;
 	TextView m_sellPriTxt;
-	
+
+	CompareListAdapter m_adapter; 
 	List<HashMap<String, String>> mfillMaps = new ArrayList<HashMap<String, String>>();	
+	
+	double m_Pur_Pri =0;
+	double m_Sell_Pri =0;
 	
 	private ProgressDialog dialog;
 	@Override
@@ -51,6 +55,8 @@ public class ComparePriceDetailActivity extends Activity {
 		String G_Name = hashMap.get("G_Name");
 		String Pur_Pri = hashMap.get("Pur_Pri");
 		String Sell_Pri = hashMap.get("Sell_Pri");
+		m_Pur_Pri = (double)Double.valueOf(Pur_Pri);
+		m_Sell_Pri = (double)Double.valueOf(Sell_Pri);
 		
 		m_listPriceDetail= (ListView)findViewById(R.id.listviewPriceDetailList);
 
@@ -118,8 +124,39 @@ public class ComparePriceDetailActivity extends Activity {
         for (int i = 0; i < results.length(); i++) {
         	try {
             	JSONObject json = results.getJSONObject(i);
+
+    			double Pur_Pri1 = m_Pur_Pri;
+    			double Pur_Pri2 = json.getDouble("Pur_Pri");
+    			double Sell_Pri1 = m_Sell_Pri;
+    			double Sell_Pri2 = json.getDouble("Sell_Pri");
+
             	HashMap<String, String> map = JsonHelper.toStringHashMap(json);
 
+	            String Pur_Pri = map.get("Pur_Pri");	
+	            if(Pur_Pri1>Pur_Pri2) Pur_Pri = "+";
+	            else if(Pur_Pri1==Pur_Pri2) Pur_Pri = "=";
+	            else Pur_Pri = "-";
+
+	            double Pur_Pri_dif = Pur_Pri1-Pur_Pri2;
+	            if (Pur_Pri_dif<0) Pur_Pri_dif =Pur_Pri_dif*-1.0;
+	            
+	            map.put("Pur_Pri_dif", String.format("%.1f", Pur_Pri_dif));
+	            map.put("Pur_Pri_inc", Pur_Pri);
+	            
+	            String Sell_Pri = map.get("Sell_Pri");
+	            if(Sell_Pri1>Sell_Pri2) Sell_Pri = " +";
+	            else if(Sell_Pri1==Sell_Pri2) Sell_Pri = "=";
+	            else Sell_Pri = "-";
+	            
+	            double Sell_Pri_dif = Sell_Pri1-Sell_Pri1;
+	            if (Sell_Pri_dif<0) Sell_Pri_dif =Sell_Pri_dif*-1.0;
+	            
+	            map.put("Sell_Pri_dif", String.format("%.1f", Sell_Pri_dif));
+	            map.put("Sell_Pri_inc", Sell_Pri);
+	            
+	            map.put("BarCode", json.getString("Shop_Area"));
+	            map.put("G_Name", json.getString("Shop_Size"));
+	            
 	            mfillMaps.add(map);
 		 
 			} catch (JSONException e) {
@@ -130,9 +167,12 @@ public class ComparePriceDetailActivity extends Activity {
 		String[] from = new String[] {"Shop_Area", "Shop_Size", "Pur_Pri", "Sell_Pri"};
         int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
         
+        m_adapter = new CompareListAdapter(this,  R.layout. activity_listview_compare_list, mfillMaps);
+        m_listPriceDetail.setAdapter(m_adapter);
+        
         // fill in the grid_item layout
-        SimpleAdapter adapter = new SimpleAdapter(ComparePriceDetailActivity.this, mfillMaps, R.layout. activity_listview_compare_detail_list, from, to);
-        m_listPriceDetail.setAdapter(adapter);
+        //SimpleAdapter adapter = new SimpleAdapter(ComparePriceDetailActivity.this, mfillMaps, R.layout. activity_listview_compare_detail_list, from, to);
+       // m_listPriceDetail.setAdapter(adapter);
     }
 
 	/**

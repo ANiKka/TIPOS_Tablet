@@ -1,15 +1,10 @@
 package tipsystem.tips;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -17,20 +12,19 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.MSSQL2;
 
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.DatePickerDialog;
-import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -44,7 +38,6 @@ import android.widget.DatePicker;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -88,6 +81,14 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	
 	NumberFormat m_numberFormat;
 	ProgressDialog dialog;
+
+	SimpleAdapter adapter1;
+	SimpleAdapter adapter2;
+	SimpleAdapter adapter3;
+
+	List<HashMap<String, String>> mfillMaps1 = new ArrayList<HashMap<String, String>>();
+	List<HashMap<String, String>> mfillMaps2 = new ArrayList<HashMap<String, String>>();
+	List<HashMap<String, String>> mfillMaps3 = new ArrayList<HashMap<String, String>>();
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -104,9 +105,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		}
         
 		m_dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
-
-		m_numberFormat = NumberFormat.getInstance();
-		
+		m_numberFormat = NumberFormat.getInstance();		
 		m_dateCalender1 = Calendar.getInstance();
 		m_dateCalender2 = Calendar.getInstance();
 		
@@ -122,12 +121,29 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		m_viewCard = (TextView)findViewById(R.id.textViewCard);
 		m_viewCredit = (TextView)findViewById(R.id.textViewCredit);
 		m_viewOther = (TextView)findViewById(R.id.textViewOther);
-
 		m_listNewsTab1= (ListView)findViewById(R.id.listviewSalesNewsListTab1);
 		m_listNewsTab2= (ListView)findViewById(R.id.listviewSalesNewsListTab2);
 		m_listNewsTab3= (ListView)findViewById(R.id.listviewSalesNewsListTab3);
 		
 		m_listNewsTab2.setOnItemClickListener(this);
+		
+		String[] from1 = new String[] {"시간", "순매출", "전일매출", "전일대비차액"};
+        int[] to1 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
+        
+		adapter1 = new SimpleAdapter(this, mfillMaps1, R.layout.activity_listview_item4, from1, to1);		
+		m_listNewsTab1.setAdapter(adapter1);	
+		
+		String[] from2 = new String[] {"Office_Code", "Office_Name", "순매출", "이익금"};
+        int[] to2 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
+        
+		adapter2 = new SimpleAdapter(this, mfillMaps2, R.layout.activity_listview_item4_2, from2, to2);		
+		m_listNewsTab2.setAdapter(adapter2);	
+
+		String[] from3 = new String[] {"순번", "분류명", "순매출", "수량", "이익금"};
+	    int[] to3 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5 };
+        
+		adapter3 = new SimpleAdapter(this, mfillMaps3, R.layout.activity_listview_item5, from3, to3);		
+		m_listNewsTab3.setAdapter(adapter3);
 		
 		m_spinClassification1 = (Spinner)findViewById(R.id.spinnerClassificationType1);
 		m_spinClassification1.setOnItemSelectedListener(this);
@@ -158,109 +174,49 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
         spec.setIndicator("분류별");
         m_tabHost.addTab(spec);
         
-        m_dateCalender2.add(Calendar.DAY_OF_MONTH, -1);
         
-        String period1 = m_buttonSetDate.getText().toString();
-		String period2 = m_dateFormatter.format(m_dateCalender2.getTime());
-		
-  		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(SalesNewsActivity.this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
-	
- 		queryCommonInformation();
- 		
         m_tabHost.setCurrentTab(0);
         m_tabHost.setOnTabChangedListener(this);
- 		
-//		new MyAsyncTask ().execute("10", period1, period2);
-//		new MyAsyncTask ().execute("11", period1, period2);
+
+		m_buttonSetDate.setText(m_dateFormatter.format(m_dateCalender1.getTime()));	
+        m_dateCalender2.add(Calendar.DAY_OF_MONTH, -1);
+		
+ 		queryCommonInformation();
+        doQuery();
 	}
 	
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	public void setupActionBar() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-	
-			ActionBar actionbar = getActionBar();
-			actionbar.setDisplayShowHomeEnabled(false);
-			actionbar.setDisplayShowTitleEnabled(true);
-			actionbar.setDisplayShowCustomEnabled(true);
-			actionbar.setTitle("매출속보");
-			
-			getActionBar().setDisplayHomeAsUpEnabled(false);
-		}
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.sales_news, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case android.R.id.home:
-			// This ID represents the Home or Up button. In the case of this
-			// activity, the Up button is shown. Use NavUtils to allow users
-			// to navigate up one level in the application structure. For
-			// more details, see the Navigation pattern on Android Design:
-			//
-			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
-			//
-			NavUtils.navigateUpFromSameTask(this);
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
-
 	@Override
 	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-		// TODO Auto-generated method stub
 		
 		if ( m_listNewsTab2.getId() == arg0.getId() )
 		{
 			Intent intent = new Intent(this, CustomerProductDetailInNewsActivity.class);
 			
 			String code = ((TextView) arg1.findViewById(R.id.item1)).getText().toString();
-			String name = ((TextView) arg1.findViewById(R.id.item2)).getText().toString();
-			
+			String name = ((TextView) arg1.findViewById(R.id.item2)).getText().toString();			
 			String period1 = m_buttonSetDate.getText().toString();
 			
 	    	intent.putExtra("PERIOD1", period1);
 	    	intent.putExtra("OFFICE_CODE", code);
 	    	intent.putExtra("OFFICE_NAME", name);
-
 	    	startActivity(intent);	
-		}
-		
+		}		
 	}
 
 	@Override
 	public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-		// TODO Auto-generated method stub
-  		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(SalesNewsActivity.this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
- 		
+  		 		
 		if ( arg0.getId() == m_spinClassification1.getId() )
 		{
 			String typeL = m_spinClassification1.getItemAtPosition(arg2).toString();
-			
+
 			queryComboBoxInTab3(1, typeL, "", "");
 		}
 		else if ( arg0.getId() == m_spinClassification2.getId() )
 		{
 			String typeL = m_spinClassification1.getItemAtPosition(m_spinClassification1.getSelectedItemPosition()).toString();
 			String typeM = m_spinClassification2.getItemAtPosition(arg2).toString();
-			
+
 			queryComboBoxInTab3(2, typeL, typeM, "");
 		}
 		else if ( arg0.getId() == m_spinClassification3.getId() )
@@ -275,11 +231,9 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 
 	@Override
 	public void onNothingSelected(AdapterView<?> arg0) {
-		// TODO Auto-generated method stub
 	}
 
-	public void onClickSetDate(View view)
-	{
+	public void onClickSetDate(View view) {
 		DatePickerDialog newDlg = new DatePickerDialog(this, this,
 				m_dateCalender1.get(Calendar.YEAR),
 				m_dateCalender1.get(Calendar.MONTH),
@@ -287,141 +241,74 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		 newDlg.show();
 	}
 	
-	public void onClickSetDatePrevious(View view)
-	{
-		m_dateCalender1.add(Calendar.DAY_OF_MONTH, -1);
-		m_buttonSetDate.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
-		
+	public void onClickSetDatePrevious(View view) {
+		m_dateCalender1.add(Calendar.DAY_OF_MONTH, -1);	
 		m_dateCalender2.add(Calendar.DAY_OF_MONTH, -1);
-		
-  		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(SalesNewsActivity.this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
-		
+		m_buttonSetDate.setText(m_dateFormatter.format(m_dateCalender1.getTime()));	
+				
  		queryCommonInformation();
-
- 		switch (m_tabHost.getCurrentTab())
- 		{
-	 		case 0:
-	 			queryListForTab1(); break;
-	 		case 1:
-	 			queryListForTab2(); break;
-	 		case 2:
-	 			queryComboBoxInTab3(0, "", "", ""); break;
- 		}
+ 		doQuery();
 	}
 	
-	public void onClickSetDateNext(View view)
-	{
+	public void onClickSetDateNext(View view) {
 		m_dateCalender1.add(Calendar.DAY_OF_MONTH, 1);
-		m_buttonSetDate.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
-		
-		m_dateCalender2.add(Calendar.DAY_OF_MONTH, 1);
-		
-  		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(SalesNewsActivity.this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
+		m_dateCalender2.add(Calendar.DAY_OF_MONTH, 1);	
+		m_buttonSetDate.setText(m_dateFormatter.format(m_dateCalender1.getTime()));			
  		
  		queryCommonInformation();
-
- 		switch (m_tabHost.getCurrentTab())
- 		{
-	 		case 0:
-	 			queryListForTab1(); break;
-	 		case 1:
-	 			queryListForTab2(); break;
-	 		case 2:
-	 			queryComboBoxInTab3(0, "", "", ""); break;
- 		}
+ 		doQuery();
 	}
 	
 	@Override
 	public void onTabChanged(String tabId) {
-		
-  		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(SalesNewsActivity.this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
  		
- 		switch (m_tabHost.getCurrentTab())
- 		{
-	 		case 0:
-	 			queryListForTab1(); break;
-	 		case 1:
-	 			queryListForTab2(); break;
-	 		case 2:
-	 			queryComboBoxInTab3(0, "", "", ""); break;
- 		}
+ 		doQuery();
 	};
 	
 	@Override
-	public void onDateSet(DatePicker view, int year, int monthOfYear,
-			int dayOfMonth) {
-		// TODO Auto-generated method stub
+	public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
 		
 		m_dateCalender1.set(year, monthOfYear, dayOfMonth);
-		m_buttonSetDate.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
-		
+		m_buttonSetDate.setText(m_dateFormatter.format(m_dateCalender1.getTime()));		
 		m_dateCalender2.set(year, monthOfYear, dayOfMonth);
 		m_dateCalender2.add(Calendar.DAY_OF_MONTH, -1);
-				
-  		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(SalesNewsActivity.this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
- 			
+		
  		queryCommonInformation();
+ 		doQuery();
+	}
+	
+	private void doQuery () {
 
  		switch (m_tabHost.getCurrentTab())
  		{
 	 		case 0:
-	 			queryListForTab1(); break;
+	 			queryForTab1(); break;
 	 		case 1:
 	 			queryListForTab2(); break;
 	 		case 2:
-	 			queryComboBoxInTab3(0, "", "", ""); break;
+	 			queryComboBoxInTab3(0, "", "", ""); 
+	 			break;
  		}
 	}
-	
 	
 	private void queryCommonInformation()
 	{
 		String period1 = m_buttonSetDate.getText().toString();
 		String period2 = m_dateFormatter.format(m_dateCalender2.getTime());
-		
 		String query = "";
 	    
 		int year1 = Integer.parseInt(period1.substring(0, 4));
 		int month1 = Integer.parseInt(period1.substring(5, 7));
-		
 		int year2 = Integer.parseInt(period2.substring(0, 4));
 		int month2 = Integer.parseInt(period2.substring(5, 7));
 		
-		String tableName = null;
-		String tableName2 = null;
+		String tableName = String.format("DF_%04d%02d", year1, month1);
+		String tableName2 = String.format("DF_%04d%02d", year2, month2);
 		
-		tableName = String.format("DF_%04d%02d", year1, month1);
-		tableName2 = String.format("DF_%04d%02d", year2, month2);
-		
-		if ( tableName.equals(tableName2) == true )
-		{
-			query = "select TSell_Pri, Sale_Num, Sale_Pri, Cash_Pri, Card_Pri, Dec_Pri, Sale_Date from " + tableName;
-			query = query + " where Sale_Date between '" + period2 + "' and '" + period1 + "'";
-		}
-		else
-		{
-			query = "select TSell_Pri, Sale_Num, Sale_Pri, Cash_Pri, Card_Pri, Dec_Pri, Sale_Date from " + tableName;
-			query = query + " where Sale_Date = '" + period1 + "';";
-			
-			query = query + " select TSell_Pri, Sale_Date from " + tableName2;
-			query = query + " where Sale_Date = '" + period2 + "'";
-		}
+		query = "select SUM(TSell_Pri) TSell_Pri, SUM(Sale_Num) Sale_Num, SUM(Sale_Pri) Sale_Pri, SUM(Cash_Pri) Cash_Pri, SUM(Card_Pri) Card_Pri, SUM(Dec_Pri) Dec_Pri, Sale_Date from " + tableName
+		 		+ " where Sale_Date ='" + period1 + "' Group by Sale_Date" 
+				+ " union all select SUM(TSell_Pri) TSell_Pri, SUM(Sale_Num) Sale_Num, SUM(Sale_Pri) Sale_Pri, SUM(Cash_Pri) Cash_Pri, SUM(Card_Pri) Card_Pri, SUM(Dec_Pri) Dec_Pri, Sale_Date from " + tableName2
+		 		+ " where Sale_Date ='" + period2 + "'  Group by Sale_Date";
 		
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
@@ -437,59 +324,46 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	{
 		String period1 = m_buttonSetDate.getText().toString();
 		String period2 = m_dateFormatter.format(m_dateCalender2.getTime());
-		
-		try {
-		
-			if ( results.length() > 0 )
-			{
+		try {		
+			if ( results.length() > 0 ) {
 				for(int i = 0; i < results.length() ; i++)
 				{
 					JSONObject son = results.getJSONObject(i);
-					
-					String sDate = son.getString("Sale_Date");
-					
-					if ( sDate.equals(period1) == true )
-					{
-						m_realSales.setText(m_numberFormat.format(son.getInt("TSell_Pri")));
-		    			
-		    			m_viewKNumber.setText(m_numberFormat.format(son.getInt("Sale_Num")));
-		    			
+					String Sale_Date = son.getString("Sale_Date");
+					if (Sale_Date.equals(period1)) {
+						m_realSales.setText(m_numberFormat.format(son.getInt("TSell_Pri")));		    			
+		    			m_viewKNumber.setText(m_numberFormat.format(son.getInt("Sale_Num")));		    			
 		    			m_viewPrice.setText(m_numberFormat.format(son.getInt("Sale_Pri")));
 		    			m_viewCash.setText(m_numberFormat.format(son.getInt("Cash_Pri")));
 		    			m_viewCard.setText(m_numberFormat.format(son.getInt("Card_Pri")));
-		    			m_viewCredit.setText(m_numberFormat.format(son.getInt("Dec_Pri")));
-		    			
+		    			m_viewCredit.setText(m_numberFormat.format(son.getInt("Dec_Pri")));		    			
 		    			m_viewOther.setText(m_numberFormat.format(0));	
 					}
-					else if ( sDate.equals(period2) == true )
-					{
-						m_viewRealSalesYesterday.setText(m_numberFormat.format(son.getInt("TSell_Pri")));
+					else {
+						//전일 순매출
+						m_viewRealSalesYesterday.setText(m_numberFormat.format(son.getInt("TSell_Pri")));	
 					}
 				}	
 			}
-			else 
-			{
+			else {
 				m_realSales.setText(m_numberFormat.format(0));
 				m_viewKNumber.setText(m_numberFormat.format(0));
 				m_viewPrice.setText(m_numberFormat.format(0));
 				m_viewCash.setText(m_numberFormat.format(0));
 				m_viewCard.setText(m_numberFormat.format(0));
 				m_viewCredit.setText(m_numberFormat.format(0));
-				m_viewOther.setText(m_numberFormat.format(0));
-				
-			}
-			
-			dialog.cancel();
+				m_viewOther.setText(m_numberFormat.format(0));				
+			}			
 			
 		} catch (JSONException e) {
 			e.printStackTrace();
-			dialog.cancel();
 		}
 	}
-	
-	
-	private void queryListForTab1()
+
+	private void queryForTab1()
 	{
+		mfillMaps1.removeAll(mfillMaps1);
+		
 		String period1 = m_buttonSetDate.getText().toString();
 		String period2 = m_dateFormatter.format(m_dateCalender2.getTime());
 		
@@ -507,133 +381,128 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		tableName = String.format("SaT_%04d%02d", year1, month1);
 		tableName2 = String.format("SaT_%04d%02d", year2, month2);
 		
-		if ( tableName.equals(tableName2) == true )
-		{
-			query = "select Sale_Time, TSell_Pri, TSell_RePri, DC_Pri, Sale_Date from " + tableName;
-			query = query + " where Sale_Date between '" + period2 + "' and '" + period1 + "'";
-		}
-		else
-		{
-			query = "select Sale_Time, TSell_Pri, TSell_RePri, DC_Pri, Sale_Date from " + tableName;
-			query = query + " where Sale_Date = '" + period1 + "';";
-			
-			query = query + " select Sale_Time, TSell_Pri, TSell_RePri, DC_Pri, Sale_Date from " + tableName2;
-			query = query + " where Sale_Date = '" + period2 + "'";
-		}
-	
-		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+		query = "select Sale_Time, TSell_Pri, TSell_RePri, DC_Pri, Sale_Date from " + tableName;
+		query = query + " where Sale_Date = '" + period1 + "' ";
+		query = query + " union all select Sale_Time, TSell_Pri, TSell_RePri, DC_Pri, Sale_Date from " + tableName2;
+		query = query + " where Sale_Date = '" + period2 + "'";
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+
+		new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
-				
-				updateListForTab1(results);
+
+				dialog.dismiss();
+				dialog.cancel();
+				if ( results.length() > 0 ) updateListForTab1(results);
+				adapter1.notifyDataSetChanged();
+				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();	
 			}
-	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-		
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				adapter1.notifyDataSetChanged();
+				Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
 	}
 	
+	private void updateForTab1(JSONArray results)
+	{
+		for(int index = 0; index < results.length() ; index++) {
+			
+			try {
+				JSONObject son = results.getJSONObject(index);
+				HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+	            map.put("시간", String.format("%02d", index));
+	            
+	            float rsale = Float.valueOf(map.get("순매출"));
+	            float prsale = Float.valueOf(map.get("전일매출"));
+	            
+	            map.put("순매출", m_numberFormat.format((int)rsale));
+	            map.put("전일매출", m_numberFormat.format((int)prsale));
+	            map.put("전일대비차액", m_numberFormat.format((int)rsale-prsale));
+	            
+				mfillMaps1.add(map);	
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 	
 	private void updateListForTab1(JSONArray results)
 	{
 		String period1 = m_buttonSetDate.getText().toString();
 		String period2 = m_dateFormatter.format(m_dateCalender2.getTime());
 		
-		String[] from = new String[] {"Sale_Time", "rSale", "rSale_Yes", "rDSale"};
-        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-		
 		try {
-			
-			if ( results.length() > 0 )
-			{
-		        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		        
-		        int [] rSale = new int [25];
-		        int [] rSale1 = new int [25];
-		        int [] rDSale = new int [25];
-		        
-		        for ( int i = 0; i < 25; i++ )
-		        {
-		        	rSale[i] = 0;
-		        	rSale1[i] = 0;
-		        	rDSale[i] = 0;
-		        }
-	 			
-				for(int i = 0; i < results.length() ; i++)
-				{
-					JSONObject son = results.getJSONObject(i);
+	        int [] rSale = new int [25];
+	        int [] rSale1 = new int [25];
+	        int [] rDSale = new int [25];
+	        
+	        for ( int i = 0; i < 25; i++ ) {
+	        	rSale[i] = 0;
+	        	rSale1[i] = 0;
+	        	rDSale[i] = 0;
+	        }
+ 			
+			for(int i = 0; i < results.length() ; i++) {
+				JSONObject son = results.getJSONObject(i);					
+				String sDate = son.getString("Sale_Date");
+				
+				if ( sDate.equals(period1) == true ) {
+					String tTime = son.getString("Sale_Time");
 					
-					String sDate = son.getString("Sale_Date");
+					int iTime = Integer.parseInt(tTime.substring(0, 2));
 					
-					if ( sDate.equals(period1) == true )
-					{
-						String tTime = son.getString("Sale_Time");
-						
-						int iTime = Integer.parseInt(tTime.substring(0, 2));
-						
-						int itSell = son.getInt("TSell_Pri");
-						int itRSell = son.getInt("TSell_RePri");
-						int idcPri = son.getInt("DC_Pri");
-						int irSale = itSell - (itRSell + idcPri);
-									
-						rSale[iTime] = rSale[iTime] + irSale;
-					}
-					else if ( sDate.equals(period2) == true )
-					{
-						String tTime = son.getString("Sale_Time");
-						
-						int iTime = Integer.parseInt(tTime.substring(0, 2));
-						
-						int itSell = son.getInt("TSell_Pri");
-						int itRSell = son.getInt("TSell_RePri");
-						int idcPri = son.getInt("DC_Pri");
-						int irSale = itSell - (itRSell + idcPri);
-						            				
-						rSale1[iTime] = rSale1[iTime] + irSale;
-					}
-				}	
-				
-				for ( int i = 0; i < 24; i++ )
-		        {
-		    		rDSale[i] = rSale[i] - rSale1[i];
-		    		
-		        	// prepare the list of all records
-		            HashMap<String, String> map = new HashMap<String, String>();
-		            map.put("Sale_Time", String.format("%02d", i));
-		            map.put("rSale", m_numberFormat.format(rSale[i]));
-		            map.put("rSale_Yes", m_numberFormat.format(rSale1[i]));
-		            map.put("rDSale", m_numberFormat.format(rDSale[i]));
-		            fillMaps.add(map);
-		        }
-				
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
-						from, to);
-				
-				m_listNewsTab1.setAdapter(adapter);
-				
-			}
-			else 
-			{
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
-						from, to);
-				
-				m_listNewsTab1.setAdapter(adapter);
-				
-			}
+					int itSell = son.getInt("TSell_Pri");
+					int itRSell = son.getInt("TSell_RePri");
+					int idcPri = son.getInt("DC_Pri");
+					int irSale = itSell - (itRSell + idcPri);
+								
+					rSale[iTime] = rSale[iTime] + irSale;
+				}
+				else if ( sDate.equals(period2) == true ) {
+					String tTime = son.getString("Sale_Time");
+					
+					int iTime = Integer.parseInt(tTime.substring(0, 2));
+					
+					int itSell = son.getInt("TSell_Pri");
+					int itRSell = son.getInt("TSell_RePri");
+					int idcPri = son.getInt("DC_Pri");
+					int irSale = itSell - (itRSell + idcPri);
+					            				
+					rSale1[iTime] = rSale1[iTime] + irSale;
+				}
+			}	
 			
-			dialog.cancel();
-			Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
+			for ( int i = 0; i < 24; i++ ) {
+	    		rDSale[i] = rSale[i] - rSale1[i];
+	    		
+	            HashMap<String, String> map = new HashMap<String, String>();
+	            map.put("시간", String.format("%02d", i));
+	            map.put("순매출", m_numberFormat.format(rSale[i]));
+	            map.put("전일매출", m_numberFormat.format(rSale1[i]));
+	            map.put("전일대비차액", m_numberFormat.format(rDSale[i]));
+
+				mfillMaps1.add(map);	
+	        }
 			
 		} catch (JSONException e) {
 			e.printStackTrace();
-			dialog.cancel();
 		}
 	}
 	
 	private void queryListForTab2()
 	{
-		String period1 = m_buttonSetDate.getText().toString();
-		
+		String period1 = m_buttonSetDate.getText().toString();		
 		String query = "";
 	    
 		int year1 = Integer.parseInt(period1.substring(0, 4));
@@ -643,113 +512,57 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		
 		tableName = String.format("SaD_%04d%02d", year1, month1);
 		
-		query = "select Office_Code, Office_Name, TSell_Pri, TSell_RePri, DC_Pri, ProFit_Pri from " + tableName;
-		query = query + " where Sale_Date = '" + period1 + "';";
-		
-		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+		query = "select Office_Code, Office_Name, SUM(TSell_Pri-TSell_RePri-DC_Pri) 순매출, SUM(ProFit_Pri) 이익금 from " + tableName
+				+ " where Sale_Date = '" + period1 + "' "
+				+ " GROUP BY Office_Code, Office_Name Order by 순매출 DESC; ";
+
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+		new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
-				
-				updateListForTab2(results);
+
+				dialog.dismiss();
+				dialog.cancel();
+				if ( results.length() > 0 ) updateListForTab2(results);
+				adapter2.notifyDataSetChanged();	
+				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();	
 			}
-	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				adapter2.notifyDataSetChanged();
+				Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);	
 	}
-	
 	
 	private void updateListForTab2(JSONArray results)
-	{
-		String[] from = new String[] {"Office_Code", "Office_Name", "rSale", "ProFit_Pri"};
-        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
-		
-		try {
+	{		
+		for(int index = 0; index < results.length() ; index++) {
 			
-			if ( results.length() > 0 )
-			{
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		        
-				ArrayList<String> lSpListCode = new ArrayList<String>();
-		        ArrayList<String> lSpListName = new ArrayList<String>();
-		        ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
-		        ArrayList<Integer> lSpListProfit = new ArrayList<Integer>();
-		        
-				for(int index = 0; index < results.length() ; index++)
-				{
-					JSONObject son = results.getJSONObject(index);
-					
-					String code = son.getString("Office_Code");
-					String name = son.getString("Office_Name");
-					int tSell = son.getInt("TSell_Pri");
-					int tRSell = son.getInt("TSell_RePri");
-					int dcPri = son.getInt("DC_Pri");
-					
-					boolean isExist = false;
-					               		
-	        		for ( int i = 0; i < lSpListCode.size(); i++ )
-	        		{
-	        			if ( lSpListCode.get(i).toString().equals(code) == true )
-	        			{
-	        				Integer rsale = lSpListSale.get(i).intValue() + ((tSell - (tRSell + dcPri)));
-	        				Integer profit = lSpListProfit.get(i).intValue() + son.getInt("ProFit_Pri");
-	        				
-	        				lSpListSale.set(i, rsale);
-	        				lSpListProfit.set(i, profit);
-	        				
-	        				isExist = true;
-	        				break;
-	        			}
-	        		}
-	        		
-	        		if ( isExist == false )
-	        		{
-	        			Integer rsale = tSell - (tRSell + dcPri);
-	    				Integer profit = son.getInt("ProFit_Pri");
-	    				
-	    				lSpListCode.add(code);
-	    				lSpListName.add(name);
-	    				lSpListSale.add(rsale);
-	    				lSpListProfit.add(profit);
-	        		}
-				}	
+			try {
+				JSONObject son = results.getJSONObject(index);
+				HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+
+				float rsale = Float.valueOf(map.get("순매출"));
+				float profit = Float.valueOf(map.get("이익금"));		
+	            map.put("순매출", m_numberFormat.format((int)rsale) );
+	            map.put("이익금", m_numberFormat.format((int)profit));
 				
-				
-				for ( int i = 0; i < lSpListCode.size(); i++ )
-				{
-					// prepare the list of all records
-		            HashMap<String, String> map = new HashMap<String, String>();
-		            
-		            map.put("Office_Code", lSpListCode.get(i));
-		            map.put("Office_Name", lSpListName.get(i));
-		            map.put("rSale", m_numberFormat.format(lSpListSale.get(i).intValue()) );
-		            map.put("ProFit_Pri", m_numberFormat.format(lSpListProfit.get(i).intValue()));
-		            fillMaps.add(map);
-				}
-				
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
-						from, to);
-				
-				m_listNewsTab2.setAdapter(adapter);
-				
+				mfillMaps2.add(map);	
+			} catch (JSONException e) {
+				e.printStackTrace();
 			}
-			else 
-			{
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4, 
-						from, to);
-				
-				m_listNewsTab2.setAdapter(adapter);
-				
-			}
-			
-			dialog.cancel();
-			Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
-			
-		} catch (JSONException e) {
-			e.printStackTrace();
-			dialog.cancel();
 		}
 	}
-	
 	
 	private void queryListForTab3(String... urls)
 	{
@@ -769,35 +582,50 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		
 		tableName = String.format("SaD_%04d%02d", year1, month1);
 		
-		if ( typeL.equals("") != true && typeL.equals("전체") != true)
-		{
+		if ( typeL.equals("") != true && typeL.equals("전체") != true) {
 			constraint = setConstraint(constraint, "L_Name", "=", typeL);
 		}
 		
-		if ( typeM.equals("") != true && typeM.equals("전체") != true)
-		{
+		if ( typeM.equals("") != true && typeM.equals("전체") != true) {
 			constraint = setConstraint(constraint, "M_Name", "=", typeM);
 		}
 		
-		if ( typeS.equals("") != true && typeS.equals("전체") != true)
-		{
+		if ( typeS.equals("") != true && typeS.equals("전체") != true) {
 			constraint = setConstraint(constraint, "S_Name", "=", typeS);
 		}
 		
-		query = "select TSell_Pri, TSell_RePri, DC_Pri, Sale_Count, ProFit_Pri, L_Name, M_Name, S_Name from " + tableName;
-		query = query + " where Sale_Date = '" + period1 + "'";
+		query = "select (TSell_Pri-TSell_RePri-DC_Pri) 순매출, Sale_Count, ProFit_Pri, L_Name, M_Name, S_Name from " + tableName
+				+ " where Sale_Date = '" + period1 + "'";
 
-		if ( constraint.equals("") != true )
-		{
+		if ( constraint.equals("") != true ) {
 			query = query + " and " + constraint;
 		}
-		
-		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+		mfillMaps3.removeAll(mfillMaps3);
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
+		new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
-				
-				updateListForTab3(results, typeL, typeM, typeS);
+
+				dialog.dismiss();
+				dialog.cancel();
+				if ( results.length() > 0 ) updateListForTab3(results, typeL, typeM, typeS);
+				adapter3.notifyDataSetChanged();	
+				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();	
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				adapter3.notifyDataSetChanged();
+				Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
@@ -805,117 +633,72 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	
 	private void updateListForTab3(JSONArray results, String typeL, String typeM, String typeS)
 	{
-		String[] from = new String[] {"Count", "T_Name", "rSale", "Sale_Count", "ProFit_Pri"};
-        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5 };
-        
 		try {
-			
-			if ( results.length() > 0 )
+			ArrayList<String> lSpListType = new ArrayList<String>();
+	        ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
+	        ArrayList<Integer> lSpListSaleCnt = new ArrayList<Integer>();
+	        ArrayList<Integer> lSpListProfit = new ArrayList<Integer>();
+	        
+			for(int index = 0; index < results.length() ; index++)
 			{
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		        
-				ArrayList<String> lSpListType = new ArrayList<String>();
-		        ArrayList<Integer> lSpListSale = new ArrayList<Integer>();
-		        ArrayList<Integer> lSpListSaleCnt = new ArrayList<Integer>();
-		        ArrayList<Integer> lSpListProfit = new ArrayList<Integer>();
-		        
-				for(int index = 0; index < results.length() ; index++)
-				{
-					JSONObject son = results.getJSONObject(index);
-					String sName = "";
-					
-					if ( typeL.equals("전체") == true )
-					{
-						sName = son.getString("L_Name");
-					}
-					else if ( typeM.equals("전체") == true )
-					{
-						sName = son.getString("M_Name");
-					}
-					else if ( typeS.equals("전체") == true )
-					{
-						sName = son.getString("S_Name");
-					}
-					else
-					{
-						sName = son.getString("S_Name");
-					}
+				JSONObject son = results.getJSONObject(index);
+				String sName = "";
 				
-					int tSell = son.getInt("TSell_Pri");
-					int tRSell = son.getInt("TSell_RePri");
-					int dcPri = son.getInt("DC_Pri");
-					
-					boolean isExist = false;
-	           		
-	        		for ( int i = 0; i < lSpListType.size(); i++ )
-	        		{
-	        			if ( lSpListType.get(i).toString().equals(sName) == true )
-	        			{
-	        				Integer rsale = lSpListSale.get(i).intValue() + ((tSell - (tRSell + dcPri)));
-	        				Integer sCount = lSpListSaleCnt.get(i).intValue() + son.getInt("Sale_Count");
-	        				Integer sProfit = lSpListProfit.get(i).intValue() + son.getInt("ProFit_Pri");
-	        				
-	        				lSpListSale.set(i, rsale);
-	        				lSpListSaleCnt.set(i, sCount);
-	        				lSpListProfit.set(i, sProfit);
-	        				
-	        				isExist = true;
-	        				
-	        				break;
-	        			}
-	        		}
-	        		
-	        		if ( isExist == false )
-	        		{
-	        			Integer rsale = tSell - (tRSell + dcPri);
-	    				Integer profit = son.getInt("ProFit_Pri");
-	    				Integer saleCnt = son.getInt("Sale_Count");
-	    				
-	    				lSpListType.add(sName);
-	    				lSpListSale.add(rsale);
-	    				lSpListSaleCnt.add(saleCnt);
-	    				lSpListProfit.add(profit);
-	        		}
-				}	
-				
-				
-				for ( int i = 0; i < lSpListType.size(); i++ )
-				{
-					// prepare the list of all records
-		            HashMap<String, String> map = new HashMap<String, String>();
-		            map.put("Count", String.format("%d", i+1));
-		            map.put("T_Name", lSpListType.get(i));
-		            map.put("rSale", m_numberFormat.format(lSpListSale.get(i).intValue()) );
-		            map.put("Sale_Count", m_numberFormat.format(lSpListSaleCnt.get(i).intValue()) );
-		            map.put("ProFit_Pri", m_numberFormat.format(lSpListProfit.get(i).intValue()) );
-		            fillMaps.add(map);	
+				if ( typeL.equals("전체") == true ) {
+					sName = son.getString("L_Name");
 				}
-				
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item5, 
-						from, to);
-				
-				m_listNewsTab3.setAdapter(adapter);
-				
-			}
-			else 
-			{
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item5, 
-						from, to);
-				
-				m_listNewsTab3.setAdapter(adapter);
-				
-				
-			}
+				else if ( typeM.equals("전체") == true ) {
+					sName = son.getString("M_Name");
+				}
+				else if ( typeS.equals("전체") == true ) {
+					sName = son.getString("S_Name");
+				}
+				else {
+					sName = son.getString("S_Name");
+				}
 			
-			dialog.cancel();
-			Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
+				int rSale = son.getInt("순매출");
+				int ProFit_Pri = son.getInt("ProFit_Pri");
+				int Sale_Count = son.getInt("Sale_Count");
+				
+				boolean isExist = false;
+           		
+        		for ( int i = 0; i < lSpListType.size(); i++ ) {
+        			if ( lSpListType.get(i).toString().equals(sName) == true ) {
+        				Integer rsale = lSpListSale.get(i).intValue() + rSale;
+        				Integer sCount = lSpListSaleCnt.get(i).intValue() + Sale_Count;
+        				Integer sProfit = lSpListProfit.get(i).intValue() + ProFit_Pri;
+        				
+        				lSpListSale.set(i, rsale);
+        				lSpListSaleCnt.set(i, sCount);
+        				lSpListProfit.set(i, sProfit);
+        				isExist = true;	        				
+        				break;
+        			}
+        		}
+        		
+        		if ( isExist == false ) {    				
+    				lSpListType.add(sName);
+    				lSpListSale.add(rSale);
+    				lSpListSaleCnt.add(Sale_Count);
+    				lSpListProfit.add(ProFit_Pri);
+        		}
+			}				
+			
+			for ( int i = 0; i < lSpListType.size(); i++ ) {
+
+	            HashMap<String, String> map = new HashMap<String, String>();
+	            map.put("순번", String.format("%d", i+1));
+	            map.put("분류명", lSpListType.get(i));
+	            map.put("순매출", m_numberFormat.format(lSpListSale.get(i).intValue()) );
+	            map.put("수량", m_numberFormat.format(lSpListSaleCnt.get(i).intValue()) );
+	            map.put("이익금", m_numberFormat.format(lSpListProfit.get(i).intValue()) );
+				mfillMaps3.add(map);	
+			}	
 			
 		} catch (JSONException e) {
 			e.printStackTrace();
-			dialog.cancel();
 		}
-	
 	}
 	
 	private void queryComboBoxInTab3(final int iCombo, String... urls)
@@ -975,10 +758,8 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 			if ( constraint.equals("") != true )
 			{
 				query = query + " and " + constraint;
-			}
-			
-		}
-		
+			}			
+		}		
 
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
@@ -1070,16 +851,13 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 				else if ( iCombo == 2 )
 				{
 					m_spinClassification3.setAdapter(adapter);
-				}
-				
+				}				
 			}
 			
-			dialog.cancel();
 			Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
 			
 		} catch (JSONException e) {
 			e.printStackTrace();
-			dialog.cancel();
 		}
 	}
 
@@ -1096,5 +874,44 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
     }
 
 
-    
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void setupActionBar() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+	
+			ActionBar actionbar = getActionBar();
+			actionbar.setDisplayShowHomeEnabled(false);
+			actionbar.setDisplayShowTitleEnabled(true);
+			actionbar.setDisplayShowCustomEnabled(true);
+			actionbar.setTitle("매출속보");
+			
+			getActionBar().setDisplayHomeAsUpEnabled(false);
+		}
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.sales_news, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			// This ID represents the Home or Up button. In the case of this
+			// activity, the Up button is shown. Use NavUtils to allow users
+			// to navigate up one level in the application structure. For
+			// more details, see the Navigation pattern on Android Design:
+			//
+			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
+			//
+			NavUtils.navigateUpFromSameTask(this);
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}    
 }

@@ -9,6 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
@@ -114,7 +115,7 @@ public class CustomerProductDetailInNewsActivity extends Activity {
 			constraint = setConstraint(constraint, "Office_Name", "=", customerName);
 		}
 		
-		query = "select Barcode, G_Name, Sale_Count, TSell_Pri, TSell_RePri, DC_Pri from " + tableName;
+		query = "select Barcode, G_Name, SUM(Sale_Count) Sale_Count, SUM(TSell_Pri-TSell_RePri-DC_Pri) rSale from " + tableName;
 		query = query + " where Sale_Date = '" + period1 + "'";
 	
 		if ( constraint.equals("") != true )
@@ -122,7 +123,7 @@ public class CustomerProductDetailInNewsActivity extends Activity {
 			query = query + " and " + constraint;
 		}
 		
-		query = query + ";";
+		query = query + "  group by Barcode, G_Name;";
     	
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
@@ -139,18 +140,8 @@ public class CustomerProductDetailInNewsActivity extends Activity {
 						for(int i = 0; i < results.length() ; i++)
 						{
 							JSONObject son = results.getJSONObject(i);
+							HashMap<String, String> map = JsonHelper.toStringHashMap(son);
 							
-		    				int tSell = son.getInt("TSell_Pri");
-		    				int tRSell = son.getInt("TSell_RePri");
-		    				int dcPri = son.getInt("DC_Pri");
-		    				String saleCount = m_numberFormat.format(son.getInt("Sale_Count"));
-		    				String rSale = m_numberFormat.format(tSell - (tRSell + dcPri));
-							
-							HashMap<String, String> map = new HashMap<String, String>();
-							map.put("Barcode", son.getString("Barcode") );
-							map.put("G_Name", son.getString("G_Name"));
-							map.put("Sale_Count", saleCount);
-							map.put("rSale", rSale );
 							fillMaps.add(map);
 						}	
 						

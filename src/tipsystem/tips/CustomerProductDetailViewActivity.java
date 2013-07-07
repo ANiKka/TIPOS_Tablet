@@ -68,8 +68,7 @@ public class CustomerProductDetailViewActivity extends Activity {
 		Intent intent = getIntent();
 		
 		m_period1.setText(intent.getExtras().getString("PERIOD1"));
-		m_period2.setText(intent.getExtras().getString("PERIOD2"));
-		
+		m_period2.setText(intent.getExtras().getString("PERIOD2"));		
 		m_customerCode.setText(intent.getExtras().getString("OFFICE_CODE"));
 		m_customerName.setText(intent.getExtras().getString("OFFICE_NAME"));
 		
@@ -104,7 +103,7 @@ public class CustomerProductDetailViewActivity extends Activity {
 
 				tableName = String.format("SaD_%04d%02d", y, m);
 				
-    			query = query + "select Barcode, G_Name, SUM(Sale_Count) 수량, SUM(Sale_Count) 순수량 from " + tableName;
+    			query = query + "select Barcode, G_Name, SUM(Sale_Count) 수량, SUM(TSell_Pri-TSell_RePri-DC_Pri) 순매출 from " + tableName;
     			query = query + " where Office_Code='"+customerCode+"' and Sale_Date between '" + period1 + "' and '" + period2 + "'";
     			
 				query += " union all ";
@@ -133,7 +132,7 @@ public class CustomerProductDetailViewActivity extends Activity {
 	
 	private void updateList(JSONArray results)
 	{
-		String[] from = new String[] {"Barcode", "G_Name", "수량", "순수량"};
+		String[] from = new String[] {"Barcode", "G_Name", "수량", "순매출"};
         int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
 		
 		try {
