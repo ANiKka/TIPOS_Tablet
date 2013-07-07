@@ -108,7 +108,6 @@
         android:id="@+id/linearLayout4"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
         android:orientation="horizontal" >
 
          <CheckBox
@@ -118,8 +117,7 @@
              android:layout_weight="0.7"
              android:textSize="14sp"
              android:text="현금영수증 공제 (%)" />
-
-         <!-- 
+ 
          <EditText
              android:id="@+id/editTextCashDeduction"
              android:layout_width="0dip"
@@ -143,14 +141,45 @@
             android:scaleY="0.6"
 	        android:background="@drawable/basic_inquiry_btn"
 	        android:onClick="OnClickSearch"/>
-	         -->
+	        
+    </LinearLayout>
+    
+    <LinearLayout
+        android:id="@+id/linearLayout5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+         <CheckBox
+             android:id="@+id/checkBoxCard"
+             android:layout_width="0dip"
+             android:layout_height="wrap_content"
+             android:layout_weight="0.7"
+             android:textSize="14sp"
+             android:text="카드수수료" />
+ 
+         <CheckBox
+             android:id="@+id/checkBoxCash"
+             android:layout_width="0dip"
+             android:layout_height="wrap_content"
+             android:layout_weight="0.7"
+             android:textSize="14sp"
+             android:text="캐쉬백 수수료" />
          
+         <CheckBox
+             android:id="@+id/checkBoxPoint"
+             android:layout_width="0dip"
+             android:layout_height="wrap_content"
+             android:layout_weight="0.7"
+             android:textSize="14sp"
+             android:text="포인트공제" />
+	        
     </LinearLayout>
     
     <LinearLayout android:id="@+id/header1"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
-        android:layout_marginTop="10dp" >
+        android:layout_marginTop="5dp" >
                  
             <TextView android:id="@+id/item1"
 	            android:layout_height="fill_parent"

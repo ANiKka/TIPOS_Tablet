@@ -17,7 +17,13 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.support.v4.app.NavUtils;
 
@@ -37,6 +43,12 @@ public class ChargeCustomerDetailActivity extends Activity {
 	
 	CheckBox m_isCashDeduction;
 	TextView m_ratioDeduction;
+
+	EditText m_editTextCashDeduction;
+	CheckBox m_checkBoxCard;
+	CheckBox m_checkBoxCash;
+	CheckBox m_checkBoxPoint;
+	Button m_buttonPriceSearch;
 	
 	int m_qIndex = 0;
 	int m_isTax = 0;
@@ -44,6 +56,8 @@ public class ChargeCustomerDetailActivity extends Activity {
 	
 	ProgressDialog dialog;
 	NumberFormat m_numberFormat;
+	
+	HashMap<String, String> m_data = new HashMap<String, String>();
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -97,23 +111,86 @@ public class ChargeCustomerDetailActivity extends Activity {
 		m_contents[22] = (TextView)findViewById(R.id.content23);
 		m_contents[23] = (TextView)findViewById(R.id.content24);
 		
+		m_editTextCashDeduction = (EditText)findViewById(R.id.editTextCashDeduction);
 		m_isCashDeduction = (CheckBox)findViewById(R.id.checkBoxIsCashDeduction);
+		m_checkBoxCard =(CheckBox)findViewById(R.id.checkBoxCard);
+		m_checkBoxCash =(CheckBox)findViewById(R.id.checkBoxCash);
+		m_checkBoxPoint =(CheckBox)findViewById(R.id.checkBoxPoint);
+		m_checkBoxCard.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+			@Override
+			public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
+				doCalculateGongjae();
+			}
+		});
+		m_checkBoxCash.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+			@Override
+			public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
+				doCalculateGongjae();
+			}
+		});
+		m_checkBoxPoint.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+			@Override
+			public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
+				doCalculateGongjae();
+			}
+		});
+		m_buttonPriceSearch =(Button)findViewById(R.id.buttonPriceSearch);
+		m_buttonPriceSearch.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View arg0) {
+				doCalculateGongjae();
+			}
+		});
 		
 		Intent intent = getIntent();
 		
 		m_period1.setText(intent.getExtras().getString("PERIOD1"));
-		m_period2.setText(intent.getExtras().getString("PERIOD2"));
-		
+		m_period2.setText(intent.getExtras().getString("PERIOD2"));		
 		m_customerCode.setText(intent.getExtras().getString("OFFICE_CODE"));
 		m_customerName.setText(intent.getExtras().getString("OFFICE_NAME"));
 				
 		doCalculate();
 	}
 
-	private void doCalculate() {
-		
-		String query ="";
+	private void doCalculateGongjae() {
+		boolean isCard = m_checkBoxCard.isChecked();
+		boolean isCashback = m_checkBoxCash.isChecked();
+		boolean isPoint = m_checkBoxPoint.isChecked();
+		boolean isCash = m_isCashDeduction.isChecked();
 
+		double rsale = Double.valueOf(m_data.get("순매출"));
+		double cashback = Double.valueOf(m_data.get("캐쉬백"));
+		double cash = Double.valueOf(m_data.get("현영과세"));
+		double card = Double.valueOf(m_data.get("카드수수료"));
+		double point = Double.valueOf(m_data.get("포인트"));
+		
+		String r = m_editTextCashDeduction.getText().toString();
+		
+		double ratio = (r.equals(""))? 0: Double.valueOf(r);
+		cash = cash * ratio / 100.0f;
+		
+		double m = 0;
+		if (isCard)   m += card;
+		if (isCashback)   m += cashback;
+		if (isPoint)   m += point;
+		if (isCash)   m += cash;
+		
+		rsale -= m;
+		
+		m_contents[21].setText(String.valueOf(m));	//공제금액
+		m_contents[22].setText(String.valueOf(rsale));	//공제후지급액
+	}
+	
+	private void doCalculate() {
+
+		Intent intent = getIntent();
+		String query ="";
+		String customerCode = intent.getExtras().getString("OFFICE_CODE");
+		String customerName = intent.getExtras().getString("OFFICE_NAME");
 		String period1 = m_period1.getText().toString();
 		String period2 = m_period2.getText().toString();
 		int year1 = Integer.parseInt(period1.substring(0, 4));
@@ -153,11 +230,11 @@ public class ChargeCustomerDetailActivity extends Activity {
 				+ " '카드수수료'=Sum(Case When A.Card_YN='0' Then a.Card_Pri * (a.Card_Fee / 100) Else 0 End), Sum(A.S_Point) S_Point, "
 				+ " Sum(A.S_CashBackPoint) S_CashBackPoint , Sum (a.Profit_Pri) '이익금' From SaD_"+tableName+" A LEFT JOIN SaT_"+tableName+" C "
 				+ " ON A.Sale_Num=C.Sale_Num LEFT JOIN Office_Manage B ON A.Office_Code=B.Office_Code LEFT JOIN Cash_Receip_Log F "
-				+ " ON A.SALE_NUM=F.C_JEONPYO Where B.Office_Sec = '2' And A.Office_Code Like '%%' And A.Office_Name Like '%%' "
+				+ " ON A.SALE_NUM=F.C_JEONPYO Where B.Office_Sec = '2' And A.Office_Code Like '%"+ customerCode +"%' And A.Office_Name Like '%"+customerName+"%' "
 				+ " AND A.Sale_Date >= '"+period1+"' AND A.Sale_Date <= '"+period2+"' Group By A.Office_Code, A.Office_Name ) G "
 				+ " Group By G.Office_Code,G.Office_Name ) G LEFT JOIN ( Select Office_Code,순매입액 From ( Select Office_Code,Sum(In_Pri) '순매입액' "
 				+ " From ( Select A.Office_Code,Sum(A.In_Pri) In_Pri From InD_"+tableName+" A Inner JOIN Office_Manage B ON A.Office_Code=B.Office_Code "
-				+ " Where B.Office_Sec = '2' And A.Office_Code Like '%%' AnD A.Office_Name Like '%%' AND A.In_Date >= '"+period1+"' "
+				+ " Where B.Office_Sec = '2' And A.Office_Code Like '%"+ customerCode +"%' AnD A.Office_Name Like '%"+customerName+"%' AND A.In_Date >= '"+period1+"' "
 				+ " AND A.In_Date <= '"+period2+"' Group By A.Office_Code ) V Group By V.Office_Code ) V ) V On G.Office_Code=V.Office_Code "
 				+ " ORDER BY G.Office_Code";
 
@@ -173,36 +250,37 @@ public class ChargeCustomerDetailActivity extends Activity {
 	private void updateList(JSONArray results)
 	{
 		try {
-			HashMap<String, String> obj = JsonHelper.toStringHashMap(results.getJSONObject(0));
+			m_data = JsonHelper.toStringHashMap(results.getJSONObject(0));
 
-			m_contents[0].setText(obj.get("판매"));
-			m_contents[1].setText(obj.get("반품"));
-			m_contents[2].setText(obj.get("할인"));
-			m_contents[3].setText(obj.get("순매출"));
-			m_contents[4].setText(obj.get("과세매출"));
-			m_contents[5].setText(obj.get("면세매출"));
-			m_contents[6].setText(obj.get("현금매출"));
-			m_contents[7].setText(obj.get("현금과세"));
-			m_contents[8].setText(obj.get("현금면세"));
-			m_contents[9].setText(obj.get("카드매출"));
-			m_contents[10].setText(obj.get("카드과세"));
-			m_contents[11].setText(obj.get("카드면세"));
-			m_contents[12].setText(obj.get("현영매출"));
-			m_contents[13].setText(obj.get("현영과세"));
-			m_contents[14].setText(obj.get("현영면세"));
-			m_contents[15].setText(obj.get("수_카드금액"));
-			m_contents[16].setText(obj.get("매장수수료"));
-			m_contents[17].setText(obj.get("카드수수료"));
-			m_contents[18].setText(obj.get("포인트"));
-			m_contents[19].setText(obj.get("캐쉬백"));
-			m_contents[20].setText(obj.get("현영공제"));
-			m_contents[21].setText(obj.get("공제금액"));
-			m_contents[22].setText(obj.get("공제후지급액"));
-			m_contents[23].setText(obj.get("점유율"));
+			m_contents[0].setText(m_data.get("판매"));
+			m_contents[1].setText(m_data.get("반품"));
+			m_contents[2].setText(m_data.get("할인"));
+			m_contents[3].setText(m_data.get("순매출"));
+			m_contents[4].setText(m_data.get("과세매출"));
+			m_contents[5].setText(m_data.get("면세매출"));
+			m_contents[6].setText(m_data.get("현금매출"));
+			m_contents[7].setText(m_data.get("현금과세"));
+			m_contents[8].setText(m_data.get("현금면세"));
+			m_contents[9].setText(m_data.get("카드매출"));
+			m_contents[10].setText(m_data.get("카드과세"));
+			m_contents[11].setText(m_data.get("카드면세"));
+			m_contents[12].setText(m_data.get("현영매출"));
+			m_contents[13].setText(m_data.get("현영과세"));
+			m_contents[14].setText(m_data.get("현영면세"));
+			m_contents[15].setText(m_data.get("수_카드금액"));
+			m_contents[16].setText(m_data.get("매장수수료"));
+			m_contents[17].setText(m_data.get("카드수수료"));
+			m_contents[18].setText(m_data.get("포인트"));
+			m_contents[19].setText(m_data.get("캐쉬백"));
+			m_contents[20].setText(m_data.get("현영공제"));
+			m_contents[21].setText(m_data.get("공제금액"));
+			m_contents[22].setText(m_data.get("공제후지급액"));
+			m_contents[23].setText(m_data.get("점유율"));
 			
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}		
+		doCalculateGongjae();
 	}
 	
 	@Override

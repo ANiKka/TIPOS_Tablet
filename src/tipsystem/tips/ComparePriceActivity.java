@@ -211,31 +211,23 @@ public class ComparePriceActivity extends Activity{
     	String index = String.valueOf(mfillMaps.size());    	
     	String customer = m_customerCode.getText().toString();
 	    String barcode = m_barcode.getText().toString();
-	    String local = m_local.getSelectedItem().toString();
+	    
+	    if (customer.equals("") && barcode.equals("") ){
+
+			//Toast.makeText(getApplicationContext(), "한가지이상 입력하여야 합니다", Toast.LENGTH_SHORT).show();
+			//return;
+	    }
 	    
 	    String query =  "";	    
-	    //query += "SELECT BarCode, G_Name, Pur_Pri, Sell_Pri  FROM Goods";
-		query = "SELECT TOP 25 BarCode, G_Name, Pur_Pri, Sell_Pri FROM Goods WHERE BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods)";
-	    
-	    if (!customer.equals("") || !barcode.equals("") || !local.equals("")){
-	    	
-	 	    if(!customer.equals("")){
-	 	    	query += " AND Bus_Code like '" + customer + "%'";
-	 		}
-	 	    
-	 		if(!barcode.equals("")){
-	 			query += " AND BarCode like '" + barcode + "%'";
-	 		}
-	 		
-	 		if(!local.equals("")){
-	 			//query += " AND Location like '" + local + "%'";
-	 		}
-	 		query += ";";
-	    } else {
-	    	query = "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods) A " 
-	    			+ "JOIN (SELECT TOP 25 BarCode, G_Name, Pur_Pri, Sell_Pri FROM Goods WHERE BarCode NOT IN (SELECT TOP " + index + " BarCode FROM Goods)) B ON A.BarCode = B.BarCode;";
-	    }
+		query = "SELECT TOP 25 A.BarCode, A.G_Name, A.Pur_Pri, A.Sell_Pri FROM Goods as A inner join V_OFFICE_USER as B "
+ 				+ " on A.Office_Code = B.Sto_CD "
+				+ " WHERE A.BarCode NOT IN (SELECT TOP " + index + " BarCode FROM Goods) ";
 
+		query = "SELECT TOP 25 BarCode, G_Name, Pur_Pri, Sell_Pri FROM Goods "
+				+ " WHERE BarCode NOT IN (SELECT TOP " + index + " BarCode FROM Goods) "
+				+ " AND Bus_Code like '" + customer + "%'"
+				+ " AND BarCode like '" + barcode + "%';";
+		
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
@@ -265,7 +257,9 @@ public class ComparePriceActivity extends Activity{
 	
     public void doSearchInTail(JSONArray results){
 
+	    String local = m_local.getSelectedItem().toString();
     	String query1 = "";
+
     	for(int i = 0; i < results.length(); i++) {
     		String BarCode ="";
     		try {
@@ -273,10 +267,22 @@ public class ComparePriceActivity extends Activity{
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
-    		query1 += "SELECT isNull(AVG(Pur_Pri), 0) AS Pur_Pri, isNull(AVG(Sell_Pri), 0) AS Sell_Pri FROM Goods WHERE BarCode = '" + BarCode + "' ";
     		
-    		if(i<results.length()-1)	query1 += "union all ";
-    		else 						query1 += ";";   			
+
+    		if (!local.equals("전체")) {
+    			query1 += "SELECT isNull(AVG(A.Pur_Pri), 0) AS Pur_Pri, isNull(AVG(A.Sell_Pri), 0) AS Sell_Pri, A.BarCode, A.G_Name, B.Shop_Area  "
+        				+ " FROM Goods as A left outer join V_OFFICE_USER as B on A.Office_Code = B.Sto_CD"
+        				+ " WHERE A.BarCode = '" + BarCode + "' ";
+    			query1 += " AND B.Shop_Area = '" + local + "' group by A.BarCode, A.G_Name, B.Shop_Area ";
+    		}
+    		else {
+    			query1 += "SELECT isNull(AVG(A.Pur_Pri), 0) AS Pur_Pri, isNull(AVG(A.Sell_Pri), 0) AS Sell_Pri, A.BarCode, A.G_Name "
+        				+ " FROM Goods as A left outer join V_OFFICE_USER as B on A.Office_Code = B.Sto_CD"
+        				+ " WHERE A.BarCode = '" + BarCode + "' group by A.BarCode, A.G_Name ";
+    		}
+    		
+    		if(i<results.length()-1)	query1 += " union all ";
+    		else 						query1 += ";";
     	}
     	
 		// 로딩 다이알로그 
@@ -323,23 +329,25 @@ public class ComparePriceActivity extends Activity{
     			double Sell_Pri2 = json2.getDouble("Sell_Pri");
     			
             	HashMap<String, String> map = JsonHelper.toStringHashMap(json1);
+				HashMap<String, String> map2 = JsonHelper.toStringHashMap(json2);
 
 	            String Pur_Pri = map.get("Pur_Pri");	
 	            if(Pur_Pri1>Pur_Pri2) Pur_Pri = "+";
 	            else if(Pur_Pri1==Pur_Pri2) Pur_Pri = "=";
 	            else Pur_Pri = "-";
 
-	            map.put("Pur_Pri_dif", String.format("%.1f", Pur_Pri1-Pur_Pri2));
-	            map.put("Pur_Pri_inc", Pur_Pri);
+	            map2.put("Pur_Pri_dif", String.format("%.1f", Pur_Pri2));
+	            map2.put("Pur_Pri_inc", Pur_Pri);
 	            
 	            String Sell_Pri = map.get("Sell_Pri");
 	            if(Sell_Pri1>Sell_Pri2) Sell_Pri = " +";
 	            else if(Sell_Pri1==Sell_Pri2) Sell_Pri = "=";
 	            else Sell_Pri = "-";
-	            map.put("Sell_Pri_dif", String.format("%.1f", Sell_Pri1-Sell_Pri2));
-	            map.put("Sell_Pri_inc", Sell_Pri);
 	            
-    	        mfillMaps.add(map);         
+	            map2.put("Sell_Pri_dif", String.format("%.1f", Sell_Pri2));
+	            map2.put("Sell_Pri_inc", Sell_Pri);
+				
+    	        mfillMaps.add(map2);         
     	        
 			} catch (JSONException e) {
 				e.printStackTrace();
