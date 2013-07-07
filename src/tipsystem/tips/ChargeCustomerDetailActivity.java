@@ -268,8 +268,8 @@ public class ChargeCustomerDetailActivity extends Activity {
 			m_contents[13].setText(m_data.get("현영과세"));
 			m_contents[14].setText(m_data.get("현영면세"));
 			m_contents[15].setText(m_data.get("수_카드금액"));
-			m_contents[16].setText(m_data.get("매장수수료"));
-			m_contents[17].setText(m_data.get("카드수수료"));
+			m_contents[16].setText(String.format("%.2f", Float.valueOf(m_data.get("매장수수료"))));
+			m_contents[17].setText(String.format("%.2f", Float.valueOf(m_data.get("카드수수료"))));
 			m_contents[18].setText(m_data.get("포인트"));
 			m_contents[19].setText(m_data.get("캐쉬백"));
 			m_contents[20].setText(m_data.get("현영공제"));
