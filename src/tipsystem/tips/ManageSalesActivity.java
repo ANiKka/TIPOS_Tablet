@@ -219,7 +219,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	            @Override
 	            public void onSelectedDayChange(CalendarView view, int year, int month, int dayOfMonth) {
 	
-	        		m_CalendarDay = String.format("%04d-%02d-%02d", year, month, dayOfMonth);
+	        		m_CalendarDay = String.format("%04d-%02d-%02d", year, month+1, dayOfMonth);
 	
 	         		doQuery();
 	            }
