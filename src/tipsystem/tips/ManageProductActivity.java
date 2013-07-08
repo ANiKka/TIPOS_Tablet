@@ -792,13 +792,6 @@ public class ManageProductActivity extends Activity {
 		m_textPurchasePriceOriginal.setText(object.get("Pur_Cost"));
 		m_textDifferentRatio.setText(object.get("Profit_Rate"));
 		
-		//int l = getIndexFromListByCode(m_Ltype, object.get("L_Code"));
-		///int m = getIndexFromListByCode(m_Mtype, object.get("M_Code"));
-		//int s = getIndexFromListByCode(m_Stype, object.get("S_Code"));
-		//m_spinCustomerClassification1.setSelection(l);
-		//m_spinCustomerClassification1.setSelection(m);
-		//m_spinCustomerClassification1.setSelection(s);
-
 		m_buttonCustomerClassification1.setText(object.get("L_Name"));
 		m_buttonCustomerClassification2.setText(object.get("M_Name"));
 		m_buttonCustomerClassification3.setText(object.get("S_Name"));

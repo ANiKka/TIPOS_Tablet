@@ -306,5 +306,4 @@ public class ChargeCustomerDetailActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-	    
 }
