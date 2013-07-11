@@ -599,7 +599,7 @@ public class ManageProductActivity extends Activity {
 	    	query = "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods) A "
 	    			+ " JOIN (SELECT TOP 50 * FROM Goods WHERE BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods)) B ON A.BarCode = B.BarCode;";
 	    }
-
+    	
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");

@@ -59,7 +59,7 @@ public class PaymentDetailViewActivity extends Activity {
 		Intent intent = getIntent();
 		
 		String period1 = intent.getExtras().getString("PERIOD1");
-		String period2 = intent.getExtras().getString("PERIOD1");
+		String period2 = intent.getExtras().getString("PERIOD2");
 		
 		String customerName = intent.getExtras().getString("OFFICE_NAME");
 		String customerCode = intent.getExtras().getString("OFFICE_CODE");
@@ -73,25 +73,21 @@ public class PaymentDetailViewActivity extends Activity {
 		
 		m_customerName.setText(customerName);
 
-		int year1 = Integer.parseInt(period1.substring(0, 4));
-		int month1 = Integer.parseInt(period1.substring(5, 7));
-		
-		int year2 = Integer.parseInt(period2.substring(0, 4));
-		int month2 = Integer.parseInt(period2.substring(5, 7));
-		
     	String query ="";
-		for ( int y = year1; y <= year2; y++ ) {
-			for ( int m = month1; m <= month2; m++ ) {
+		query = "select * " 
+    	    		+ " from OFFICE_SETTLEMENT " 
+    	    		+ " where Office_Code='"+customerCode+"' and PRO_DATE between '" + period1 + "' and '" + period2 + "'";
 
-     			query = "select * " 
-		    	    		+ " from OFFICE_SETTLEMENT " 
-		    	    		+ " where Office_Code='"+customerCode+"' and PRO_DATE between '" + period1 + "' and '" + period2 + "'";
-
-				query += " union all ";				
-			}
-		}
-		query = query.substring(0, query.length()-11);
-		query += "; ";
+		query = "Select In_Seq, Pro_Date, Sale_Code, '구분'=CASE WHEN GUBUN='1' THEN '입금' " 
+				+ " WHEN GUBUN='2' THEN '매입'" 
+				+ " WHEN GUBUN='3' THEN '지급'" 
+				+ " WHEN GUBUN='4' THEN '반품'" 
+				+ " WHEN GUBUN='5' THEN '선입금' END," 
+				+ " 0 '이월', Buy_Pri '매입', Buy_RePri '반품', Sale_Pri '할인액', Sub_PrI '장려금', Pay_Pri '지급액', in_pri '입금', 0 '미지급액', Bigo" 
+				+ " From OFFICE_SETTLEMENT " 
+				+ " Where Pro_Date between '" + period1 + "'  AND '" + period2 + "' " 
+				+ " AND Office_Code='"+customerCode+"' "
+				+ " ORDER BY Pro_Date, In_Seq ;";
 		
 		// 콜백함수와 함께 실행
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
@@ -112,8 +108,7 @@ public class PaymentDetailViewActivity extends Activity {
 		try {
 			if ( results.length() > 0 ) {
 				// create the grid item mapping
-				String[] from = new String[] {"In_Seq", "Pro_Date", "Sale_Code", "Gubun", "이월", "Buy_Pri", "Buy_RePri", "Sale_Pri", 
-												"Sub_Pri", "Pay_Pri", "In_Pri", "In_Pri", "Bigo"};
+				String[] from = new String[] {"In_Seq", "Pro_Date", "Sale_Code", "구분", "이월", "매입", "반품", "할인액", "장려금", "지급액", "입금", "미지급액", "Bigo"};
 				int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5, R.id.item6, R.id.item7, R.id.item8,
 										R.id.item9, R.id.item10, R.id.item11, R.id.item12, R.id.item13};
 				
@@ -124,6 +119,16 @@ public class PaymentDetailViewActivity extends Activity {
 
 					JSONObject son = results.getJSONObject(i);
 					HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+					
+					//미지급액=(이월 +매입 +입금) - (반품 + 할인액 + 장려금 + 지급액 )
+					double a = Double.valueOf(map.get("매입"));
+					double b = Double.valueOf(map.get("반품"));
+					double c = Double.valueOf(map.get("할인액"));
+					double d = Double.valueOf(map.get("장려금"));
+					double e = Double.valueOf(map.get("지급액"));
+					double f = Double.valueOf(map.get("입금"));
+					double g = Double.valueOf(map.get("이월"));					
+					map.put("미지급액", String.valueOf(g+a+f-b-c-d-e));
 					fillMaps.add(map);
 				}	
 				// fill in the grid_item layout

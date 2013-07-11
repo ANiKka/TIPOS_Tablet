@@ -83,8 +83,7 @@ public class ManageCustomerListActivity extends Activity{
 			e.printStackTrace();
 		}
         
-        String customer = getIntent().getStringExtra("customer");
-        if (customer != null) m_customer = " Office_Code like '"+customer +"%' AND";
+        m_customer = getIntent().getStringExtra("customer");
         
 		m_cusList= (ListView)findViewById(R.id.listviewCustomerList);
 		m_cusList.setOnItemClickListener(new OnItemClickListener() {
@@ -139,7 +138,11 @@ public class ManageCustomerListActivity extends Activity{
     	// 쿼리 작성하기
     	String index = String.valueOf(mfillMaps.size());
 		String query = "";
-    	query = "SELECT TOP 50 * FROM Office_Manage WHERE "+ m_customer+" Office_Code NOT IN(SELECT TOP " + index + " Office_Code FROM Office_Manage);";
+    	query = "SELECT TOP 50 * FROM Office_Manage "
+    			+ " WHERE Office_Code like '%"+ m_customer+"%' AND "
+    			+ " Office_Code NOT IN(SELECT TOP " + index + " Office_Code FROM Office_Manage "
+    			+ " WHERE Office_Code like '%"+ m_customer+"%' "
+    			+ " Order By Office_Code ASC) Order By Office_Code ASC;";
 
     	// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);

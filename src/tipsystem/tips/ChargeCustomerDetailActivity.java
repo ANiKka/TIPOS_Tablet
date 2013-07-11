@@ -33,7 +33,6 @@ public class ChargeCustomerDetailActivity extends Activity {
 	String m_ip = "122.49.118.102";
 	String m_port = "18971";
 	
-	
 	TextView m_period1;
 	TextView m_period2;
 	TextView m_customerCode;
@@ -49,7 +48,7 @@ public class ChargeCustomerDetailActivity extends Activity {
 	CheckBox m_checkBoxCash;
 	CheckBox m_checkBoxPoint;
 	Button m_buttonPriceSearch;
-	
+		
 	int m_qIndex = 0;
 	int m_isTax = 0;
 	int m_isCashR = 0;
@@ -116,6 +115,13 @@ public class ChargeCustomerDetailActivity extends Activity {
 		m_checkBoxCard =(CheckBox)findViewById(R.id.checkBoxCard);
 		m_checkBoxCash =(CheckBox)findViewById(R.id.checkBoxCash);
 		m_checkBoxPoint =(CheckBox)findViewById(R.id.checkBoxPoint);
+		m_isCashDeduction.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+			@Override
+			public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
+				doCalculateGongjae();
+			}
+		});
 		m_checkBoxCard.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
 			@Override
@@ -153,7 +159,7 @@ public class ChargeCustomerDetailActivity extends Activity {
 		m_customerCode.setText(intent.getExtras().getString("OFFICE_CODE"));
 		m_customerName.setText(intent.getExtras().getString("OFFICE_NAME"));
 				
-		doCalculate();
+		doQueryToGetTotalSale();
 	}
 
 	private void doCalculateGongjae() {
@@ -161,19 +167,23 @@ public class ChargeCustomerDetailActivity extends Activity {
 		boolean isCashback = m_checkBoxCash.isChecked();
 		boolean isPoint = m_checkBoxPoint.isChecked();
 		boolean isCash = m_isCashDeduction.isChecked();
-
+		
 		double rsale = Double.valueOf(m_data.get("순매출"));
 		double cashback = Double.valueOf(m_data.get("캐쉬백"));
-		double cash = Double.valueOf(m_data.get("현영과세"));
+		double cash = Double.valueOf(m_data.get("현영매출"));
 		double card = Double.valueOf(m_data.get("카드수수료"));
 		double point = Double.valueOf(m_data.get("포인트"));
+		
+		double su = Double.valueOf(m_data.get("수_카드금액"));
+		double maejang = Double.valueOf(m_data.get("매장수수료"));
 		
 		String r = m_editTextCashDeduction.getText().toString();
 		
 		double ratio = (r.equals(""))? 0: Double.valueOf(r);
-		cash = cash * ratio / 100.0f;
-		
-		double m = 0;
+		if (isCash) cash = cash * ratio / 100.0f;
+		else cash =0;
+
+		double m =su +maejang;
 		if (isCard)   m += card;
 		if (isCashback)   m += cashback;
 		if (isPoint)   m += point;
@@ -181,11 +191,61 @@ public class ChargeCustomerDetailActivity extends Activity {
 		
 		rsale -= m;
 		
-		m_contents[21].setText(String.valueOf(m));	//공제금액
-		m_contents[22].setText(String.valueOf(rsale));	//공제후지급액
+		//공제금액= 수카드금액 + 매장수수료 + (카드수수료 + 포인트  + 캐쉬백 + 현금영수증)
+		//공제후지급액= 순매출 - 공제금액
+		m_contents[20].setText(String.format("%.2f", cash));	//현금영수공제액
+		m_contents[21].setText(String.format("%.2f", m));	//공제금액
+		m_contents[22].setText(String.format("%.2f", rsale));	//공제후지급액
 	}
 	
-	private void doCalculate() {
+	private void doQueryToGetTotalSale() {
+
+		String query ="";
+		String period1 = m_period1.getText().toString();
+		String period2 = m_period2.getText().toString();
+		int year1 = Integer.parseInt(period1.substring(0, 4));
+		int month1 = Integer.parseInt(period1.substring(5, 7));
+
+		int year2 = Integer.parseInt(period2.substring(0, 4));
+		int month2 = Integer.parseInt(period2.substring(5, 7));
+
+		query = "Select ISNULL(Sum(X.순매출합계),0) "
+				+ " From ("; 
+				
+		for ( int y = year1; y <= year2; y++ ) {
+			for ( int m = month1; m <= month2; m++ ) {
+
+				String tableName = String.format("SaD_%04d%02d", y, m);
+				
+				query += " Select Sum(A.TSell_Pri - A.Tsell_RePri) '순매출합계' " 
+						+ " From "+tableName+" A Inner JOIN Office_Manage B" 
+						+ " ON A.Office_Code=B.Office_Code" 
+						+ " Where B.Office_Sec = '2' AND A.Sale_Date >= '" + period1 + "' AND A.Sale_Date <= '" + period2 + "'" ;
+
+				query += " union all ";
+			}
+		}
+		query = query.substring(0, query.length()-11);
+		query += " ) X";
+
+		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				try {
+					HashMap<String, String> a = JsonHelper.toStringHashMap(results.getJSONObject(0));
+
+					String totalSale = a.get("순매출합계");
+					doCalculate(totalSale);
+					
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}		
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	}
+	
+	private void doCalculate(String totalSale) {
 
 		Intent intent = getIntent();
 		String query ="";
@@ -195,49 +255,87 @@ public class ChargeCustomerDetailActivity extends Activity {
 		String period2 = m_period2.getText().toString();
 		int year1 = Integer.parseInt(period1.substring(0, 4));
 		int month1 = Integer.parseInt(period1.substring(5, 7));
-		
-		String tableName = null;
-		
-		tableName = String.format("%04d%02d", year1, month1);
 
-		query = "Select G.Office_Code,G.Office_Name, G.판매,G.반품,G.할인, G.순매출,G.과세매출,G.면세매출, G.현금매출, G.현금과세, G.현금면세, G.카드매출, G.카드과세, "
-				+ " G.카드면세, G.현영매출, G.현영과세, G.현영면세, G.매출원가합계, ISNULL(V.순매입액,0) '순매입액', G.공병매출, G.수_카드금액, G.매장수수료, G.카드수수료, G.포인트, "
-				+ " G.캐쉬백, (G.현영매출 * 0) / 100 '현영공제', '0' '공제금액', '0' '공제후지급액', G.이익금, G.이익률, "
-				+ " '점유율'=CASE WHEN 0 <> 0 Then (순매출/0)*100  ELSE 0 End From ( Select G.Office_Code,G.Office_Name, Sum (G.판매) '판매', "
-				+ " Sum(G.반품) '반품', Sum(G.할인) '할인', Sum (G.순매출) '순매출', Sum(G.과세매출) '과세매출', Sum(G.면세매출) '면세매출', Sum (G.현금매출) '현금매출',"
-				+ " Sum(G.현금과세) '현금과세', Sum(G.현금면세) '현금면세', Sum (G.카드매출) '카드매출', Sum(G.카드과세) '카드과세', Sum(G.카드면세) '카드면세', "
-				+ " Sum (G.현영매출) '현영매출', Sum(G.현영과세) '현영과세', Sum(G.현영면세) '현영면세', Sum (G.매출원가) '매출원가합계', Sum (G.공병매출) '공병매출', "
-				+ " Sum (G.수_카드금액) '수_카드금액', Sum (G.매장수수료) '매장수수료', Sum (G.카드수수료) '카드수수료', Sum (G.S_Point) '포인트', "
-				+ " Sum (G.S_CashBackPoint) '캐쉬백', Sum (G.이익금) '이익금', "
-				+ " '이익률'=Case When Sum(G.이익금)=0 Or Sum(G.순매출)=0 Then 0 Else (Sum(G.이익금)/Sum(G.순매출))*100 End "
-				+ " From ( Select A.Office_Code, A.Office_Name, '판매'=Sum(Case When A.Sale_Yn='1' Then A.TSell_Pri+A.Dc_Pri Else 0 End), "
-				+ " '반품'=Sum(Case When A.Sale_Yn='0' Then A.TSell_RePri+A.Dc_Pri Else 0 End), "
-				+ " '할인'=Sum(Case When A.Sale_Yn='1' Then A.DC_Pri Else A.DC_Pri *-1 End), Sum (a.TSell_Pri - a.TSell_RePri) '순매출', "
-				+ " '과세매출'=Sum(Case When A.Tax_YN='1' Then A.TSell_Pri-A.TSell_RePri Else 0 End), "
-				+ " '면세매출'=Sum(Case When A.Tax_YN='0' Then A.TSell_Pri-A.TSell_RePri Else 0 End), "
-				+ " Sum ((a.TSell_Pri - a.TSell_RePri) - a.Card_Pri) '현금매출', '현금과세'=Sum(Case When A.Tax_YN='1' Then "
-				+ " (A.TSell_Pri-A.TSell_RePri)-A.Card_Pri Else 0 End), '현금면세'=Sum(Case When A.Tax_YN='0' "
-				+ " Then (A.TSell_Pri-A.TSell_RePri)-A.Card_Pri Else 0 End), Sum (a.Card_Pri) '카드매출', "
-				+ " '카드과세'=Sum(Case When A.Tax_YN='1' Then A.Card_Pri Else 0 End), '카드면세'=Sum(Case When A.Tax_YN='0' Then A.Card_Pri Else 0 End), "
-				+ " '현영매출'=Sum(Case When C.Cash_No<>'' Then CASE WHEN F.C_SALETYPE=0 THEN Round(A.Money_Per * F.C_PRICE, 4) "
-				+ " ELSE Round(A.Money_Per * F.C_PRICE * -1, 4) END Else 0 End) , '현영과세'=Sum(Case When C.Cash_No<>'' AND A.TAx_YN='1' "
-				+ " Then CASE WHEN F.C_SALETYPE=0 THEN Round(A.Money_Per * F.C_PRICE, 4) ELSE Round(A.Money_Per * F.C_PRICE * -1, 4) END Else 0 End), "
-				+ " '현영면세'=Sum(Case When C.Cash_No<>'' AND A.TAx_YN='0' Then CASE WHEN F.C_SALETYPE=0 THEN Round(A.Money_Per * F.C_PRICE, 4) "
-				+ " ELSE Round(A.Money_Per * F.C_PRICE * -1, 4) END Else 0 End) , '매출원가'=Sum(Case When A.Sale_YN='1' "
-				+ " Then A.Pur_Pri*A.Sale_Count Else A.Pur_Pri*A.Sale_Count End), Sum (a.Bot_Sell) '공병매출', "
-				+ " '수_카드금액'=Sum(Case When A.Card_YN='1' Then A.Card_Pri Else 0 End), '매장수수료'=Sum(Case When A.Sale_YN='1' "
-				+ " Then (A.TSell_Pri+A.Dc_Pri)*(A.Fee/100) Else ((A.TSell_RePri+A.Dc_Pri)*(A.Fee/100))*-1 End), "
-				+ " '카드수수료'=Sum(Case When A.Card_YN='0' Then a.Card_Pri * (a.Card_Fee / 100) Else 0 End), Sum(A.S_Point) S_Point, "
-				+ " Sum(A.S_CashBackPoint) S_CashBackPoint , Sum (a.Profit_Pri) '이익금' From SaD_"+tableName+" A LEFT JOIN SaT_"+tableName+" C "
-				+ " ON A.Sale_Num=C.Sale_Num LEFT JOIN Office_Manage B ON A.Office_Code=B.Office_Code LEFT JOIN Cash_Receip_Log F "
-				+ " ON A.SALE_NUM=F.C_JEONPYO Where B.Office_Sec = '2' And A.Office_Code Like '%"+ customerCode +"%' And A.Office_Name Like '%"+customerName+"%' "
-				+ " AND A.Sale_Date >= '"+period1+"' AND A.Sale_Date <= '"+period2+"' Group By A.Office_Code, A.Office_Name ) G "
-				+ " Group By G.Office_Code,G.Office_Name ) G LEFT JOIN ( Select Office_Code,순매입액 From ( Select Office_Code,Sum(In_Pri) '순매입액' "
-				+ " From ( Select A.Office_Code,Sum(A.In_Pri) In_Pri From InD_"+tableName+" A Inner JOIN Office_Manage B ON A.Office_Code=B.Office_Code "
-				+ " Where B.Office_Sec = '2' And A.Office_Code Like '%"+ customerCode +"%' AnD A.Office_Name Like '%"+customerName+"%' AND A.In_Date >= '"+period1+"' "
-				+ " AND A.In_Date <= '"+period2+"' Group By A.Office_Code ) V Group By V.Office_Code ) V ) V On G.Office_Code=V.Office_Code "
-				+ " ORDER BY G.Office_Code";
+		int year2 = Integer.parseInt(period2.substring(0, 4));
+		int month2 = Integer.parseInt(period2.substring(5, 7));
+		
+		query = "Select G.Office_Code,G.Office_Name, "
+				+ " G.판매,G.반품,G.할인," 
+				+ " G.순매출,G.과세매출,G.면세매출, "
+				+ " G.현금매출, G.현금과세, G.현금면세, "
+				+ " G.카드매출, G.카드과세, G.카드면세, "
+				+ " G.현영매출, G.현영과세, G.현영면세, "
+				+ " G.수_카드금액, G.매장수수료, G.카드수수료, G.포인트, G.캐쉬백, "
+				+ " (G.현영매출 * 0) / 100 '현영공제', "
+				+ " 0 '공제금액', "
+				+ " 0 '공제후지급액', "
+				+ " G.이익금, G.이익률,"
+				+ " '점유율'=CASE WHEN "+totalSale+" <> 0 Then (순매출/"+totalSale+")*100  ELSE 0 End "
+				+ " From (";
+		
+		for ( int y = year1; y <= year2; y++ ) {
+			for ( int m = month1; m <= month2; m++ ) {
 
+				String tableName = String.format("%04d%02d", year1, month1);
+				
+				query += " Select G.Office_Code,G.Office_Name,"
+						+ "  Sum (G.판매) '판매',"
+						+ "  Sum (G.반품) '반품',"
+						+ "  Sum (G.할인) '할인',"
+						+ "  Sum (G.순매출) '순매출', Sum(G.과세매출) '과세매출', Sum(G.면세매출) '면세매출',"
+						+ "  Sum (G.현금매출) '현금매출', Sum(G.현금과세) '현금과세', Sum(G.현금면세) '현금면세',"
+						+ "  Sum (G.카드매출) '카드매출', Sum(G.카드과세) '카드과세', Sum(G.카드면세) '카드면세',"
+						+ "  Sum (G.현영매출) '현영매출', Sum(G.현영과세) '현영과세', Sum(G.현영면세) '현영면세',"
+						+ "  Sum (G.수_카드금액) '수_카드금액',"
+						+ "  Sum (G.매장수수료) '매장수수료',"
+						+ "  Sum (G.카드수수료) '카드수수료',"
+						+ "  Sum (G.S_Point) '포인트',"
+						+ "  Sum (G.S_CashBackPoint) '캐쉬백',"
+						+ "  Sum (G.이익금) '이익금',"
+						+ "  '이익률'=Case When Sum(G.이익금)=0 Or Sum(G.순매출)=0 Then 0 Else (Sum(G.이익금)/Sum(G.순매출))*100 End"
+						+ "  From ("
+						+ "   Select A.Office_Code, A.Office_Name,"
+						+ "   '판매'=Sum(Case When A.Sale_Yn='1' Then A.TSell_Pri+A.Dc_Pri Else 0 End),"
+						+ "        '반품'=Sum(Case When A.Sale_Yn='0' Then A.TSell_RePri+A.Dc_Pri Else 0 End),"
+						+ "        '할인'=Sum(Case When A.Sale_Yn='1' Then A.DC_Pri Else A.DC_Pri *-1 End),"
+						+ "        Sum (a.TSell_Pri - a.TSell_RePri) '순매출',"
+						+ "        '과세매출'=Sum(Case When A.Tax_YN='1' Then A.TSell_Pri-A.TSell_RePri Else 0 End),"
+						+ "        '면세매출'=Sum(Case When A.Tax_YN='0' Then A.TSell_Pri-A.TSell_RePri Else 0 End),"
+						+ "        Sum ((a.TSell_Pri - a.TSell_RePri) - a.Card_Pri) '현금매출',"
+						+ "        '현금과세'=Sum(Case When A.Tax_YN='1' Then (A.TSell_Pri-A.TSell_RePri)-A.Card_Pri Else 0 End),"
+						+ "        '현금면세'=Sum(Case When A.Tax_YN='0' Then (A.TSell_Pri-A.TSell_RePri)-A.Card_Pri Else 0 End),"
+						+ "        Sum (a.Card_Pri) '카드매출',"
+						+ "        '카드과세'=Sum(Case When A.Tax_YN='1' Then A.Card_Pri Else 0 End),"
+						+ "        '카드면세'=Sum(Case When A.Tax_YN='0' Then A.Card_Pri Else 0 End),"
+						+ "        '현영매출'=Sum(Case When C.Cash_No<>'' Then CASE WHEN F.C_SALETYPE=0 THEN Round(A.Money_Per * F.C_PRICE, 4) ELSE Round(A.Money_Per * F.C_PRICE * -1, 4) END Else 0 End) ,"
+						+ "        '현영과세'=Sum(Case When C.Cash_No<>'' AND A.TAx_YN='1' Then CASE WHEN F.C_SALETYPE=0 THEN Round(A.Money_Per * F.C_PRICE, 4) ELSE Round(A.Money_Per * F.C_PRICE * -1, 4) END Else 0 End) ,"
+						+ "        '현영면세'=Sum(Case When C.Cash_No<>'' AND A.TAx_YN='0' Then CASE WHEN F.C_SALETYPE=0 THEN Round(A.Money_Per * F.C_PRICE, 4) ELSE Round(A.Money_Per * F.C_PRICE * -1, 4) END Else 0 End) ,"
+						+ "        '수_카드금액'=Sum(Case When A.Card_YN='1' Then A.Card_Pri Else 0 End),"
+						+ "        '매장수수료'=Sum(Case When A.Sale_YN='1' Then (A.TSell_Pri+A.Dc_Pri)*(A.Fee/100) Else ((A.TSell_RePri+A.Dc_Pri)*(A.Fee/100))*-1 End),"
+						+ "        '카드수수료'=Sum(Case When A.Card_YN='0' Then a.Card_Pri * (a.Card_Fee / 100) Else 0 End),"
+						+ "        Sum(A.S_Point) S_Point,"
+						+ "        Sum(A.S_CashBackPoint) S_CashBackPoint ,"
+						+ "        Sum (a.Profit_Pri) '이익금'"
+						+ "        From SaD_"+tableName+" A LEFT JOIN  SaT_"+tableName+" C"
+						+ "        ON A.Sale_Num=C.Sale_Num"
+						+ "        LEFT JOIN Office_Manage B"
+						+ "        ON A.Office_Code=B.Office_Code"
+						+ "        LEFT JOIN Cash_Receip_Log F"
+						+ "        ON A.SALE_NUM=F.C_JEONPYO"
+						+ "        Where B.Office_Sec = '2'" 
+						+ "   And A.Office_Code ='"+customerCode+ "' "
+						+ "   AND A.Sale_Date >= '"+period1+"' AND A.Sale_Date <= '"+period2+"'" 
+						+ "   Group By A.Office_Code, A.Office_Name";
+		
+						query += " union all ";
+			}
+		}
+		query = query.substring(0, query.length()-11);
+		query += " ) G "
+				+ " Group By G.Office_Code,G.Office_Name" 
+				+ " ) G" 
+				+ " ORDER BY G.Office_Code ;" ;
+	
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
 			@Override

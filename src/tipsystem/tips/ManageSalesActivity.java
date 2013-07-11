@@ -592,43 +592,34 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		int year2 = Integer.parseInt(period2.substring(0, 4));
 		int month2 = Integer.parseInt(period2.substring(5, 7));
 		
-		String tableName = null;
-		String constraint = "";
-		
+		query = "Select G.Office_Code,G.Office_Name,  G.순매출"
+				+ " From ("
+				+ " Select G.Office_Code,G.Office_Name, "
+				+ " Sum (G.순매출) '순매출' "
+				+ " From (";
 		for ( int y = year1; y <= year2; y++ ) {
 			for ( int m = month1; m <= month2; m++ ) {
 				
-				tableName = String.format("SaD_%04d%02d", y, m);
+				String tableName = String.format("%04d%02d", y, m);
 				
-				if ( barCode.equals("") != true ) {
-					constraint = setConstraint(constraint, "Barcode", "=", barCode);
-				}
-				
-				if ( productName.equals("") != true ) {
-					constraint = setConstraint(constraint, "G_Name", "=", productName);
-				}
-				
-				if ( customerCode.equals("") != true ) {
-					constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
-				}
-				
-				if ( customerName.equals("") != true) {
-					constraint = setConstraint(constraint, "Office_Name", "=", customerName);
-				}
-				
-    			query = query + "select A.Office_Code, A.Office_Name, SUM(A.TSell_Pri-A.TSell_RePri-A.DC_Pri) 순매출 "
-    					+ " from " + tableName + " as A inner join Office_Manage as B on A.Office_Code = B.Office_Code "
-    					+ " where A.Sale_Date between '" + period1 + "' and '" + period2 + "' and B.Office_Sec='2' and B.Office_Use='1' ";
-   			
-    			if ( constraint.equals("") != true ) {
-    				query = query + " and " + constraint;
-    			}
+				query += "Select A.Office_Code, A.Office_Name, Sum (a.TSell_Pri - a.TSell_RePri) '순매출' "
+						+ " From SaD_"+tableName+" A LEFT JOIN  SaT_"+tableName+" C"
+						+ " ON A.Sale_Num=C.Sale_Num"
+						+ " LEFT JOIN Office_Manage B"
+						+ " ON A.Office_Code=B.Office_Code"
+						+ " Where B.Office_Sec = '2'" 
+						+ " And A.Office_Code Like '%" + customerCode + "%' And  A.Office_Name Like '%" + customerName + "%'" 
+						+ " AND A.Sale_Date >= '" + period1 + "' AND A.Sale_Date <= '" + period2 + "'" 
+						+ " Group By A.Office_Code, A.Office_Name";
 
-				query += " union all ";				
+				query += " union all ";	
 			}
 		}
-		query = query.substring(0, query.length()-11);		
-		query += " GROUP BY A.Office_Code, A.Office_Name; ";
+		query = query.substring(0, query.length()-11);
+		query += " ) G"
+				+ " Group By G.Office_Code,G.Office_Name" 
+				+ " ) G" 
+				+ " ORDER BY G.Office_Code;";
 		
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);

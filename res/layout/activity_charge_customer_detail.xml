@@ -74,7 +74,7 @@
             android:id="@+id/textView1"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
-            android:layout_weight="0.6"
+            android:layout_weight="1"
             android:textColor="#ffffff"
             android:textSize="14sp"
             android:text="거래처명 : "
@@ -95,7 +95,7 @@
              android:id="@+id/textViewCustomerName"
              android:layout_width="0dip"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="3"
             android:textColor="#ffffff"
             android:textSize="14sp"
              android:text="xxxxxx "
@@ -126,6 +126,7 @@
              android:layout_weight="0.3"
              android:background="@drawable/white_text_box_small"
              android:ems="10"
+             android:text="10"
              android:inputType="number"
              android:textColor="#000000"
              android:textSize="14sp" />
@@ -156,6 +157,7 @@
              android:layout_height="wrap_content"
              android:layout_weight="0.7"
              android:textSize="14sp"
+              android:checked="true"
              android:text="카드수수료" />
  
          <CheckBox
@@ -164,6 +166,7 @@
              android:layout_height="wrap_content"
              android:layout_weight="0.7"
              android:textSize="14sp"
+              android:checked="true"
              android:text="캐쉬백 수수료" />
          
          <CheckBox
@@ -172,6 +175,7 @@
              android:layout_height="wrap_content"
              android:layout_weight="0.7"
              android:textSize="14sp"
+              android:checked="true"
              android:text="포인트공제" />
 	        
     </LinearLayout>

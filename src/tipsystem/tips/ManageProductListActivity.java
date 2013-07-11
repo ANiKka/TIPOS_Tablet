@@ -87,10 +87,8 @@ public class ManageProductListActivity extends Activity {
 			e.printStackTrace();
 		}
 
-        String barcode = getIntent().getStringExtra("barcode");
-        String good_use = getIntent().getStringExtra("good_use");
-        if (barcode != null) m_barcode = " BarCode like '"+barcode +"%' AND";
-        if (good_use == null) m_good_use = " Goods_Use='1' AND Pur_Use='1' AND ";
+        m_barcode = getIntent().getStringExtra("barcode");
+        m_good_use = getIntent().getStringExtra("good_use");
         
 		m_cusList= (ListView)findViewById(R.id.listviewManageProductList);
 		m_cusList.setOnItemClickListener(new OnItemClickListener() {
@@ -139,7 +137,11 @@ public class ManageProductListActivity extends Activity {
     	String index = String.valueOf(mfillMaps.size());
 		String query = "";    
 		query += "SELECT TOP 50 BarCode, G_Name, Pur_Pri, Sell_Pri FROM Goods ";
-		query += " WHERE "+m_good_use + m_barcode+" BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods);";
+		query += " WHERE Goods_Use='1' AND Pur_Use='1' AND ";
+		query += " BarCode like '%"+m_barcode +"%' AND";
+		query += " BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods ";
+		query += " where BarCode like '%"+m_barcode +"%' ";		
+		query += " Order By BarCode ASC) Order By BarCode ASC;";
 
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);

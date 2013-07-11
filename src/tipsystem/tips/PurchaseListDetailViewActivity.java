@@ -60,10 +60,11 @@ public class PurchaseListDetailViewActivity extends Activity {
     	String query ="";
 
 		String tableName = String.format("InD_%04d%02d", y, m);
-		query = "select A.BARCODE, " + "B.G_NAME, A.PUR_PRI, A.SELL_PRI, A.IN_COUNT "
-	    		+"from " + tableName + " as A inner join GOODS as B on A.BARCODE = B.BARCODE " 
-	    		+ "where A.In_Num = '" + In_Num + "' and A.IN_DATE = '" + In_Date + "' and OFFICE_NAME = '" + customerName + "'";
-
+		query = "select A.BARCODE, B.G_NAME, A.PUR_PRI, A.SELL_PRI, A.IN_COUNT "
+	    		+ " from " + tableName + " as A inner join GOODS as B on A.BARCODE = B.BARCODE " 
+	    		+ " where A.In_Num = '" + In_Num + "' and A.IN_DATE = '" + In_Date + "'" // and OFFICE_NAME = '" + customerName + "'"
+				+ " ORDER BY A.IN_SEQ";
+				
 		// 콜백함수와 함께 실행
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 		

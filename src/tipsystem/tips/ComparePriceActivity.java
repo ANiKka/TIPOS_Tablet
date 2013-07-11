@@ -63,8 +63,6 @@ public class ComparePriceActivity extends Activity{
 	String m_ip = "122.49.118.102";
 	String m_port = "18971";
 	
-	JSONArray m_tempResult ;
-	
 	TextView m_customerCode;
 	TextView m_customerName;
 	TextView m_barcode;
@@ -199,9 +197,13 @@ public class ComparePriceActivity extends Activity{
 	}
 	
 	private void sendDataFromList(int position){
-		Log.i("", mfillMaps.get(position).toString());
-		
+
+    	String customer = m_customerCode.getText().toString();
+	    String local = m_local.getSelectedItem().toString();
+	    
 		Intent intent = new Intent(this, ComparePriceDetailActivity.class);
+		intent.putExtra("Shop_Area", local);
+		intent.putExtra("OFFICE_CODE", customer);
 		intent.putExtra("fillMaps", mfillMaps.get(position));
     	startActivity(intent);
 	}
@@ -211,22 +213,24 @@ public class ComparePriceActivity extends Activity{
     	String index = String.valueOf(mfillMaps.size());    	
     	String customer = m_customerCode.getText().toString();
 	    String barcode = m_barcode.getText().toString();
+	    String local = m_local.getSelectedItem().toString();
 	    
-	    if (customer.equals("") && barcode.equals("") ){
+	    if (customer.equals("") && barcode.equals("") && local.equals("전체") ){
 
-			//Toast.makeText(getApplicationContext(), "한가지이상 입력하여야 합니다", Toast.LENGTH_SHORT).show();
-			//return;
+			Toast.makeText(getApplicationContext(), "한가지이상 입력하여야 합니다", Toast.LENGTH_SHORT).show();
+			return;
 	    }
 	    
-	    String query =  "";	    
-		query = "SELECT TOP 25 A.BarCode, A.G_Name, A.Pur_Pri, A.Sell_Pri FROM Goods as A inner join V_OFFICE_USER as B "
- 				+ " on A.Office_Code = B.Sto_CD "
-				+ " WHERE A.BarCode NOT IN (SELECT TOP " + index + " BarCode FROM Goods) ";
-
+	    String query =  "";	   
+	    
 		query = "SELECT TOP 25 BarCode, G_Name, Pur_Pri, Sell_Pri FROM Goods "
-				+ " WHERE BarCode NOT IN (SELECT TOP " + index + " BarCode FROM Goods) "
-				+ " AND Bus_Code like '" + customer + "%'"
-				+ " AND BarCode like '" + barcode + "%';";
+				+ " WHERE Goods_Use='1' AND Pur_Use='1' AND "
+				+ " Bus_Code like '%" + customer + "%' AND "
+				+ " BarCode like '%" + barcode + "%' AND "
+				+ " BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods WHERE Goods_Use='1' AND Pur_Use='1' "
+				+ " AND Bus_Code like '%" + customer + "%' "
+				+ " AND BarCode like '%" + barcode + "%' "
+				+ " Order By BarCode ASC) Order By BarCode ASC;";
 		
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
@@ -241,8 +245,8 @@ public class ComparePriceActivity extends Activity{
 				dialog.dismiss();
 				dialog.cancel();
 
-				m_tempResult = results;
-				doSearchInTail(results);
+				Toast.makeText(getApplicationContext(), results.length()+"레코드발견", Toast.LENGTH_SHORT).show();
+				if (results.length()>0) doSearchInTail(results);
 			}
 
 			@Override
@@ -257,32 +261,46 @@ public class ComparePriceActivity extends Activity{
 	
     public void doSearchInTail(JSONArray results){
 
+    	String customer = m_customerCode.getText().toString();
 	    String local = m_local.getSelectedItem().toString();
-    	String query1 = "";
+    	String query = "";
 
     	for(int i = 0; i < results.length(); i++) {
-    		String BarCode ="";
+    		String BarCode ="", G_Name ="", Pur_Pri ="", Sell_Pri ="";
     		try {
     			BarCode = results.getJSONObject(i).getString("BarCode");
+    			G_Name = results.getJSONObject(i).getString("G_Name");
+    			Pur_Pri = results.getJSONObject(i).getString("Pur_Pri");
+    			Sell_Pri = results.getJSONObject(i).getString("Sell_Pri");
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
     		
-
     		if (!local.equals("전체")) {
-    			query1 += "SELECT isNull(AVG(A.Pur_Pri), 0) AS Pur_Pri, isNull(AVG(A.Sell_Pri), 0) AS Sell_Pri, A.BarCode, A.G_Name, B.Shop_Area  "
-        				+ " FROM Goods as A left outer join V_OFFICE_USER as B on A.Office_Code = B.Sto_CD"
-        				+ " WHERE A.BarCode = '" + BarCode + "' ";
-    			query1 += " AND B.Shop_Area = '" + local + "' group by A.BarCode, A.G_Name, B.Shop_Area ";
+    			query += "SELECT isNull(AVG(B.Pur_Pri), 0) AS Pur_Pri, isNull(AVG(B.Sell_Pri), 0) AS Sell_Pri, B.BarCode, A.Shop_Area, '"
+    					+ G_Name +"' G_Name, '" + Pur_Pri+"' o_Pur_Pri, '" + Sell_Pri+"' o_Sell_Pri "
+        				+ " FROM V_OFFICE_USER A, GOODS B"
+        				+ " WHERE A.STO_CD=B.OFFICE_CODE ";
+    			
+    			if (!customer.equals("")) query += " AND A.STO_CD<>'"+customer+"'" ;
+    			
+    			query 		+= " AND B.BarCode = '" + BarCode + "' and B.Pur_Pri>0 AND B.Sell_Pri>0 "
+	    					+ " AND A.Shop_Area = '" + local +"'"
+    					+ " group by B.BarCode, A.Shop_Area ";
     		}
     		else {
-    			query1 += "SELECT isNull(AVG(A.Pur_Pri), 0) AS Pur_Pri, isNull(AVG(A.Sell_Pri), 0) AS Sell_Pri, A.BarCode, A.G_Name "
-        				+ " FROM Goods as A left outer join V_OFFICE_USER as B on A.Office_Code = B.Sto_CD"
-        				+ " WHERE A.BarCode = '" + BarCode + "' group by A.BarCode, A.G_Name ";
+    			query += "SELECT isNull(AVG(B.Pur_Pri), 0) AS Pur_Pri, isNull(AVG(B.Sell_Pri), 0) AS Sell_Pri, B.BarCode, '"
+    					+ G_Name +"' G_Name, '" + Pur_Pri+"' o_Pur_Pri, '" + Sell_Pri+"' o_Sell_Pri "
+        				+ " FROM V_OFFICE_USER A, GOODS B"
+        				+ " WHERE A.STO_CD=B.OFFICE_CODE ";
+    			if (!customer.equals("")) query += " AND A.STO_CD<>'"+customer+"'" ;
+    			
+    			query 		+= " AND B.BarCode = '" + BarCode + "' and B.Pur_Pri>0 AND B.Sell_Pri>0 "
+        				+ " group by B.BarCode ";
     		}
     		
-    		if(i<results.length()-1)	query1 += " union all ";
-    		else 						query1 += ";";
+    		if(i<results.length()-1)	query += " union all ";
+    		else 						query += ";";
     	}
     	
 		// 로딩 다이알로그 
@@ -297,8 +315,8 @@ public class ComparePriceActivity extends Activity{
 				dialog.dismiss();
 				dialog.cancel();
 
-				comparePrice(results);
-				Toast.makeText(getApplicationContext(), "전송완료.", Toast.LENGTH_SHORT).show();
+				if (results.length()>0) comparePrice(results);
+				Toast.makeText(getApplicationContext(), "비교완료", Toast.LENGTH_SHORT).show();
 			}
 
 			@Override
@@ -308,45 +326,42 @@ public class ComparePriceActivity extends Activity{
 				Toast.makeText(getApplicationContext(), "전송실패("+String.valueOf(code)+"):" + msg, Toast.LENGTH_SHORT).show();
 			}
 			
-	    }).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query1);
+	    }).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query);
     }
     
     // 가격비교
     public void comparePrice(JSONArray results){
 
-    	Log.w("MSSQL", "comparePrice IN(1):" + m_tempResult.toString());
     	Log.w("MSSQL", "comparePrice IN(2):" + results.toString());
 
-    	for(int i=0; i<m_tempResult.length();i++) {
+    	for(int i=0; i<results.length();i++) {
 
     		try {
-    			JSONObject json1 = m_tempResult.getJSONObject(i);
     			JSONObject json2 = results.getJSONObject(i);
     			
-    			double Pur_Pri1 = json1.getDouble("Pur_Pri");
+    			double Pur_Pri1 = json2.getDouble("o_Pur_Pri");
     			double Pur_Pri2 = json2.getDouble("Pur_Pri");
-    			double Sell_Pri1 = json1.getDouble("Sell_Pri");
+    			double Sell_Pri1 = json2.getDouble("o_Sell_Pri");
     			double Sell_Pri2 = json2.getDouble("Sell_Pri");
     			
-            	HashMap<String, String> map = JsonHelper.toStringHashMap(json1);
 				HashMap<String, String> map2 = JsonHelper.toStringHashMap(json2);
 
-	            String Pur_Pri = map.get("Pur_Pri");	
-	            if(Pur_Pri1>Pur_Pri2) Pur_Pri = "+";
-	            else if(Pur_Pri1==Pur_Pri2) Pur_Pri = "=";
-	            else Pur_Pri = "-";
+	            String Pur_Pri_inc = "";	
+	            if(Pur_Pri1>Pur_Pri2) Pur_Pri_inc = "+";
+	            else if(Pur_Pri1==Pur_Pri2) Pur_Pri_inc = "=";
+	            else Pur_Pri_inc = "-";
 
-	            map2.put("Pur_Pri_dif", String.format("%.1f", Pur_Pri2));
-	            map2.put("Pur_Pri_inc", Pur_Pri);
+	            map2.put("Pur_Pri_dif", String.format("%.2f", Pur_Pri2));
+	            map2.put("Pur_Pri_inc", Pur_Pri_inc);
 	            
-	            String Sell_Pri = map.get("Sell_Pri");
-	            if(Sell_Pri1>Sell_Pri2) Sell_Pri = " +";
-	            else if(Sell_Pri1==Sell_Pri2) Sell_Pri = "=";
-	            else Sell_Pri = "-";
+	            String Sell_Pri_inc = "";
+	            if(Sell_Pri1>Sell_Pri2) Sell_Pri_inc = "+";
+	            else if(Sell_Pri1==Sell_Pri2) Sell_Pri_inc = "=";
+	            else Sell_Pri_inc = "-";
 	            
-	            map2.put("Sell_Pri_dif", String.format("%.1f", Sell_Pri2));
-	            map2.put("Sell_Pri_inc", Sell_Pri);
-				
+	            map2.put("Sell_Pri_dif", String.format("%.0f", Sell_Pri2));
+	            map2.put("Sell_Pri_inc", Sell_Pri_inc);
+	            
     	        mfillMaps.add(map2);         
     	        
 			} catch (JSONException e) {

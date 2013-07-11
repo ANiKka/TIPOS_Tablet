@@ -151,16 +151,16 @@ public class MainActivity extends Activity {
 				JSONObject shop = shopsData.getJSONObject(i);
 				String Office_Name = shop.getString("Office_Name");
 				String SHOP_IP = shop.getString("SHOP_IP");
+				String APP_SDATE = shop.getString("APP_SDATE");
 				String APP_EDATE = shop.getString("APP_EDATE");
 				
-				shopList.add(new ShopSelectItem(Office_Name, SHOP_IP, APP_EDATE, false));
+				shopList.add(new ShopSelectItem(Office_Name, SHOP_IP, APP_SDATE, APP_EDATE, false));
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 		}
 		
-		listAdapter = new ShopListAdapter(this, R.layout.activity_select_shop_list, shopList);
-		
+		listAdapter = new ShopListAdapter(this, R.layout.activity_select_shop_list, shopList);		
 		m_list.setAdapter(listAdapter);
 	
 		linearLayoutView.setOrientation(LinearLayout.VERTICAL);
@@ -360,10 +360,11 @@ public class MainActivity extends Activity {
 			String name = object.get(position).getName();
 			String strIP = object.get(position).getIP();
 			String edate = object.get(position).getEdate();
+			String sdate = object.get(position).getSdate();
 			
 			holder.object = object.get(position);
 			holder.txtShopName.setText(name);
-			holder.txtDate.setText("["+edate+"]");
+			holder.txtDate.setText("["+sdate+"~"+edate+"]");
 			holder.radioShop.setChecked(position == mSelectedPosition);
 			holder.txtIP.setText(strIP);
 			

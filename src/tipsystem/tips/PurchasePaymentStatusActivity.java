@@ -334,44 +334,29 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		
 		int year2 = Integer.parseInt(period2.substring(0, 4));
 		int month2 = Integer.parseInt(period2.substring(5, 7));
-		
-		String tableName = null;
 
-		String constraint = "";
+		query += "select T.In_Num, T.Office_Name, In_Date, SUM(T.In_Pri) In_Pri FROM (";
+				
 		for ( int y = year1; y <= year2; y++ ) {
-			for ( int m = month1; m <= month2; m++ ) {
+			int m1 = 1, m2 = 12;
+			if (y == year1) m1 = month1;
+			if (y == year2) m2 = month2;
+			for ( int m = m1; m <= m2; m++ ) {
 				
-				tableName = String.format("InT_%04d%02d", y, m);
-					
-				if ( productName.equals("") != true ) {
-					constraint = setConstraint(constraint, "G_Name", "=", productName);
-				}
+				String tableName = String.format("InT_%04d%02d", y, m);
 				
-				if ( barCode.equals("") != true ) {
-					constraint = setConstraint(constraint, "Barcode", "=", barCode);
-				}
-				
-				if ( customerCode.equals("") != true ) {
-					constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
-				}
-				
-				if ( customerName.equals("") != true) {
-					constraint = setConstraint(constraint, "Office_Name", "=", customerName);
-				}
-
-     			query = "select In_Num, Office_Name, In_Date, SUM(In_Pri) In_Pri " 
-				    		+"  from " + tableName + "  " 
-				    		+ " where In_Date between '" + period1 + "' and '" + period2 + "'";
+     			query += "select In_Num, Office_Name, In_Date, SUM(In_Pri) In_Pri " 
+				    		+ " from " + tableName + "  " 
+				    		+ " where In_Date between '" + period1 + "' and '" + period2 + "'"
+				    		+ " and Office_Code like '%"+ customerCode +"%'"
+				    		+ " and Office_Name like '%"+ customerName +"%'"
+				    		+ " GROUP BY In_Num, Office_Name, In_Date ";
 	    		
-     			if ( constraint.equals("") != true ) {
-     				query = query + " and " + constraint;
-     			}
-
 				query += " union all ";				
 			}
 		}
 		query = query.substring(0, query.length()-11);		
-		query += " GROUP BY In_Num, Office_Name, In_Date; ";
+		query += ") T GROUP BY In_Num, Office_Name, In_Date; ";
 
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
@@ -424,39 +409,36 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		String customerName = m_customerName.getText().toString();
 		
 		String query = "";
-	    
-		int year1 = Integer.parseInt(period1.substring(0, 4));
-		int month1 = Integer.parseInt(period1.substring(5, 7));
+
+		query = "SELECT Office_Code, Office_Name, 이월, 지급금액, (이월+매입+입금)-(반품+할인액+장려금+지급금액) 미지급금액"
+				+ " FROM (" 
+					+ " SELECT A.OFFICE_CODE,A.OFFICE_NAME, " 
+					+ " ISNULL(이월,0) 이월, " 
+					+ " ISNULL(매입,0) 매입, " 
+					+ " ISNULL(반품,0) 반품, " 
+					+ " ISNULL(할인액,0) 할인액, " 
+					+ " ISNULL(장려금,0) 장려금, " 
+					+ " ISNULL(지급금액,0) 지급금액, "
+					+ " ISNULL(입금,0) 입금 "
+					+ " FROM OFFICE_MANAGE A LEFT JOIN ( " 
+	 					+ " SELECT Office_Code, "  
+	 					+ " Sum ((Buy_Pri + in_pri) - (Pay_Pri + Buy_RePri + Sale_Pri + Sub_Pri)) '이월' " 
+	 					+ " From Office_Settlement " 
+	 					+ " Where Pro_Date< '" + period1 + "' " 
+	     				+ " Group by Office_Code " 
+	 				+ " ) B ON A.OFFICE_CODE=B.OFFICE_CODE " 
+					+ " LEFT JOIN ( " 
+	 					+ " Select  Office_Code, Sum (Buy_Pri) '매입', Sum (Buy_RePri) '반품', Sum (Sale_Pri) '할인액', "
+	 					+ " Sum (Sub_Pri) '장려금', Sum (Pay_Pri) '지급금액', Sum (in_pri) '입금' " 
+	 					+ " From Office_Settlement " 
+	 					+ " Where Pro_Date between '" + period1 + "' AND '" + period2 + "' " 
+	 					+ " Group by Office_Code " 
+					+ " ) C ON A.OFFICE_CODE=C.OFFICE_CODE " 
+				+ " ) X " 
+					+ " where Office_Code like '%"+customerCode+"%'"
+					+ " AND Office_Name like '%"+customerName+"%'"
+				+ " ORDER BY OFFICE_CODE ;";
 		
-		int year2 = Integer.parseInt(period2.substring(0, 4));
-		int month2 = Integer.parseInt(period2.substring(5, 7));
-		
-		String constraint = "";
-		for ( int y = year1; y <= year2; y++ ) {
-			for ( int m = month1; m <= month2; m++ ) {
-
-				if ( customerCode.equals("") != true ) {
-					constraint = setConstraint(constraint, "A.Office_Code", "=", customerCode);
-				}
-				
-				if ( customerName.equals("") != true) {
-					constraint = setConstraint(constraint, "A.Office_Name", "=", customerName);
-				}
-				
-     			query = "select A.Office_Code, A.Office_Name, SUM(B.Pay_Pri-B.Buy_Pri) 이월, SUM(B.Pay_Pri) 지급금액, SUM(B.Buy_Pri) 미지급금액 " 
-		    	    		+ " from OFFICE_MANAGE as A inner join OFFICE_SETTLEMENT as B on A.OFFICE_CODE = B.OFFICE_CODE " 
-		    	    		+ " where B.PRO_DATE between '" + period1 + "' and '" + period2 + "'";
-
-     			if ( constraint.equals("") != true ) {
-     				query = query + " and " + constraint;
-     			}
-
-				query += " union all ";				
-			}
-		}
-		query = query.substring(0, query.length()-11);		
-		query += " GROUP BY A.Office_Code, A.Office_Name; ";
-
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
@@ -516,43 +498,29 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		int year2 = Integer.parseInt(period2.substring(0, 4));
 		int month2 = Integer.parseInt(period2.substring(5, 7));
 		
-		String tableDate = null;
-
-		String constraint = "";
+		query += "select T.Office_Code, T.Office_Name, SUM(T.In_Pri) 순매입, SUM(T.TSell_Pri) 순매출 FROM (";
+				
 		for ( int y = year1; y <= year2; y++ ) {
-			for ( int m = month1; m <= month2; m++ ) {
+			int m1 = 1, m2 = 12;
+			if (y == year1) m1 = month1;
+			if (y == year2) m2 = month2;
+			for ( int m = m1; m <= m2; m++ ) {
 
-				tableDate = String.format("%04d%02d", y, m);
+				String tableDate = String.format("%04d%02d", y, m);
 				
-				if ( productName.equals("") != true ) {
-					constraint = setConstraint(constraint, "G_Name", "=", productName);
-				}
-				
-				if ( barCode.equals("") != true ) {
-					constraint = setConstraint(constraint, "Barcode", "=", barCode);
-				}
-				
-				if ( customerCode.equals("") != true ) {
-					constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
-				}
-				
-				if ( customerName.equals("") != true) {
-					constraint = setConstraint(constraint, "Office_Name", "=", customerName);
-				}
-
-     			query = "select A.Office_Code, A.Office_Name, SUM(A.In_Pri) 순매입, SUM(B.TSell_Pri-B.TSell_RePri-B.DC_Pri) 순매출 "
+     			query += "select A.Office_Code, A.Office_Name, SUM(A.In_Pri) In_Pri, SUM(B.TSell_Pri-B.TSell_RePri-B.DC_Pri) TSell_Pri "
 			    		+ " from InD_" + tableDate + " as A inner join SaD_" + tableDate + " as B on A.BARCODE = B.BARCODE " 
-			    		+ " where B.Sale_Date between '" + period1 + "' and '" + period2 + "'";
-	    		
-     			if ( constraint.equals("") != true ) {
-     				query = query + " and " + constraint;
-     			}
-
+			    		+ " where B.Sale_Date between '" + period1 + "' and '" + period2 + "'"
+					    		+ " and A.BARCODE like '%"+ barCode +"%'"
+					    		+ " and A.Office_Code like '%"+ customerCode +"%'"
+					    		+ " and A.Office_Name like '%"+ customerName +"%'" 
+     							+ " GROUP BY A.Office_Code, A.Office_Name ";
+     			
 				query += " union all ";
 			}
 		}
 		query = query.substring(0, query.length()-11);
-		query += " GROUP BY A.Office_Code, A.Office_Name; ";
+		query += ") T GROUP BY T.Office_Code, T.Office_Name; ";
 
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);

@@ -230,18 +230,16 @@ public class ManageCustomerActivity extends Activity{
 	    String customerSection = String.valueOf(m_customerSection.getSelectedItemPosition());
 
 	    String query =  "";
-    	query += "select * from Office_Manage ";
     	String index = String.valueOf(mfillMaps.size());
-    	query = "select TOP 50 * from Office_Manage WHERE Office_Code NOT IN (SELECT TOP "+ index + " Office_Code FROM Office_Manage) ";
-    	
-	    if (!customerCode.equals("")) {
-	    	query += " AND Office_Code like '"+customerCode+"%'";
-	    }
-	    
-	    if (!customerName.equals("")) {
-	    	query += " AND Office_Name like '" + customerName  + "%'";
-	    }
-	    
+    	query = "select TOP 50 * from Office_Manage "
+    			+ " WHERE "
+    			+ " Office_Code like '%"+customerCode+"%' AND"
+    			+ " Office_Name like '%" + customerName  + "%' AND"
+    			+ " Office_Code NOT IN (SELECT TOP "+ index + " Office_Code FROM Office_Manage "
+    	    			+ " WHERE Office_Code like '%"+customerCode+"%'"
+    	    			+ " AND Office_Name like '%" + customerName  + "%'"
+    			+ " Order By Office_Code ASC) Order By Office_Code ASC";
+	    	    
 	    if (!customerSection.equals("0")) {
 	    	query += " AND Office_Sec = '" + customerSection  + "'";
 	    }

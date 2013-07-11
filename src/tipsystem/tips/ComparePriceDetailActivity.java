@@ -41,6 +41,8 @@ public class ComparePriceDetailActivity extends Activity {
 	
 	double m_Pur_Pri =0;
 	double m_Sell_Pri =0;
+	String m_Shop_Area ="";
+	String m_customer_code ="";
 	
 	private ProgressDialog dialog;
 	@Override
@@ -53,10 +55,13 @@ public class ComparePriceDetailActivity extends Activity {
 		HashMap<String, String> hashMap = (HashMap<String, String>)intent.getSerializableExtra("fillMaps");   
 		String BarCode = hashMap.get("BarCode");
 		String G_Name = hashMap.get("G_Name");
-		String Pur_Pri = hashMap.get("Pur_Pri");
-		String Sell_Pri = hashMap.get("Sell_Pri");
+		String Pur_Pri = hashMap.get("o_Pur_Pri");
+		String Sell_Pri = hashMap.get("o_Sell_Pri");
+		m_Shop_Area = intent.getStringExtra("Shop_Area");
+		m_customer_code = intent.getStringExtra("OFFICE_CODE");
 		m_Pur_Pri = (double)Double.valueOf(Pur_Pri);
 		m_Sell_Pri = (double)Double.valueOf(Sell_Pri);
+		Log.i("", hashMap.toString());
 		
 		m_listPriceDetail= (ListView)findViewById(R.id.listviewPriceDetailList);
 
@@ -92,12 +97,21 @@ public class ComparePriceDetailActivity extends Activity {
  		dialog.setMessage("Loading....");
  		dialog.setCancelable(false);
  		dialog.show();
- 		
+
  		String query = "";
  		query = "SELECT A.Pur_Pri, A.Sell_Pri, B.Shop_Area, B.Shop_Size FROM Goods A inner join V_OFFICE_USER B "
  				+ " on A.Office_Code = B.Sto_CD"
  				+ " WHERE A.BarCode = '" + BarCode + "' ;";
- 		Log.w("MSSQL", "Query : " + query);
+
+ 		query = "SELECT A.Shop_Area, A.Shop_Size, B.Pur_Pri, B.Sell_Pri"
+ 				+ " FROM V_OFFICE_USER A, GOODS B"
+ 				+ " WHERE A.STO_CD=B.OFFICE_CODE" 
+ 				//+ " AND STO_CD<>'0000001'" 
+ 				+ " AND B.BARCODE='" + BarCode + "'"
+ 				+ " AND B.Pur_Pri>0 AND B.Sell_Pri>0";
+ 		
+ 		if (!m_Shop_Area.equals("전체")) query	+= " AND A.SHOP_AREA='"+m_Shop_Area+"'";
+ 		query	+= " ORDER BY EDITDATE DESC";
  		
  		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
@@ -140,18 +154,18 @@ public class ComparePriceDetailActivity extends Activity {
 	            double Pur_Pri_dif = Pur_Pri1-Pur_Pri2;
 	            if (Pur_Pri_dif<0) Pur_Pri_dif =Pur_Pri_dif*-1.0;
 	            
-	            map.put("Pur_Pri_dif", String.format("%.1f", Pur_Pri_dif));
+	            map.put("Pur_Pri_dif", String.format("%.2f", Pur_Pri_dif));
 	            map.put("Pur_Pri_inc", Pur_Pri);
 	            
 	            String Sell_Pri = map.get("Sell_Pri");
-	            if(Sell_Pri1>Sell_Pri2) Sell_Pri = " +";
+	            if(Sell_Pri1>Sell_Pri2) Sell_Pri = "+";
 	            else if(Sell_Pri1==Sell_Pri2) Sell_Pri = "=";
 	            else Sell_Pri = "-";
 	            
-	            double Sell_Pri_dif = Sell_Pri1-Sell_Pri1;
+	            double Sell_Pri_dif = Sell_Pri1-Sell_Pri2;
 	            if (Sell_Pri_dif<0) Sell_Pri_dif =Sell_Pri_dif*-1.0;
 	            
-	            map.put("Sell_Pri_dif", String.format("%.1f", Sell_Pri_dif));
+	            map.put("Sell_Pri_dif", String.format("%.0f", Sell_Pri_dif));
 	            map.put("Sell_Pri_inc", Sell_Pri);
 	            
 	            map.put("BarCode", json.getString("Shop_Area"));
