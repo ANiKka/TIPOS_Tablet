@@ -57,13 +57,12 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 			e.printStackTrace();
 		}
         
-		
 		m_listDetailView= (ListView)findViewById(R.id.listviewCustomerPurchasePaymentDetailViewList);
 		
 		Intent intent = getIntent();
 		
 		String period1 = intent.getExtras().getString("PERIOD1");
-		String period2 = intent.getExtras().getString("PERIOD1");
+		String period2 = intent.getExtras().getString("PERIOD2");
 
 		String officeCode = intent.getExtras().getString("OFFICE_CODE");
 		String customerName = intent.getExtras().getString("OFFICE_NAME");
@@ -91,12 +90,17 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 		m_realPayment.setText(SALE);
 
     	String query = "";
+		query += "select T.BARCODE, T.G_NAME, T.순매입, SUM(T.순매출) 순매출 FROM (";
+		
 		for ( int y = year1; y <= year2; y++ ) {
-			for ( int m = month1; m <= month2; m++ ) {
+			int m1 = 1, m2 = 12;
+			if (y == year1) m1 = month1;
+			if (y == year2) m2 = month2;
+			for ( int m = m1; m <= m2; m++ ) {
 
 				String tableDate = String.format("%04d%02d", y, m);
 				
-     			query = "select B.BARCODE, B.G_NAME, A.In_Pri 순매입, (B.TSell_Pri-B.TSell_RePri-B.DC_Pri) 순매출 "
+     			query += "select B.BARCODE, B.G_NAME, A.In_Pri 순매입, (B.TSell_Pri-B.TSell_RePri-B.DC_Pri) 순매출 "
 			    		+ " from InD_" + tableDate + " as A inner join SaD_" + tableDate + " as B on A.BARCODE = B.BARCODE " 
 			    		+ " where A.Office_Code = '"+officeCode+"' and B.Sale_Date between '" + period1 + "' and '" + period2 + "'";
 	    		
@@ -104,7 +108,7 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 			}
 		}
 		query = query.substring(0, query.length()-11);
-		query += ";";
+		query += ") T GROUP BY BARCODE, G_NAME, 순매입; ";
 
 		// 콜백함수와 함께 실행
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
@@ -134,7 +138,7 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 					JSONObject son = results.getJSONObject(i);
 					HashMap<String, String> map = JsonHelper.toStringHashMap(son);
 					fillMaps.add(map);
-				}	
+				}
 			
 				// fill in the grid_item layout
 				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item4_4, from, to);

@@ -392,42 +392,28 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		int year2 = Integer.parseInt(period2.substring(0, 4));
 		int month2 = Integer.parseInt(period2.substring(5, 7));
 		
-		String tableName = null;
-
-		String constraint = "";
+		query += "select T.Office_Code, T.Office_Name, SUM(T.순매출) 순매출, SUM(T.이익금) 이익금 FROM (";
 		for ( int y = year1; y <= year2; y++ ) {
-			for ( int m = month1; m <= month2; m++ ) {
+			int m1 = 1, m2 = 12;
+			if (y == year1) m1 = month1;
+			if (y == year2) m2 = month2;
+			for ( int m = m1; m <= m2; m++ ) {
 				
-				tableName = String.format("SaD_%04d%02d", y, m);
+				String tableName = String.format("SaD_%04d%02d", y, m);
 				
-				if ( barCode.equals("") != true ) {
-					constraint = setConstraint(constraint, "Barcode", "=", barCode);
-				}
+				query += "select Office_Code, Office_Name, SUM(TSell_Pri-TSell_RePri-DC_Pri) 순매출, SUM(ProFit_Pri) 이익금 from " + tableName
+						+ " where Sale_Date between '" + period1 + "' and '" + period2 + "'"
+					    		+ " and Barcode like '%"+ barCode +"%'"
+					    		+ " and G_Name like '%"+ productName +"%'"
+					    		+ " and Office_Code like '%"+ customerCode +"%'"
+					    		+ " and Office_Name like '%"+ customerName +"%'"
+							    + " GROUP BY Office_Code, Office_Name ";
 				
-				if ( productName.equals("") != true ) {
-					constraint = setConstraint(constraint, "G_Name", "=", productName);
-				}
-				
-				if ( customerCode.equals("") != true ) {
-					constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
-				}
-				
-				if ( customerName.equals("") != true) {
-					constraint = setConstraint(constraint, "Office_Name", "=", customerName);
-				}
-				
-				query = query + "select Office_Code, Office_Name, Sale_Date, SUM(TSell_Pri-TSell_RePri-DC_Pri) 순매출, SUM(ProFit_Pri) 이익금 from " + tableName;
-				query = query + " where Sale_Date between '" + period1 + "' and '" + period2 + "'";
-				
-				if ( constraint.equals("") != true ) {
-					query = query + " and " + constraint;
-				}
-
 				query += " union all ";				
 			}
 		}
 		query = query.substring(0, query.length()-11);		
-		query += " GROUP BY Office_Code, Office_Name, Sale_Date; ";
+		query += ") T GROUP BY Office_Code, Office_Name order by Office_Code asc; ";
 
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
@@ -491,44 +477,29 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		int year2 = Integer.parseInt(period2.substring(0, 4));
 		int month2 = Integer.parseInt(period2.substring(5, 7));
 		
-		String tableName = null;
-		String constraint = "";
-		
+		query += "select T.Barcode, T.G_Name, SUM(T.수량) 수량, SUM(T.순매출) 순매출 FROM (";
 		for ( int y = year1; y <= year2; y++ ) {
-			
-			for ( int m = month1; m <= month2; m++ ) {
+			int m1 = 1, m2 = 12;
+			if (y == year1) m1 = month1;
+			if (y == year2) m2 = month2;
+			for ( int m = m1; m <= m2; m++ ) {
 				
-				tableName = String.format("SaD_%04d%02d", y, m);
-				
-				if ( barCode.equals("") != true ) {
-					constraint = setConstraint(constraint, "A.Barcode", "=", barCode);
-				}
-				
-				if ( productName.equals("") != true ) {
-					constraint = setConstraint(constraint, "A.G_Name", "=", productName);
-				}
-				
-				if ( customerCode.equals("") != true ) {
-					constraint = setConstraint(constraint, "A.Office_Code", "=", customerCode);
-				}
-				
-				if ( customerName.equals("") != true) {
-					constraint = setConstraint(constraint, "A.Office_Name", "=", customerName);
-				}
+				String tableName = String.format("SaD_%04d%02d", y, m);
 				
     			query = query + "select A.Barcode, A.G_Name, SUM(A.Sale_Count) 수량, SUM(A.TSell_Pri-A.TSell_RePri-A.DC_Pri) 순매출 "
     					+ " from " + tableName + " as A inner join Goods as B on A.Barcode = B.BarCode "
-    					+ " where B.Goods_Use='1' AND B.Pur_Use='1' AND A.Sale_Date between '" + period1 + "' and '" + period2 + "'";
+    					+ " where B.Goods_Use='1' AND B.Pur_Use='1' AND A.Sale_Date between '" + period1 + "' and '" + period2 + "'"
+					    		+ " and A.Barcode like '%"+ barCode +"%'"
+					    		+ " and A.G_Name like '%"+ productName +"%'"
+					    		+ " and A.Office_Code like '%"+ customerCode +"%'"
+					    		+ " and A.Office_Name like '%"+ customerName +"%'"
+							    + " GROUP BY A.Barcode, A.G_Name ";
    			
-    			if ( constraint.equals("") != true ) {
-    				query = query + " and " + constraint;
-    			}
-
 				query += " union all ";				
 			}
 		}
 		query = query.substring(0, query.length()-11);		
-		query += " GROUP BY A.Barcode, A.G_Name; ";
+		query += ") T GROUP BY T.Barcode, T.G_Name order by T.Barcode asc ; ";
 
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
@@ -598,7 +569,10 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 				+ " Sum (G.순매출) '순매출' "
 				+ " From (";
 		for ( int y = year1; y <= year2; y++ ) {
-			for ( int m = month1; m <= month2; m++ ) {
+			int m1 = 1, m2 = 12;
+			if (y == year1) m1 = month1;
+			if (y == year2) m2 = month2;
+			for ( int m = m1; m <= m2; m++ ) {
 				
 				String tableName = String.format("%04d%02d", y, m);
 				
