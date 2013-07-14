@@ -51,11 +51,9 @@ public class CustomerProductDetailInNewsActivity extends Activity {
 	        m_port = m_shop.getString("SHOP_PORT");
 		} catch (JSONException e) {
 			e.printStackTrace();
-		}
+		}		
 		
-		
-		m_listPurchaseDetail= (ListView)findViewById(R.id.listviewCustomerProductDetailInNews);
-		
+		m_listPurchaseDetail= (ListView)findViewById(R.id.listviewCustomerProductDetailInNews);		
 		m_numberFormat = NumberFormat.getInstance();
 		
 		Intent intent = getIntent();
@@ -63,23 +61,15 @@ public class CustomerProductDetailInNewsActivity extends Activity {
 		String period1 = intent.getExtras().getString("PERIOD1");
 		String customerCode = intent.getExtras().getString("OFFICE_CODE");
 		String customerName = intent.getExtras().getString("OFFICE_NAME");
-		
-		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.setCancelable(false);
- 		dialog.show();
- 		
+		 		
 		executeQuery(period1, customerCode, customerName);
-
 	}
 
 
 	private void setTabList1(List<HashMap<String, String>> fillMaps)
-	{
-		
+	{		
 		 // create the grid item mapping
-		String[] from = new String[] {"Barcode", "G_Name", "Sale_Count", "rSale"};
+		String[] from = new String[] {"BarCode", "G_Name", "순매출수량", "순매출"};
         int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
 		
 		// fill in the grid_item layout
@@ -98,47 +88,32 @@ public class CustomerProductDetailInNewsActivity extends Activity {
 	    
 		int year1 = Integer.parseInt(period1.substring(0, 4));
 		int month1 = Integer.parseInt(period1.substring(5, 7));
+
+		String tableName = String.format("%04d%02d", year1, month1);
 		
-		
-		String tableName = null;
-		String constraint = "";
-		
-		tableName = String.format("SaD_%04d%02d", year1, month1);
-				
-		if ( customerCode.equals("") != true )
-		{
-			constraint = setConstraint(constraint, "Office_Code", "=", customerCode);
-		}
-		
-		if ( customerName.equals("") != true)
-		{
-			constraint = setConstraint(constraint, "Office_Name", "=", customerName);
-		}
-		
-		query = "select Barcode, G_Name, SUM(Sale_Count) Sale_Count, SUM(TSell_Pri-TSell_RePri-DC_Pri) rSale from " + tableName;
-		query = query + " where Sale_Date = '" + period1 + "'";
-	
-		if ( constraint.equals("") != true )
-		{
-			query = query + " and " + constraint;
-		}
-		
-		query = query + "  group by Barcode, G_Name;";
-    	
+		query = "Select A.BarCode, A.G_Name, IsNull(Sum(A.Sale_Count), 0) '순매출수량', IsNull(Sum(A.TSell_Pri-A.TSell_RePri), 0) '순매출'"
+				+ " From SaD_"+tableName+" A " 
+				+ " Where A.Sale_Date='" + period1 + "' And A.Office_Code = '" + customerCode + "'  And A.Card_YN = '0' " 
+				+ " Group By A.BarCode, A.G_Name " 
+				+ " Order by A.순매출수량 DESC ";
+
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+ 		
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
 			@Override
 			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
 				try {
-					
-					if ( results.length() > 0 )
-					{
-						String[] from = new String[] {"Barcode", "G_Name", "Sale_Count", "rSale"};
-				        int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
+					if ( results.length() > 0 ) {
 				        List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
 			 			
-						for(int i = 0; i < results.length() ; i++)
-						{
+						for(int i = 0; i < results.length() ; i++) {
 							JSONObject son = results.getJSONObject(i);
 							HashMap<String, String> map = JsonHelper.toStringHashMap(son);
 							
@@ -146,37 +121,16 @@ public class CustomerProductDetailInNewsActivity extends Activity {
 						}	
 						
 						setTabList1(fillMaps);
-						
 						Toast.makeText(getApplicationContext(), "조회 완료" + results.length(), Toast.LENGTH_SHORT).show();
-						dialog.cancel();
 					
 					}
-					else 
-					{
-						dialog.cancel();
-					}
-					
 	    		} catch (JSONException e) {
 	    			e.printStackTrace();
-	    			dialog.cancel();
 	    		}
 				
 			}
-	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-		
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
 	}
-
-    private String setConstraint(String str, String field, String op, String value)
-    {
-    	if ( str.equals("") != true )
-    	{
-    		str = str + " and ";
-    	}
-    	
-    	str = str + field + " " + op + " '" + value + "'";
-    	
-    	return str;
-    }
 
 	/**
 	 * Set up the {@link android.app.ActionBar}.

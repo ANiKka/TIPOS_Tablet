@@ -51,6 +51,7 @@
         <item>프로그램 관련</item>
         <item>POS장비 관련</item>
         <item>A/S 신청</item>
+        <item>기타</item>
     </string-array>
 
     <string name="choose_question">질문을 선택하세요.</string>

@@ -96,25 +96,37 @@ public class CustomerProductDetailViewActivity extends Activity {
 		int month1 = Integer.parseInt(period1.substring(5, 7));
 		int month2 = Integer.parseInt(period2.substring(5, 7));
 		
-		query += "select T.Barcode, T.G_Name, SUM(T.수량) 수량, SUM(T.순매출) 순매출 FROM (";
+		query = "Select G.Barcode, G.G_Name, G.수량, G.순매출 "  
+				+ " From ( "
+				+ "  Select G.Barcode, G.G_Name,  "
+				+ "  Sum (G.순매출) '순매출',  "
+				+ "  Sum(G.순판매수량) '수량' "
+				+ "  From ( ";
+		
 		for ( int y = year1; y <= year2; y++ ) {
 			int m1 = 1, m2 = 12;
 			if (y == year1) m1 = month1;
 			if (y == year2) m2 = month2;
 			for ( int m = m1; m <= m2; m++ ) {
 
-				String tableName = String.format("SaD_%04d%02d", y, m);
-				
-    			query += "select Barcode, G_Name, SUM(Sale_Count) 수량, SUM(TSell_Pri-TSell_RePri-DC_Pri) 순매출 from " + tableName
-    					+ " where Office_Code='"+customerCode+"' and Sale_Date between '" + period1 + "' and '" + period2 + "'"
-    					+ " Group by Barcode, G_Name ";
-    			
+				String tableName = String.format("%04d%02d", y, m);
+			
+				query += " Select A.Barcode, B.G_Name, '순판매수량'=Sum(A.SALE_COUNT), "
+						+ " Sum (a.TSell_Pri - a.TSell_RePri) '순매출' "
+						+ " From SaD_"+tableName+" A LEFT JOIN Goods B "
+						+ " ON A.Barcode=B.Barcode "
+						+ " Where A.Office_Code = '"+customerCode+"' " 
+						+ " AND A.Sale_Date >= '" + period1 + "' AND A.Sale_Date <= '" + period2 + "' "
+						+ " And A.Card_YN = '0' " 
+						+ " Group By A.Barcode, B.G_Name ";
 				query += " union all ";
 			}
 		}
 		query = query.substring(0, query.length()-11);
-		query += ") T Group by Barcode, G_Name order by Barcode asc;";
-
+		query += " ) G "
+				+ " Group By G.Barcode, G.G_Name " 
+				+ " ) G ";
+		
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");

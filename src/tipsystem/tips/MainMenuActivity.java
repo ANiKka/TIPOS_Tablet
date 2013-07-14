@@ -176,7 +176,7 @@ public class MainMenuActivity extends Activity {
     	startActivity(intent);
 	}
 	
-	// 로그인관련 실행 함수 
+	//  
     public void fetchNotices(String ip, String port, String code) {
 
     	// 로딩 다이알로그 
@@ -187,7 +187,7 @@ public class MainMenuActivity extends Activity {
  		
     	// 쿼리 작성하기
 	    String query =  "";
-	    query = "SELECT * FROM MULT_BBS WHERE (B_GUBUN  = '0') OR (B_GUBUN = '3' AND OFFICE_CODE="+code+")  ORDER BY B_REGROUP;"; 
+	    query = "SELECT * FROM MULT_BBS WHERE (B_GUBUN  = '0') OR (B_GUBUN = '3' AND OFFICE_CODE="+code+")  ORDER BY B_REGROUP DESC, B_RESTEP;"; 
 	    
 	    // 콜백함수와 함께 실행
 	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
