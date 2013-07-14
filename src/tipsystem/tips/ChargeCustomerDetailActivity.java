@@ -195,7 +195,7 @@ public class ChargeCustomerDetailActivity extends Activity {
 		//공제후지급액= 순매출 - 공제금액
 		m_contents[20].setText(String.format("%.2f", cash));	//현금영수공제액
 		m_contents[21].setText(String.format("%.2f", m));	//공제금액
-		m_contents[22].setText(String.format("%.2f", rsale));	//공제후지급액
+		m_contents[22].setText(roundOff(rsale,0));	//공제후지급액
 	}
 	
 	private void doQueryToGetTotalSale() {
@@ -209,7 +209,7 @@ public class ChargeCustomerDetailActivity extends Activity {
 		int year2 = Integer.parseInt(period2.substring(0, 4));
 		int month2 = Integer.parseInt(period2.substring(5, 7));
 
-		query = "Select ISNULL(Sum(X.순매출합계),0) "
+		query = "Select ISNULL(Sum(X.순매출합계),0) '순매출합계'"
 				+ " From ("; 
 				
 		for ( int y = year1; y <= year2; y++ ) {
@@ -372,13 +372,18 @@ public class ChargeCustomerDetailActivity extends Activity {
 			m_contents[19].setText(m_data.get("캐쉬백"));
 			m_contents[20].setText(m_data.get("현영공제"));
 			m_contents[21].setText(m_data.get("공제금액"));
-			m_contents[22].setText(m_data.get("공제후지급액"));
-			m_contents[23].setText(m_data.get("점유율"));
+			m_contents[22].setText(roundOff(Float.valueOf(m_data.get("공제후지급액")),0));
+			m_contents[23].setText(String.format("%.2f", Float.valueOf(m_data.get("점유율"))));
 			
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}		
 		doCalculateGongjae();
+	}
+	
+	public String roundOff(double num, int point){
+
+		return String.valueOf(Math.floor(num * Math.pow(10, point) + 0.5) / Math.pow(10, point));
 	}
 	
 	@Override

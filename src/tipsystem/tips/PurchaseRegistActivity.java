@@ -167,8 +167,8 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		
 		btn_SendAll.setOnClickListener(new OnClickListener() {
 			public void onClick(View v){
-				
-				sendAllData();
+
+				getInTSeq();
 				m_selectedListIndex = -1;
 			}
 		});
@@ -230,7 +230,6 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		textView.setTypeface(typeface);
       
 		releaseInputMode();
-		getInTSeq();
 	}
 
 	private void calculateProfitRatio() {
@@ -244,7 +243,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
     		float f_purchasePrice =  Float.valueOf(purchasePrice).floatValue();
     		float f_salePrice =  Float.valueOf(salePrice).floatValue();
     		f_ratio = (f_salePrice - f_purchasePrice) / f_salePrice * 100 ;
-    		m_profitRatio.setText(String.valueOf(f_ratio));
+    		m_profitRatio.setText(String.format("%.2f", f_ratio));
     	}
 	}
 	
@@ -320,7 +319,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		m_et_salePrice.setText("");
 		m_amount.setText("");
 		m_profitRatio.setText("");
-		m_checkBoxRejectedProduct.setChecked(false);
+		m_textBarcode.requestFocus();
 	}
 
 	public void blockInputMode () {
@@ -384,7 +383,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		String Bot_Sell = m_tempProduct.get("Bot_Sell");	// 공병매출가
 		String Tax_YN = m_tempProduct.get("Tax_YN");		// 과세여부(0:면세,1:과세)
 		String Tax_Gubun = m_tempProduct.get("VAT_CHK");	// 부가세구분(0:별도,1:포함)
-		String In_YN = m_tempProduct.get("In_YN");	// 부가세구분(0:별도,1:포함)
+		String In_YN = m_tempProduct.get("In_YN");	//매입여부(0:반품,1:매입,2:행사반품,3:행사매입)
 		String Box_Use = m_tempProduct.get("Box_Use");	//
 		String Pack_Use = m_tempProduct.get("Pack_Use");	// 
 		String Bot_Code = m_tempProduct.get("Bot_Code");	//
@@ -407,6 +406,10 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		if (Bot_Pur == null) Bot_Pur = "0";
 		if (Bot_Sell == null) Bot_Sell = "0";
 		
+		if (m_checkBoxRejectedProduct.isChecked()) {
+			amount = String.valueOf(Integer.valueOf(amount)*-1);
+		}
+		
 		double In_Pri = Double.valueOf(purchasePrice)*Double.valueOf(amount);	//총 매입가(공병포함)=매입가x수량
 		double In_SellPri = Double.valueOf(salePrice)*Double.valueOf(amount);	//판매가x수량
 		
@@ -424,7 +427,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
         rmap.put("Office_Name", name);
         rmap.put("Tax_YN", Tax_YN);
         rmap.put("Tax_Gubun", Tax_Gubun);
-        rmap.put("In_Count", amount);			// 수량 
+        rmap.put("In_Count", amount);// 수량 
         rmap.put("Pur_Pri", purchasePrice);		// 매입가
         rmap.put("Org_PurPri", Org_PurPri);
         rmap.put("Pur_Cost", Pur_Cost);
@@ -447,7 +450,6 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
         rmap.put("Edit_Date", currentDate);
         rmap.put("Writer", userid);
         rmap.put("Editor", userid);
-        
         rmap.put("Bot_Pur", Bot_Pur);
         rmap.put("Bot_Sell", Bot_Sell);
         
@@ -456,7 +458,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
         //ListView 에 뿌려줌
         mfillMaps = makeFillvapsWithStockList();
 
-		String[] from = new String[] {"BarCode", "Office_Name", "Pur_Pri", "In_Count"};
+		String[] from = new String[] {"Office_Code", "Office_Name", "TPur_Pri", "In_Count"};
 	    int[] to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
         m_adapter = new SimpleAdapter(this, mfillMaps, R.layout.activity_listview_item4_1, from, to);
         m_listReadyToSend.setAdapter(m_adapter);
@@ -482,12 +484,13 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		         if (fm_Office_Code.equals(Office_Code)) {
 		        	 isNew = false;
 		        	 // 같은게 있으면 fm_element에 추가 
-			         String fm_Pur_Pri = fm_element.get("Pur_Pri");
+			         String fm_Pur_Pri = fm_element.get("TPur_Pri");
 			         String fm_In_Count = fm_element.get("In_Count");
-			         String Pur_Pri = element.get("Pur_Pri");
+			         String Pur_Pri = element.get("TPur_Pri");
 			         String In_Count = element.get("In_Count");
 			         
-			         fm_element.put("Pur_Pri", String.valueOf(Double.valueOf(Pur_Pri) + Double.valueOf(fm_Pur_Pri)));
+			         fm_element.put("TPur_Pri", String.valueOf(Double.valueOf(Pur_Pri)
+			        		 + Double.valueOf(fm_Pur_Pri)));
 			         fm_element.put("In_Count",String.valueOf(Integer.valueOf(In_Count) + Integer.valueOf(fm_In_Count)));
 		         }
 	         }
@@ -495,7 +498,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 	         if (isNew) {
 		         String BarCode = element.get("BarCode");
 		         String Office_Name = element.get("Office_Name");
-		         String Pur_Pri = element.get("Pur_Pri");
+		         String Pur_Pri = element.get("TPur_Pri");
 		         String In_Count = element.get("In_Count");
 		         String purchaseDate = element.get("purchaseDate");
 		     	 HashMap<String, String> map = new HashMap<String, String>();
@@ -503,7 +506,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		         map.put("Office_Code", Office_Code);
 		         map.put("BarCode", BarCode);
 		         map.put("Office_Name", Office_Name);
-		         map.put("Pur_Pri",Pur_Pri  );
+		         map.put("TPur_Pri",  Pur_Pri );
 		         map.put("In_Count", In_Count  );
 		         map.put("purchaseDate", purchaseDate  );
 		         
@@ -550,7 +553,8 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 
 		double TTPur_Pri =0, TTAdd_Tax =0, TFPur_Pri =0, In_TPri =0, In_FPri =0, In_Pri =0, In_RePri =0;
 		double TSell_Pri =0, In_SellPri =0, Bot_Pri =0, Bot_SellPri =0, Profit_Pri =0, Profit_Rate =0;
-			    
+		 boolean isIncludedYN = false; // 전표내의 물건중 반품이 포함된경우, 
+		 
 		for ( int i = 0, seq=1, tseq=1; i < m_purList.size(); i++, seq++ ) {
 			
 			HashMap<String, String> pur = m_purList.get(i);
@@ -559,6 +563,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 			if (!prevOffice_Code.equals(curOffice_Code)) {			
 				junpyo = makeJunPyo();
 				seq =1;
+				isIncludedYN = false;
 			}
 			prevOffice_Code = pur.get("Office_Code");
 
@@ -606,19 +611,21 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		    // InT용 데이터 누적시킴
 		    String Tax_YN = pur.get("Tax_YN"); //과세여부(0:면세,1:과세)
 		    String In_YN = pur.get("In_YN");	//매입여부(0:반품,1:매입,2:행사반품,3:행사매입)
-
+		   
+		    if (In_YN.equals("0")) isIncludedYN = true; // 전표내의 물건중 반품이 포함된경우, 
+		    
 			TTAdd_Tax += Double.valueOf(pur.get("Add_Tax"));	//총 과세 부가세
 			if (Tax_YN.equals("1")) TTPur_Pri += Double.valueOf(pur.get("TPur_Pri"));	//총 과세매입가(공병제외)
 			if (Tax_YN.equals("0")) TFPur_Pri+= Double.valueOf(pur.get("TPur_Pri"));	//총 면세매입가(공병제외)
 			if (Tax_YN.equals("1")) In_TPri+= Double.valueOf(pur.get("In_Pri"));		//총 과세매입가(공병포함)
 			if (Tax_YN.equals("0")) In_FPri+= Double.valueOf(pur.get("In_Pri"));		//총 면세매입가(공병포함)
-			if (In_YN.equals("0")) In_RePri+= Double.valueOf(pur.get("In_Pri"));		//총 반품가(공병포함)
-			else In_Pri+= Double.valueOf(pur.get("In_Pri"));		//총 매입가(공병포함)
+			if (In_YN.equals("0")) In_RePri+= Double.valueOf(pur.get("In_Pri"))*-1;		//총 반품가(공병포함)
+			In_Pri+= Double.valueOf(pur.get("In_Pri"));		//총 매입가(공병포함)
 			TSell_Pri+= Double.valueOf(pur.get("TSell_Pri"));	//총 판매가(공병제외)
 			In_SellPri+= Double.valueOf(pur.get("In_SellPri"));	//총 판매가(공병포함)
 			Bot_Pri+= Double.valueOf(pur.get("Bot_Pur"));		//공병 총 매입가
 			Bot_SellPri+= Double.valueOf(pur.get("Bot_Sell"));	//공병 총 판매가
-			Profit_Pri = In_SellPri - In_Pri - In_RePri;
+			Profit_Pri = In_SellPri - In_Pri;
 			Profit_Rate = Profit_Pri / In_SellPri *100;
 
 			// 마지막이거나 다음것이 새로운 거래처이면, 
@@ -644,7 +651,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 					    + "'" + String.valueOf(TFPur_Pri) + "', "
 					    + "'" + String.valueOf(In_TPri) + "', "
 					    + "'" + String.valueOf(In_FPri) + "', "
-					    + "'" + String.valueOf(In_Pri-In_RePri) + "', "
+					    + "'" + String.valueOf(In_Pri) + "', "
 					    + "'" + String.valueOf(In_RePri) + "', "
 					    + "'" + String.valueOf(TSell_Pri) + "', "
 					    + "'" + String.valueOf(In_SellPri) + "', "
@@ -667,7 +674,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 				    		+ "'" + tseq + "', "
 				    		+ "'" + pur.get("Office_Code").toString() + "', "
 				    		+ "'" + pur.get("Office_Name").toString() + "', "	
-				    		+ "'" + String.valueOf(In_Pri-In_RePri) + "', "
+				    		+ "'" + String.valueOf(In_Pri) + "', "
 				    		+ "'0', "
 				    		+ "'0', "
 				    		+ "'3', "
@@ -678,7 +685,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 							+ "'" + pur.get("Editor").toString() + "');";
 				}
 				
-				if (In_YN.equals("0")) {	// 반품 
+				if (isIncludedYN) {	// 반품 
 					query += " insert into Office_Settlement ( Sale_Code, Pro_Date, In_Seq, Office_Code, Office_Name, Buy_RePri, "
 				    		+ " Sale_Pri, Sale_Rate, Gubun, Bigo, Write_Date, Edit_Date, Writer, Editor) Values ("
 				    		+ "'" + junpyo + "', "
@@ -696,7 +703,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 							+ "'" + pur.get("Writer").toString() + "', "
 							+ "'" + pur.get("Editor").toString() + "');";
 				}
-				else {		// 매입
+				{		// 매입
 					query += " insert into Office_Settlement ( Sale_Code, Pro_Date, In_Seq, Office_Code, Office_Name, Buy_Pri, "
 				    		+ " Sale_Pri, Sale_Rate, Gubun, Bigo, Write_Date, Edit_Date, Writer, Editor) Values ("
 				    		+ "'" + junpyo + "', "
@@ -704,7 +711,7 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 				    		+ "'" + tseq + "', "
 				    		+ "'" + pur.get("Office_Code").toString() + "', "
 				    		+ "'" + pur.get("Office_Name").toString() + "', "	
-				    		+ "'" + String.valueOf(In_Pri) + "', "
+				    		+ "'" + String.valueOf(In_Pri + In_RePri) + "', "
 				    		+ "'0', "
 				    		+ "'0', "
 				    		+ "'2', "
@@ -806,13 +813,15 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 				if (results.length()>0) {
 					try {
 						m_junpyoInTIdx = results.getJSONObject(0).getInt("In_Seq")+1;
+
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}
 				}
 				else {
 					m_junpyoInTIdx =1;
-				}				
+				}
+				sendAllData();
 			}
 
 			@Override
@@ -926,12 +935,12 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 					try {			
 						m_tempProduct = JsonHelper.toStringHashMap(results.getJSONObject(0));
 						m_tempProduct.put("In_YN", "0");
-						m_textProductName.setText(results.getJSONObject(0).getString("G_Name"));						
-						m_et_purchasePrice.setText(results.getJSONObject(0).getString("Pur_Pri"));
+						m_textProductName.setText(results.getJSONObject(0).getString("G_Name"));
+						String s = results.getJSONObject(0).getString("Pur_Pri");
+						m_et_purchasePrice.setText(s);
 						m_et_salePrice.setText(results.getJSONObject(0).getString("Sell_Pri"));
 						m_profitRatio.setText(results.getJSONObject(0).getString("Profit_Rate"));
-						
-						m_amount.setText("1");
+						m_amount.requestFocus();
 						
 						if(m_checkBoxFixCustomer.isChecked()) {
 							m_tempProduct.put("Bus_Code", m_customerCode.getText().toString());
@@ -1112,6 +1121,5 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		m_dateCalender1.set(year, monthOfYear, dayOfMonth);
 		m_period.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
 
-		getInTSeq();
 	}
 }

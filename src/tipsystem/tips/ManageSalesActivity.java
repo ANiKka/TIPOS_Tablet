@@ -392,29 +392,38 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		int year2 = Integer.parseInt(period2.substring(0, 4));
 		int month2 = Integer.parseInt(period2.substring(5, 7));
 		
-		query += "select T.Office_Code, T.Office_Name, SUM(T.순매출) 순매출, SUM(T.이익금) 이익금 FROM (";
+		query = "Select G.Office_Code,G.Office_Name, G.순매출, G.이익금, G.이익률 "
+				+ " From ( "
+				+ " Select G.Office_Code,G.Office_Name, Sum (G.순매출) '순매출', Sum (G.이익금) '이익금', "
+				+ " '이익률'=Case When Sum(G.이익금)=0 Or Sum(G.순매출)=0 Then 0 Else (Sum(G.이익금)/Sum(G.순매출))*100 End "
+				+ " From ( ";
+		
 		for ( int y = year1; y <= year2; y++ ) {
 			int m1 = 1, m2 = 12;
 			if (y == year1) m1 = month1;
 			if (y == year2) m2 = month2;
 			for ( int m = m1; m <= m2; m++ ) {
 				
-				String tableName = String.format("SaD_%04d%02d", y, m);
-				
-				query += "select Office_Code, Office_Name, SUM(TSell_Pri-TSell_RePri-DC_Pri) 순매출, SUM(ProFit_Pri) 이익금 from " + tableName
-						+ " where Sale_Date between '" + period1 + "' and '" + period2 + "'"
-					    		+ " and Barcode like '%"+ barCode +"%'"
-					    		+ " and G_Name like '%"+ productName +"%'"
-					    		+ " and Office_Code like '%"+ customerCode +"%'"
-					    		+ " and Office_Name like '%"+ customerName +"%'"
-							    + " GROUP BY Office_Code, Office_Name ";
-				
-				query += " union all ";				
+				String tableName = String.format("%04d%02d", y, m);
+						
+				query += " Select A.Office_Code, A.Office_Name, Sum (a.TSell_Pri - a.TSell_RePri) '순매출', Sum (a.Profit_Pri) '이익금' "
+						+ " From SaD_"+tableName+" A LEFT JOIN  SaT_"+tableName+" C "
+						+ " ON A.Sale_Num=C.Sale_Num "
+						+ " Where A.Office_Code Like '%"+ customerCode +"%' And A.Office_Name Like '%"+ customerName +"%' " 
+						+ " AND A.Sale_Date >= '" + period1 + "' AND A.Sale_Date <= '" + period2 + "' "
+						+ " AND A.BARCODE LIKE '%"+ barCode +"%' AND A.G_NAME LIKE '%"+ productName +"%' "
+						+ " And A.Card_YN = '0' " 
+						+ " Group By A.Office_Code, A.Office_Name ";
+
+				query += " union all ";
 			}
 		}
 		query = query.substring(0, query.length()-11);		
-		query += ") T GROUP BY Office_Code, Office_Name order by Office_Code asc; ";
-
+		query += " ) G "
+				+ " Group By G.Office_Code,G.Office_Name "
+				+ " ) G " 
+				+ " ORDER BY G.Office_Code ";
+		
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
@@ -477,30 +486,36 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		int year2 = Integer.parseInt(period2.substring(0, 4));
 		int month2 = Integer.parseInt(period2.substring(5, 7));
 		
-		query += "select T.Barcode, T.G_Name, SUM(T.수량) 수량, SUM(T.순매출) 순매출 FROM (";
+		query = "Select G.Barcode, G.G_Name, G.수량, G.순매출"  
+				+ " From ( "
+				+ " Select G.Barcode, G.G_Name, Sum (G.순매출) '순매출', Sum(G.순판매수량) '수량' "
+				+ " From ( ";
+		
 		for ( int y = year1; y <= year2; y++ ) {
 			int m1 = 1, m2 = 12;
 			if (y == year1) m1 = month1;
 			if (y == year2) m2 = month2;
 			for ( int m = m1; m <= m2; m++ ) {
 				
-				String tableName = String.format("SaD_%04d%02d", y, m);
+				String tableName = String.format("%04d%02d", y, m);
+						
+				query += " Select A.Barcode, B.G_Name, '순판매수량'=Sum(A.SALE_COUNT), Sum (a.TSell_Pri - a.TSell_RePri) '순매출' "
+				+ " From SaD_"+tableName+" A LEFT JOIN Goods B "
+				+ "   	ON A.Barcode=B.Barcode "
+				+ "    	Where A.Barcode Like '%"+ barCode +"%' And B.G_Name Like '%"+ productName +"%'  "
+						+ "   AND A.Office_Code Like '%"+ customerCode +"%' And A.Office_Name Like '%"+ customerName +"%'  "
+						+ "   AND A.Sale_Date >= '" + period1 + "' AND A.Sale_Date <= '" + period2 + "' "  
+						+ "   And A.Card_YN = '0'  "
+						+ "   GRoup By A.Barcode,B.G_Name ";
 				
-    			query = query + "select A.Barcode, A.G_Name, SUM(A.Sale_Count) 수량, SUM(A.TSell_Pri-A.TSell_RePri-A.DC_Pri) 순매출 "
-    					+ " from " + tableName + " as A inner join Goods as B on A.Barcode = B.BarCode "
-    					+ " where B.Goods_Use='1' AND B.Pur_Use='1' AND A.Sale_Date between '" + period1 + "' and '" + period2 + "'"
-					    		+ " and A.Barcode like '%"+ barCode +"%'"
-					    		+ " and A.G_Name like '%"+ productName +"%'"
-					    		+ " and A.Office_Code like '%"+ customerCode +"%'"
-					    		+ " and A.Office_Name like '%"+ customerName +"%'"
-							    + " GROUP BY A.Barcode, A.G_Name ";
-   			
-				query += " union all ";				
+				query += " union all ";	
 			}
 		}
 		query = query.substring(0, query.length()-11);		
-		query += ") T GROUP BY T.Barcode, T.G_Name order by T.Barcode asc ; ";
-
+		query += " ) G  "
+				+ " Group By G.Barcode, G.G_Name " 
+				+ ") G ";
+		
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
@@ -653,6 +668,26 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		query = "select TSell_Pri, Sale_Num, Sale_Pri, TPur_Pri from " + tableName;
 		query = query + " where Sale_Date = '" + period + "'";
 
+		query = "SELECT "
+				+ " '일자'=CASE WHEN G.SALE_DATE IS NULL THEN IN_DATE ELSE G.SALE_DATE END, "
+				+ " ISNULL(순매출,0) '순매출', "
+				+ " ISNULL(객수,0) '객수', "
+				+ " '객단가' = CASE WHEN ISNULL(순매출,0)=0 Then 0 ELSE ISNULL(순매출,0)/ISNULL(객수,0) END, "
+				+ " ISNULL(IN_Pri,0) '매입금액' "
+				+ " FROM ( "
+				+ "  Select Sale_DATE,  "
+				+ "  IsNull(Sum(TSell_Pri-TSell_RePri), 0) '순매출', "
+				+ "  Count (Distinct(Sale_Num)) '객수' "
+				+ "  From SaD_201305 "
+				+ "  WHERE Card_YN = '0' "
+				+ "  Group By Sale_DATE "
+				+ " ) G FULL JOIN  ( "
+				+ "      Select In_Date,Sum(In_Pri) IN_Pri "
+				+ "      From InT_201305 "
+				+ "      GRoup By In_Date  "
+				+ " ) B ON G.SALE_DATE=B.IN_DATE "
+				+ " Order by G.일자 ";
+		
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");

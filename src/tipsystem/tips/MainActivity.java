@@ -1,10 +1,13 @@
 package tipsystem.tips;
 
 
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -171,11 +174,10 @@ public class MainActivity extends Activity {
 	// 매장 정보 가져오기
     public void fetchOffices() {
     	
-    	// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.show();
- 		
+		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);	
+		Calendar c = Calendar.getInstance();
+		String today = f.format(c.getTime());
+		
     	String phoneNumber = LocalStorage.getString(MainActivity.this, "phoneNumber");
     	
     	// 쿼리 작성하기
@@ -184,7 +186,13 @@ public class MainActivity extends Activity {
 	    		+"  from APP_USER as A inner join V_OFFICE_USER as B " 
 	    		+ " on A.OFFICE_CODE = B.Sto_CD "
 	    		+ " JOIN APP_SETTLEMENT as C on A.OFFICE_CODE = C.OFFICE_CODE " 
-	    		+ " where A.APP_HP =" + phoneNumber + "AND C.DEL_YN = '0' ;";
+	    		+ " where A.APP_HP =" + phoneNumber + "AND C.DEL_YN = '0' "
+	    		+ " AND C.APP_SDATE<='"+today+"' AND C.APP_EDATE>='"+today+"'";
+
+    	// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.show();
 
 	    // 콜백함수와 함께 실행
 	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {

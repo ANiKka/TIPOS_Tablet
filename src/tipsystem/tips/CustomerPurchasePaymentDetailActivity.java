@@ -90,8 +90,20 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 		m_realPayment.setText(SALE);
 
     	String query = "";
-		query += "select T.BARCODE, T.G_NAME, T.순매입, SUM(T.순매출) 순매출 FROM (";
-		
+
+		query = "select "
+				+ " a.BARCODE,a.G_NAME, "
+				+ " isnull(b.In_count,0) '매입수량',  "
+				+ " isnull(b.In_Pri,0) '순매입',  "
+				+ " isnull(c.sale_count,0) '매출수량',  "
+				+ " isnull(c.sell_pri,0) '순매출' "
+				+ " from Goods a  "
+				+ " left join (  "
+				+ "  select barcode,  "
+				+ "  sum(In_count) In_count,  "
+				+ "  sum(In_Pri) In_Pri  "
+				+ "  from (  ";
+
 		for ( int y = year1; y <= year2; y++ ) {
 			int m1 = 1, m2 = 12;
 			if (y == year1) m1 = month1;
@@ -99,16 +111,51 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 			for ( int m = m1; m <= m2; m++ ) {
 
 				String tableDate = String.format("%04d%02d", y, m);
-				
-     			query += "select B.BARCODE, B.G_NAME, A.In_Pri 순매입, (B.TSell_Pri-B.TSell_RePri-B.DC_Pri) 순매출 "
-			    		+ " from InD_" + tableDate + " as A inner join SaD_" + tableDate + " as B on A.BARCODE = B.BARCODE " 
-			    		+ " where A.Office_Code = '"+officeCode+"' and B.Sale_Date between '" + period1 + "' and '" + period2 + "'";
-	    		
+				query += "   select barcode,  "
+						+ "        sum(In_count) In_count,  "
+						+ "        sum(In_Pri) In_Pri  "
+						+ "        From InD_"+tableDate+" "
+						+ "        where in_date between '" + period1 + "' and '" + period2 + "' "
+						+ "        AND office_code='"+officeCode+"'  "
+						+ "        group by barcode ";
+
 				query += " union all ";
 			}
 		}
 		query = query.substring(0, query.length()-11);
-		query += ") T GROUP BY BARCODE, G_NAME, 순매입; ";
+		query += "  ) x  "
+				+ "  group by barcode  "
+				+ " ) b  on a.barcode=b.barcode  "
+				+ " left join (  "
+				+ "  select barcode,  "
+				+ "  sum(sale_count) sale_count,  "
+				+ "  sum(sell_pri) sell_pri "
+				+ "  from (         ";
+
+		for ( int y = year1; y <= year2; y++ ) {
+			int m1 = 1, m2 = 12;
+			if (y == year1) m1 = month1;
+			if (y == year2) m2 = month2;
+			for ( int m = m1; m <= m2; m++ ) {
+
+				String tableDate = String.format("%04d%02d", y, m);
+				query += "   select barcode,  "
+				+ "        sum(sale_count) sale_count,  "
+				+ "        sum(TSell_Pri-TSell_RePri) sell_pri "
+				+ "        From SaD_"+tableDate+" "
+				+ "        where sale_date between '" + period1 + "' and '" + period2 + "' AND Card_YN='0'  "
+				+ "        AND office_code='"+officeCode+"' "
+				+ "        group by barcode ";
+
+				query += " union all ";
+			}
+		}
+		query = query.substring(0, query.length()-11);
+		query += "  ) x  "
+				+ "  group by barcode  "
+				+ " ) c on a.barcode=c.barcode  "
+				+ " where 1=1 "
+				+ " and isnull(b.In_count,0)<>0 or isnull(c.sale_count,0)<>0 or isnull(b.In_Pri,0)<>0 or isnull(c.sell_pri,0)<>0";
 
 		// 콜백함수와 함께 실행
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
@@ -118,8 +165,6 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 				setListItems(results);
 			}
 		}).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-		
-
 	}
 	
 	void setListItems(JSONArray results)

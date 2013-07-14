@@ -126,8 +126,9 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		m_listNewsTab3= (ListView)findViewById(R.id.listviewSalesNewsListTab3);
 		
 		m_listNewsTab2.setOnItemClickListener(this);
-		
-		String[] from1 = new String[] {"시간", "순매출", "전일매출", "전일대비차액"};
+
+		String[] from1 = new String[] {"G_Hour", "순매출", "전일순매출", "전일대비차액"};
+		//String[] from1 = new String[] {"시간", "순매출", "전일매출", "전일대비차액"};
         int[] to1 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
         
 		adapter1 = new SimpleAdapter(this, mfillMaps1, R.layout.activity_listview_item4, from1, to1);		
@@ -302,13 +303,49 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		int year2 = Integer.parseInt(period2.substring(0, 4));
 		int month2 = Integer.parseInt(period2.substring(5, 7));
 		
-		String tableName = String.format("DF_%04d%02d", year1, month1);
-		String tableName2 = String.format("DF_%04d%02d", year2, month2);
+		String tableName = String.format("%04d%02d", year1, month1);
+		String tableName2 = String.format("%04d%02d", year2, month2);
 		
-		query = "select SUM(TSell_Pri) TSell_Pri, SUM(Sale_Num) Sale_Num, SUM(Sale_Pri) Sale_Pri, SUM(Cash_Pri) Cash_Pri, SUM(Card_Pri) Card_Pri, SUM(Dec_Pri) Dec_Pri, Sale_Date from " + tableName
-		 		+ " where Sale_Date ='" + period1 + "' Group by Sale_Date" 
-				+ " union all select SUM(TSell_Pri) TSell_Pri, SUM(Sale_Num) Sale_Num, SUM(Sale_Pri) Sale_Pri, SUM(Cash_Pri) Cash_Pri, SUM(Card_Pri) Card_Pri, SUM(Dec_Pri) Dec_Pri, Sale_Date from " + tableName2
-		 		+ " where Sale_Date ='" + period2 + "'  Group by Sale_Date";
+		query = "Select "
+				+ " a.Sale_Date, "
+				+ " ISNULL(순매출,0) '순매출', ISNULL(현금,0) '현금', ISNULL(카드,0) '카드', ISNULL(외상,0) '외상',  "
+				+ " ISNULL(기타,0) '기타', "
+				+ " ISNULL(객수,0) '객수', ISNULL(객단가,0) '객단가',  "
+				+ " ISNULL(순매출_B,0) '전일_순매출', ISNULL(객수_B,0) '전일_객수', ISNULL(객단가_B,0) '전일_객단가'  "
+				+ " From ( "
+		 		+ " Select     'a' a, "
+		 		+ " sale_date, "
+		 		+ " 순매출,객수,현금,카드,외상,기타, "
+		 		+ " '객단가' = CASE WHEN 순매출=0 Then 0 ELSE 순매출/객수 END "
+		 		+ " From ( "
+		  		+ " Select "
+		  		+ "  a.Sale_Date, "
+		       		+ " Sum (b.TSell_Pri - b.TSell_RePri) '순매출', "
+		       		+ " Count (Distinct(a.Sale_Num)) '객수', "
+		       		+ " Sum (Round(a.Cash_Pri * b.Money_Per, 4)) '현금', "
+		       		+ " Sum (b.Card_Pri) '카드', "
+		       		+ " Sum (Round(a.Dec_Pri * b.Money_Per, 4)) '외상', "
+		       		+ " Sum (Round(a.CMS_Pri * b.Money_Per, 4)) +  Sum (Round(a.Cus_PointUse * b.Money_Per, 4)) + Sum (Round(a.Sub_Pri * b.Money_Per, 4)) + Sum (Round(a.Gift_Pri * b.Money_Per, 4)) + Sum (Round(a.CashBack_PointUse * b.Money_Per, 4)) + Sum (Round(a.Cut_Pri * b.Money_Per, 4)) '기타' "
+		       		+ " From SaD_"+tableName+" B, SaT_"+tableName+" A "
+		       		+ " Where A.Sale_Num=B.Sale_Num And A.Sale_Date='" + period1 + "'  "
+		  		+ " And B.Card_YN = '0' "
+		       		+ " Group By A.Sale_Date "
+		 		+ " ) G  "
+				+ " ) A FULL JOIN ( "
+		 		+ " Select     'a' a, "
+		 		+ " 순매출 '순매출_B', "
+		 		+ " 객수 '객수_B' , "
+		 		+ " '객단가_B' = CASE WHEN 순매출=0 Then 0 ELSE 순매출/객수 END "
+		 		+ " From ( "
+		  		+ " Select "
+		       		+ " Sum (b.TSell_Pri - b.TSell_RePri) '순매출', "
+		       		+ " Count (Distinct(a.Sale_Num)) '객수' "
+		       		+ " From SaD_"+tableName2+" B, SaT_"+tableName2+" A "
+		       		+ " Where A.Sale_Num=B.Sale_Num And A.Sale_Date='" + period2 + "'  "
+		  		+ " And B.Card_YN = '0' "
+		       		+ " Group By A.Sale_Date "
+		 		+ " ) G  "
+				+ " ) B ON A.a=B.a ";
 		
 		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 
@@ -322,27 +359,18 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	
 	private void updateCommonInformation(JSONArray results)
 	{
-		String period1 = m_buttonSetDate.getText().toString();
-		String period2 = m_dateFormatter.format(m_dateCalender2.getTime());
 		try {		
 			if ( results.length() > 0 ) {
-				for(int i = 0; i < results.length() ; i++)
-				{
+				for(int i = 0; i < results.length() ; i++) {
 					JSONObject son = results.getJSONObject(i);
-					String Sale_Date = son.getString("Sale_Date");
-					if (Sale_Date.equals(period1)) {
-						m_realSales.setText(m_numberFormat.format(son.getInt("TSell_Pri")));		    			
-		    			m_viewKNumber.setText(m_numberFormat.format(son.getInt("Sale_Num")));		    			
-		    			m_viewPrice.setText(m_numberFormat.format(son.getInt("Sale_Pri")));
-		    			m_viewCash.setText(m_numberFormat.format(son.getInt("Cash_Pri")));
-		    			m_viewCard.setText(m_numberFormat.format(son.getInt("Card_Pri")));
-		    			m_viewCredit.setText(m_numberFormat.format(son.getInt("Dec_Pri")));		    			
-		    			m_viewOther.setText(m_numberFormat.format(0));	
-					}
-					else {
-						//전일 순매출
-						m_viewRealSalesYesterday.setText(m_numberFormat.format(son.getInt("TSell_Pri")));	
-					}
+						m_realSales.setText(m_numberFormat.format(son.getInt("순매출")));		    			
+		    			m_viewKNumber.setText(m_numberFormat.format(son.getInt("객수")));		    			
+		    			m_viewPrice.setText(m_numberFormat.format(son.getInt("객단가")));
+		    			m_viewCash.setText(m_numberFormat.format(son.getInt("현금")));
+		    			m_viewCard.setText(m_numberFormat.format(son.getInt("카드")));
+		    			m_viewCredit.setText(m_numberFormat.format(son.getInt("외상")));		    			
+		    			m_viewOther.setText(m_numberFormat.format(son.getInt("기타")));
+						m_viewRealSalesYesterday.setText(m_numberFormat.format(son.getInt("전일_순매출")));
 				}	
 			}
 			else {
@@ -352,7 +380,8 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 				m_viewCash.setText(m_numberFormat.format(0));
 				m_viewCard.setText(m_numberFormat.format(0));
 				m_viewCredit.setText(m_numberFormat.format(0));
-				m_viewOther.setText(m_numberFormat.format(0));				
+				m_viewOther.setText(m_numberFormat.format(0));			
+				m_viewRealSalesYesterday.setText(0);	
 			}			
 			
 		} catch (JSONException e) {
@@ -360,6 +389,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		}
 	}
 
+	// 시간대별
 	private void queryForTab1()
 	{
 		mfillMaps1.removeAll(mfillMaps1);
@@ -375,17 +405,30 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		int year2 = Integer.parseInt(period2.substring(0, 4));
 		int month2 = Integer.parseInt(period2.substring(5, 7));
 		
-		String tableName = null;
-		String tableName2 = null;
+		String tableName = String.format("%04d%02d", year1, month1);
+		String tableName2 = String.format("%04d%02d", year2, month2);
 		
-		tableName = String.format("SaT_%04d%02d", year1, month1);
-		tableName2 = String.format("SaT_%04d%02d", year2, month2);
-		
-		query = "select Sale_Time, TSell_Pri, TSell_RePri, DC_Pri, Sale_Date from " + tableName;
-		query = query + " where Sale_Date = '" + period1 + "' ";
-		query = query + " union all select Sale_Time, TSell_Pri, TSell_RePri, DC_Pri, Sale_Date from " + tableName2;
-		query = query + " where Sale_Date = '" + period2 + "'";
-		
+		query = "Select A.G_Hour, ISNULL(b.순매출,0) '순매출', ISNULL(c.전일순매출,0) '전일순매출', ISNULL(b.순매출,0) - ISNULL(c.전일순매출,0) '전일대비차액'"
+				+ " From Temp_Day A" 
+				+ " LEFT JOIN ("
+				+ " Select     LEFT(B.Sale_time,2) 'sTime', "
+				+ " Sum (a.TSell_Pri - a.TSell_RePri) '순매출' "
+				+ " From SaD_"+tableName+" A, SaT_"+tableName+" B "
+				+ " Where A.Sale_Num=B.Sale_Num And A.Sale_date='" + period1 + "' " 
+				+ " And A.Card_YN = '0' " 	
+				+ " Group By LEFT(B.Sale_time,2) " 
+				+ " )  B ON  A.G_Hour=B.sTime " 
+				+ " LEFT JOIN ( "	
+				+ " Select     LEFT(B.Sale_time,2) 'sTime1', "
+				+ " Sum (a.TSell_Pri - a.TSell_RePri) '전일순매출' "	
+				+ " From SaD_"+tableName2+" A, SaT_"+tableName2+" B "	
+				+ " Where A.Sale_Num=B.Sale_Num And A.Sale_date='" + period2 + "' "  
+				+ " And A.Card_YN = '0' " 
+				+ " Group By LEFT(B.Sale_time,2) " 
+				+ " ) C ON  A.G_Hour=C.sTime1 " 	
+				+ " Where A.G_Hour<>'' " 
+				+ " Order by A.G_Hour ASC;"; 
+						
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
@@ -399,7 +442,18 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 
 				dialog.dismiss();
 				dialog.cancel();
-				if ( results.length() > 0 ) updateListForTab1(results);
+				
+				for(int index = 0; index < results.length() ; index++) {
+					
+					try {
+						JSONObject son = results.getJSONObject(index);
+						HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+						mfillMaps1.add(map);	
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				
 				adapter1.notifyDataSetChanged();
 				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();	
 			}
@@ -414,92 +468,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
 	}
 	
-	private void updateForTab1(JSONArray results)
-	{
-		for(int index = 0; index < results.length() ; index++) {
-			
-			try {
-				JSONObject son = results.getJSONObject(index);
-				HashMap<String, String> map = JsonHelper.toStringHashMap(son);
-	            map.put("시간", String.format("%02d", index));
-	            
-	            float rsale = Float.valueOf(map.get("순매출"));
-	            float prsale = Float.valueOf(map.get("전일매출"));
-	            
-	            map.put("순매출", m_numberFormat.format((int)rsale));
-	            map.put("전일매출", m_numberFormat.format((int)prsale));
-	            map.put("전일대비차액", m_numberFormat.format((int)rsale-prsale));
-	            
-				mfillMaps1.add(map);	
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	private void updateListForTab1(JSONArray results)
-	{
-		String period1 = m_buttonSetDate.getText().toString();
-		String period2 = m_dateFormatter.format(m_dateCalender2.getTime());
-		
-		try {
-	        int [] rSale = new int [25];
-	        int [] rSale1 = new int [25];
-	        int [] rDSale = new int [25];
-	        
-	        for ( int i = 0; i < 25; i++ ) {
-	        	rSale[i] = 0;
-	        	rSale1[i] = 0;
-	        	rDSale[i] = 0;
-	        }
- 			
-			for(int i = 0; i < results.length() ; i++) {
-				JSONObject son = results.getJSONObject(i);					
-				String sDate = son.getString("Sale_Date");
-				
-				if ( sDate.equals(period1) == true ) {
-					String tTime = son.getString("Sale_Time");
-					
-					int iTime = Integer.parseInt(tTime.substring(0, 2));
-					
-					int itSell = son.getInt("TSell_Pri");
-					int itRSell = son.getInt("TSell_RePri");
-					int idcPri = son.getInt("DC_Pri");
-					int irSale = itSell - (itRSell + idcPri);
-								
-					rSale[iTime] = rSale[iTime] + irSale;
-				}
-				else if ( sDate.equals(period2) == true ) {
-					String tTime = son.getString("Sale_Time");
-					
-					int iTime = Integer.parseInt(tTime.substring(0, 2));
-					
-					int itSell = son.getInt("TSell_Pri");
-					int itRSell = son.getInt("TSell_RePri");
-					int idcPri = son.getInt("DC_Pri");
-					int irSale = itSell - (itRSell + idcPri);
-					            				
-					rSale1[iTime] = rSale1[iTime] + irSale;
-				}
-			}	
-			
-			for ( int i = 0; i < 24; i++ ) {
-	    		rDSale[i] = rSale[i] - rSale1[i];
-	    		
-	            HashMap<String, String> map = new HashMap<String, String>();
-	            map.put("시간", String.format("%02d", i));
-	            map.put("순매출", m_numberFormat.format(rSale[i]));
-	            map.put("전일매출", m_numberFormat.format(rSale1[i]));
-	            map.put("전일대비차액", m_numberFormat.format(rDSale[i]));
-
-				mfillMaps1.add(map);	
-	        }
-			
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-	}
-	
+	// 거래처별
 	private void queryListForTab2()
 	{
 		String period1 = m_buttonSetDate.getText().toString();		
@@ -508,13 +477,15 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		int year1 = Integer.parseInt(period1.substring(0, 4));
 		int month1 = Integer.parseInt(period1.substring(5, 7));
 		
-		String tableName = null;
+		String tableName = String.format("SaD_%04d%02d", year1, month1);
 		
-		tableName = String.format("SaD_%04d%02d", year1, month1);
-		
-		query = "select Office_Code, Office_Name, SUM(TSell_Pri-TSell_RePri-DC_Pri) 순매출, SUM(ProFit_Pri) 이익금 from " + tableName
-				+ " where Sale_Date = '" + period1 + "' "
-				+ " GROUP BY Office_Code, Office_Name Order by 순매출 DESC; ";
+		query = "Select A.Office_Code, A.Office_Name, " 
+				+ " IsNull(Sum(A.TSell_Pri-A.TSell_RePri), 0) '순매출', "
+				+ " '이익금'=Case When Sum(A.ProFit_Pri) = 0 Or Sum(A.TSell_Pri-A.TSell_RePri) = 0 Then 0 Else (Sum(A.ProFit_Pri)/Sum(A.TSell_Pri-A.TSell_RePri))*100 End"
+				+ " From "+ tableName+" A " 
+				+ " Where A.Sale_Date='" + period1 + "' And A.Card_YN = '0' " 
+				+ " Group By A.Office_Code, Office_Name " 
+				+ " ORDER BY Office_Code";
 
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);

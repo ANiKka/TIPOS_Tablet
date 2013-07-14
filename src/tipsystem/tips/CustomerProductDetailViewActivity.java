@@ -96,21 +96,24 @@ public class CustomerProductDetailViewActivity extends Activity {
 		int month1 = Integer.parseInt(period1.substring(5, 7));
 		int month2 = Integer.parseInt(period2.substring(5, 7));
 		
-		String tableName = null;
-
+		query += "select T.Barcode, T.G_Name, SUM(T.수량) 수량, SUM(T.순매출) 순매출 FROM (";
 		for ( int y = year1; y <= year2; y++ ) {
-			for ( int m = month1; m <= month2; m++ ) {
+			int m1 = 1, m2 = 12;
+			if (y == year1) m1 = month1;
+			if (y == year2) m2 = month2;
+			for ( int m = m1; m <= m2; m++ ) {
 
-				tableName = String.format("SaD_%04d%02d", y, m);
+				String tableName = String.format("SaD_%04d%02d", y, m);
 				
-    			query = query + "select Barcode, G_Name, SUM(Sale_Count) 수량, SUM(TSell_Pri-TSell_RePri-DC_Pri) 순매출 from " + tableName;
-    			query = query + " where Office_Code='"+customerCode+"' and Sale_Date between '" + period1 + "' and '" + period2 + "'";
+    			query += "select Barcode, G_Name, SUM(Sale_Count) 수량, SUM(TSell_Pri-TSell_RePri-DC_Pri) 순매출 from " + tableName
+    					+ " where Office_Code='"+customerCode+"' and Sale_Date between '" + period1 + "' and '" + period2 + "'"
+    					+ " Group by Barcode, G_Name ";
     			
 				query += " union all ";
 			}
 		}
 		query = query.substring(0, query.length()-11);
-		query += " Group by Barcode, G_Name;";
+		query += ") T Group by Barcode, G_Name order by Barcode asc;";
 
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);

@@ -335,29 +335,33 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		int year2 = Integer.parseInt(period2.substring(0, 4));
 		int month2 = Integer.parseInt(period2.substring(5, 7));
 
-		query += "select T.In_Num, T.Office_Name, In_Date, SUM(T.In_Pri) In_Pri FROM (";
-				
+		query = "SELECT In_Num, In_Date, OFFICE_CODE, Office_Name, In_Pri"
+				+ " FROM ( ";
 		for ( int y = year1; y <= year2; y++ ) {
 			int m1 = 1, m2 = 12;
 			if (y == year1) m1 = month1;
 			if (y == year2) m2 = month2;
 			for ( int m = m1; m <= m2; m++ ) {
 				
-				String tableName = String.format("InT_%04d%02d", y, m);
+				String tableName = String.format("%04d%02d", y, m);
 				
-     			query += "select In_Num, Office_Name, In_Date, SUM(In_Pri) In_Pri " 
-				    		+ " from " + tableName + "  " 
-				    		+ " where In_Date between '" + period1 + "' and '" + period2 + "'"
-				    		+ " and Office_Code like '%"+ customerCode +"%'"
-				    		+ " and Office_Name like '%"+ customerName +"%'"
-				    		+ " GROUP BY In_Num, Office_Name, In_Date ";
-	    		
-				query += " union all ";				
-			}
+				query += " SELECT B.In_Num, B.In_Date, B.OFFICE_CODE,B.Office_Name, B.In_Pri"
+						+ " FROM INT_"+tableName+" B INNER JOIN IND_"+tableName+" C "
+						+ " ON B.IN_NUM=C.IN_NUM "
+						+ " LEFT JOIN GOODS D "
+						+ "  ON C.BARCODE=D.BARCODE "
+						+ "  WHERE B.IN_DATE >= '" + period1 + "' AND B.IN_DATE <= '" + period2 + "'  "
+						+ "  AND B.OFFICE_CODE LIKE '%" + customerCode + "%' AND B.OFFICE_NAME LIKE '%" + customerName + "%' "
+						+ "  AND C.BARCODE LIKE '%" + barCode + "%' AND D.G_NAME LIKE '%" + productName + "%' ";
+ 
+				query += " union all ";
+			}			
 		}
 		query = query.substring(0, query.length()-11);		
-		query += ") T GROUP BY In_Num, Office_Name, In_Date; ";
-
+		query += ") A "
+				+ " GROUP BY IN_NUM, IN_DATE, OFFICE_CODE, OFFICE_NAME, IN_PRI "
+				+ " ORDER BY IN_NUM DESC";
+		
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
@@ -452,8 +456,7 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 
 				dialog.dismiss();
 				dialog.cancel();
-				if ( results.length() > 0 ) 
-					updateListForTab2(results);
+				if ( results.length() > 0 ) updateListForTab2(results);
 				adapter2.notifyDataSetChanged();
 				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();	
 			}
@@ -498,30 +501,66 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		int year2 = Integer.parseInt(period2.substring(0, 4));
 		int month2 = Integer.parseInt(period2.substring(5, 7));
 		
-		query += "select T.Office_Code, T.Office_Name, SUM(T.In_Pri) 순매입, SUM(T.TSell_Pri) 순매출 FROM (";
+		query = "select" 
+				+ " a.Office_Code,a.Office_Name,  "
+				+ " isnull(In_Pri,0) '순매입',  "
+				+ " isnull(sell_pri,0) '순매출' "
+				+ " from office_manage a  "
+				+ " left join (  "
+				+ "  select office_code,  "
+				+ "  sum(In_Pri) In_Pri  "
+				+ "  from (          ";
 				
-		for ( int y = year1; y <= year2; y++ ) {
-			int m1 = 1, m2 = 12;
-			if (y == year1) m1 = month1;
-			if (y == year2) m2 = month2;
-			for ( int m = m1; m <= m2; m++ ) {
+				for ( int y = year1; y <= year2; y++ ) {
+					int m1 = 1, m2 = 12;
+					if (y == year1) m1 = month1;
+					if (y == year2) m2 = month2;
+					for ( int m = m1; m <= m2; m++ ) {
 
-				String tableDate = String.format("%04d%02d", y, m);
-				
-     			query += "select A.Office_Code, A.Office_Name, SUM(A.In_Pri) In_Pri, SUM(B.TSell_Pri-B.TSell_RePri-B.DC_Pri) TSell_Pri "
-			    		+ " from InD_" + tableDate + " as A inner join SaD_" + tableDate + " as B on A.BARCODE = B.BARCODE " 
-			    		+ " where B.Sale_Date between '" + period1 + "' and '" + period2 + "'"
-					    		+ " and A.BARCODE like '%"+ barCode +"%'"
-					    		+ " and A.Office_Code like '%"+ customerCode +"%'"
-					    		+ " and A.Office_Name like '%"+ customerName +"%'" 
-     							+ " GROUP BY A.Office_Code, A.Office_Name ";
-     			
-				query += " union all ";
-			}
-		}
+						String tableDate = String.format("%04d%02d", y, m);
+						query += "   select office_code,  "
+								+ "        sum(In_Pri) In_Pri  "
+								+ "        From InD_"+tableDate+" "
+						 		+ "       where in_date between '" + period1 + "' and '" + period2 + "' "
+						 		+ "       group by office_code  "
+		  
+								+ " union all ";
+					}
+				}
+
 		query = query.substring(0, query.length()-11);
-		query += ") T GROUP BY T.Office_Code, T.Office_Name; ";
+		query += "  ) x  "
+				+ "  group by  office_code  "
+				+ " ) b  on a.office_code=b.office_code  "
+				+ " left join (  "
+				+ "  select office_code,  "
+				+ "  sum(sell_pri) sell_pri "
+				+ "  from (          ";
+				
+				for ( int y = year1; y <= year2; y++ ) {
+					int m1 = 1, m2 = 12;
+					if (y == year1) m1 = month1;
+					if (y == year2) m2 = month2;
+					for ( int m = m1; m <= m2; m++ ) {
 
+						String tableDate = String.format("%04d%02d", y, m);
+						query += "   select office_code,  "
+						 		+ "       sum(TSell_Pri-TSell_RePri) sell_pri "
+						 		+ "       From SaD_"+tableDate+" "
+						 		+ "       where sale_date between '" + period1 + "' and '" + period2 + "' AND Card_YN='0'  "
+						 		+ "       group by office_code  "
+
+								+ " union all ";
+					}
+				}
+
+				query = query.substring(0, query.length()-11);
+				query += "  ) x  "
+				+ "  group by  office_code  "
+				+ " ) c on a.office_code=c.office_code  "
+				+ " Where 1=1  "
+				+ " AND a.Office_Code like '%"+customerCode+"%' AND a.Office_Name like '%"+customerName+"%' ";
+		
 		// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");
@@ -561,14 +600,6 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 			e.printStackTrace();			
 		}
 	}
-	
-    private String setConstraint(String str, String field, String op, String value) {
-    	if ( str.equals("") != true ) {
-    		str = str + " and ";
-    	}
-    	
-    	return str + field + " " + op + " '" + value + "'";
-    }
     
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)

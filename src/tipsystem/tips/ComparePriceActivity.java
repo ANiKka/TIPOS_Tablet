@@ -180,7 +180,9 @@ public class ComparePriceActivity extends Activity{
         textView.setTypeface(typeface);
         
         textView = (TextView) findViewById(R.id.textView5);
-        textView.setTypeface(typeface);        
+        textView.setTypeface(typeface);      
+        
+        fetchLocation();
 	}
 
 	private void closeKeyboard() {
@@ -208,6 +210,63 @@ public class ComparePriceActivity extends Activity{
     	startActivity(intent);
 	}
 
+	public void fetchLocation(){
+
+	    String query =  "";
+		query = "SELECT Shop_Area From Office_User;";
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.show();
+ 		
+	    // 콜백함수와 함께 실행
+	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+				dialog.dismiss();
+				dialog.cancel();
+
+				Toast.makeText(getApplicationContext(), results.length()+"레코드발견", Toast.LENGTH_SHORT).show();
+				if (results.length()>0) {
+
+	    			try {
+						JSONObject json = results.getJSONObject(0);
+						String Shop_Area = json.getString("Shop_Area");
+						int position =0;
+						if (Shop_Area.equals("서울")) position =1;
+						if (Shop_Area.equals("경기")) position =2;
+						if (Shop_Area.equals("부산")) position =3;
+						if (Shop_Area.equals("대구")) position =4;
+						if (Shop_Area.equals("인천")) position =5;
+						if (Shop_Area.equals("대전")) position =6;
+						if (Shop_Area.equals("광주")) position =7;
+						if (Shop_Area.equals("강원")) position =8;
+						if (Shop_Area.equals("충북")) position =9;
+						if (Shop_Area.equals("충남")) position =10;
+						if (Shop_Area.equals("전북")) position =11;
+						if (Shop_Area.equals("전남")) position =12;
+						if (Shop_Area.equals("경북")) position =13;
+						if (Shop_Area.equals("경남")) position =14;
+						if (Shop_Area.equals("제주")) position =15;
+						m_local.setSelection(position);
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				Toast.makeText(getApplicationContext(), "전송실패("+String.valueOf(code)+"):" + msg, Toast.LENGTH_SHORT).show();
+			}
+			
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
+	}
+	
 	public void doSearchInMarket(){
 
     	String index = String.valueOf(mfillMaps.size());    	
