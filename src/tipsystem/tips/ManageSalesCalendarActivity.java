@@ -2,6 +2,7 @@ package tipsystem.tips;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -65,6 +66,7 @@ public class ManageSalesCalendarActivity extends Activity {
     			int month = m_calendar.getMonth()+1;
     			int day   = cell.getDayOfMonth();
         		m_CalendarDay = String.format("%04d-%02d-%02d", year, month, day);
+
 
         		updateDate();
         		didUpdate(day-1);
@@ -134,6 +136,13 @@ public class ManageSalesCalendarActivity extends Activity {
 				dialog.dismiss();
 				dialog.cancel();
 				m_results  = results;
+
+				Cell c = m_calendar.getSelectedCell();
+    			int day   = c.getDayOfMonth();
+    			
+    			if (day>0)
+    				didUpdate(day-1);
+				Log.i("date", String.format("%02d", day));
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}

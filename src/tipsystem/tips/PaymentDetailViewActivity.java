@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.StringFormat;
 import android.os.Build;
 import android.os.Bundle;
 import android.annotation.TargetApi;
@@ -129,6 +130,14 @@ public class PaymentDetailViewActivity extends Activity {
 					double f = Double.valueOf(map.get("입금"));
 					double g = Double.valueOf(map.get("이월"));					
 					map.put("미지급액", String.valueOf(g+a+f-b-c-d-e));
+
+					map.put("미지급액", StringFormat.convertToNumberFormat(map.get("미지급액")));	
+					map.put("이월", StringFormat.convertToNumberFormat(map.get("이월")));	
+					map.put("매입", StringFormat.convertToNumberFormat(map.get("매입")));	
+					map.put("반품", StringFormat.convertToNumberFormat(map.get("반품")));	
+					map.put("할인액", StringFormat.convertToNumberFormat(map.get("할인액")));	
+					map.put("지급액", StringFormat.convertToNumberFormat(map.get("지급액")));	
+					map.put("입금", StringFormat.convertToNumberFormat(map.get("입금")));	
 					fillMaps.add(map);
 				}	
 				// fill in the grid_item layout

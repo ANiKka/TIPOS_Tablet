@@ -19,6 +19,7 @@ import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
+import tipsystem.utils.StringFormat;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -394,7 +395,8 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 	private void updateListForTab1(JSONArray results) {		
 		try { 			
 			for(int index = 0; index < results.length() ; index++) {
-				HashMap<String, String> map = JsonHelper.toStringHashMap(results.getJSONObject(index));				
+				HashMap<String, String> map = JsonHelper.toStringHashMap(results.getJSONObject(index));	
+				map.put("In_Pri", StringFormat.convertToNumberFormat(map.get("In_Pri")));			
 				mfillMaps1.add(map);			
 			}
 		} catch(JSONException e) {
@@ -474,11 +476,14 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 	private void updateListForTab2(JSONArray results) {		
 		try { 			
 			for(int index = 0; index < results.length() ; index++) {
-				HashMap<String, String> map = JsonHelper.toStringHashMap(results.getJSONObject(index));				
+				HashMap<String, String> map = JsonHelper.toStringHashMap(results.getJSONObject(index));	
+				map.put("이월", StringFormat.convertToNumberFormat(map.get("이월")));					
+				map.put("지급금액", StringFormat.convertToNumberFormat(map.get("지급금액")));		
+				map.put("미지급금액", StringFormat.convertToNumberFormat(map.get("미지급금액")));		
 				mfillMaps2.add(map);				
 			}
 		} catch(JSONException e) {
-			e.printStackTrace();			
+			e.printStackTrace();
 		}
 	}
 	
@@ -593,7 +598,9 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 	private void updateListForTab3(JSONArray results) {		
 		try { 			
 			for(int index = 0; index < results.length() ; index++) {
-				HashMap<String, String> map = JsonHelper.toStringHashMap(results.getJSONObject(index));				
+				HashMap<String, String> map = JsonHelper.toStringHashMap(results.getJSONObject(index));	
+				map.put("순매입", StringFormat.convertToNumberFormat(map.get("순매입")));	
+				map.put("순매출", StringFormat.convertToNumberFormat(map.get("순매출")));				
 				mfillMaps3.add(map);				
 			}
 		} catch(JSONException e) {

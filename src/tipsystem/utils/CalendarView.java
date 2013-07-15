@@ -46,7 +46,7 @@ public class CalendarView extends ImageView {
 	private static final Class<? extends Cell> GrayCell = null; 
 	private Calendar mRightNow = null;
     private Drawable mWeekTitle = null;
-    private Cell mToday = null;
+    private Cell mSelectedCell = null;
     private Cell[][] mCells = new Cell[6][7];
     private OnCellTouchListener mOnCellTouchListener = null;
     MonthDisplayHelper mHelper;
@@ -117,7 +117,7 @@ public class CalendarView extends ImageView {
 
 	    Calendar today = Calendar.getInstance();
 	    int thisDay = 0;
-	    mToday = null;
+	    //mSelectedCell = null;
 	    if(mHelper.getYear()==today.get(Calendar.YEAR) && mHelper.getMonth()==today.get(Calendar.MONTH)) {
 	    	thisDay = today.get(Calendar.DAY_OF_MONTH);
 	    }
@@ -137,14 +137,20 @@ public class CalendarView extends ImageView {
 				Bound.offset(CELL_WIDTH, 0); // move to next column 
 
 				// get today
-				if(tmp[week][day].day==thisDay && tmp[week][day].thisMonth) {
+				if(tmp[week][day].day==thisDay && tmp[week][day].thisMonth && mSelectedCell==null) {
 					showDecorator(week, day);
 				}
 			}
 			Bound.offset(0, CELL_HEIGH); // move to next row and first column
 			Bound.left = CELL_MARGIN_LEFT;
 			Bound.right = CELL_MARGIN_LEFT+CELL_WIDTH;
-		}		
+		}	
+		int day = mSelectedCell.mDayOfMonth;		
+		showDecorator(day);
+	}
+	
+	public Cell getSelectedCell () {
+		return mSelectedCell;
 	}
 	
 	@Override
@@ -198,15 +204,32 @@ public class CalendarView extends ImageView {
     }
     
     public void showDecorator(Cell cell) {
-    	mToday = cell;
+    	mSelectedCell = cell;
 		mDecoration.setBounds(cell.getBound());	
     	invalidate();		
     }
     
     public void showDecorator(int week, int day) {
-		mToday = mCells[week][day];
-		mDecoration.setBounds(mToday.getBound());	
+    	mSelectedCell = mCells[week][day];
+		mDecoration.setBounds(mSelectedCell.getBound());	
     	invalidate();		
+    }
+    
+    public void showDecorator(int dayOfMonth) {	
+    	for(Cell[] week : mCells) {
+			for(Cell day : week) {
+				if(day.mDayOfMonth == dayOfMonth) {
+
+					if (!day.getClass().getSimpleName().toString().equals("GrayCell")) {
+
+				    	mSelectedCell = day;
+						mDecoration.setBounds(mSelectedCell.getBound());	
+						break;
+					}
+				}						
+			}
+		}
+    	invalidate();
     }
     
     public Calendar getDate() {
@@ -251,7 +274,7 @@ public class CalendarView extends ImageView {
 		}
 		
 		// draw today
-		if(mDecoration!=null && mToday!=null) {
+		if(mDecoration!=null && mSelectedCell!=null) {
 			mDecoration.draw(canvas);
 		}
 	}

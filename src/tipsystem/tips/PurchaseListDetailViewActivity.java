@@ -10,6 +10,7 @@ import org.json.JSONObject;
 
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.StringFormat;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -95,10 +96,12 @@ public class PurchaseListDetailViewActivity extends Activity {
 					HashMap<String, String> map = new HashMap<String, String>();
 					map.put("BARCODE", son.getString("BARCODE") );
 					map.put("G_NAME", son.getString("G_NAME"));
-					
+
 					map.put("PUR_PRI", String.format("%d", son.getInt("PUR_PRI")) );
 					map.put("SELL_PRI", String.format("%d", son.getInt("SELL_PRI")) );
 					map.put("IN_COUNT", String.format("%d", son.getInt("IN_COUNT")) );
+					map.put("PUR_PRI", StringFormat.convertToNumberFormat(map.get("PUR_PRI")));	
+					map.put("SELL_PRI", StringFormat.convertToNumberFormat(map.get("SELL_PRI")));	
 					
 					fillMaps.add(map);
 				}	

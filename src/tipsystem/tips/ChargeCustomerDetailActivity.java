@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.StringFormat;
 
 import android.os.Bundle;
 import android.app.Activity;
@@ -193,9 +194,9 @@ public class ChargeCustomerDetailActivity extends Activity {
 		
 		//공제금액= 수카드금액 + 매장수수료 + (카드수수료 + 포인트  + 캐쉬백 + 현금영수증)
 		//공제후지급액= 순매출 - 공제금액
-		m_contents[20].setText(String.format("%.2f", cash));	//현금영수공제액
-		m_contents[21].setText(String.format("%.2f", m));	//공제금액
-		m_contents[22].setText(roundOff(rsale,0));	//공제후지급액
+		m_contents[20].setText(StringFormat.convertToNumberFormat(String.format("%.2f", cash)));	//현금영수공제액
+		m_contents[21].setText(StringFormat.convertToNumberFormat(String.format("%.2f", m)));	//공제금액
+		m_contents[22].setText(StringFormat.convertToNumberFormat(roundOff(rsale,0)));	//공제후지급액
 	}
 	
 	private void doQueryToGetTotalSale() {
@@ -350,29 +351,29 @@ public class ChargeCustomerDetailActivity extends Activity {
 		try {
 			m_data = JsonHelper.toStringHashMap(results.getJSONObject(0));
 
-			m_contents[0].setText(m_data.get("판매"));
-			m_contents[1].setText(m_data.get("반품"));
-			m_contents[2].setText(m_data.get("할인"));
-			m_contents[3].setText(m_data.get("순매출"));
-			m_contents[4].setText(m_data.get("과세매출"));
-			m_contents[5].setText(m_data.get("면세매출"));
-			m_contents[6].setText(m_data.get("현금매출"));
-			m_contents[7].setText(m_data.get("현금과세"));
-			m_contents[8].setText(m_data.get("현금면세"));
-			m_contents[9].setText(m_data.get("카드매출"));
-			m_contents[10].setText(m_data.get("카드과세"));
-			m_contents[11].setText(m_data.get("카드면세"));
-			m_contents[12].setText(m_data.get("현영매출"));
-			m_contents[13].setText(m_data.get("현영과세"));
-			m_contents[14].setText(m_data.get("현영면세"));
-			m_contents[15].setText(m_data.get("수_카드금액"));
-			m_contents[16].setText(String.format("%.2f", Float.valueOf(m_data.get("매장수수료"))));
-			m_contents[17].setText(String.format("%.2f", Float.valueOf(m_data.get("카드수수료"))));
-			m_contents[18].setText(m_data.get("포인트"));
-			m_contents[19].setText(m_data.get("캐쉬백"));
-			m_contents[20].setText(m_data.get("현영공제"));
-			m_contents[21].setText(m_data.get("공제금액"));
-			m_contents[22].setText(roundOff(Float.valueOf(m_data.get("공제후지급액")),0));
+			m_contents[0].setText(StringFormat.convertToNumberFormat(m_data.get("판매")));
+			m_contents[1].setText(StringFormat.convertToNumberFormat(m_data.get("반품")));
+			m_contents[2].setText(StringFormat.convertToNumberFormat(m_data.get("할인")));
+			m_contents[3].setText(StringFormat.convertToNumberFormat(m_data.get("순매출")));
+			m_contents[4].setText(StringFormat.convertToNumberFormat(m_data.get("과세매출")));
+			m_contents[5].setText(StringFormat.convertToNumberFormat(m_data.get("면세매출")));
+			m_contents[6].setText(StringFormat.convertToNumberFormat(m_data.get("현금매출")));
+			m_contents[7].setText(StringFormat.convertToNumberFormat(m_data.get("현금과세")));
+			m_contents[8].setText(StringFormat.convertToNumberFormat(m_data.get("현금면세")));
+			m_contents[9].setText(StringFormat.convertToNumberFormat(m_data.get("카드매출")));
+			m_contents[10].setText(StringFormat.convertToNumberFormat(m_data.get("카드과세")));
+			m_contents[11].setText(StringFormat.convertToNumberFormat(m_data.get("카드면세")));
+			m_contents[12].setText(StringFormat.convertToNumberFormat(m_data.get("현영매출")));
+			m_contents[13].setText(StringFormat.convertToNumberFormat(m_data.get("현영과세")));
+			m_contents[14].setText(StringFormat.convertToNumberFormat(m_data.get("현영면세")));
+			m_contents[15].setText(StringFormat.convertToNumberFormat(m_data.get("수_카드금액")));
+			m_contents[16].setText(StringFormat.convertToNumberFormat(String.format("%.2f", Float.valueOf(m_data.get("매장수수료")))));
+			m_contents[17].setText(StringFormat.convertToNumberFormat(String.format("%.2f", Float.valueOf(m_data.get("카드수수료")))));
+			m_contents[18].setText(StringFormat.convertToNumberFormat(m_data.get("포인트")));
+			m_contents[19].setText(StringFormat.convertToNumberFormat(m_data.get("캐쉬백")));
+			m_contents[20].setText(StringFormat.convertToNumberFormat(m_data.get("현영공제")));
+			m_contents[21].setText(StringFormat.convertToNumberFormat(m_data.get("공제금액")));
+			m_contents[22].setText(StringFormat.convertToNumberFormat(roundOff(Float.valueOf(m_data.get("공제후지급액")),0)));
 			m_contents[23].setText(String.format("%.2f", Float.valueOf(m_data.get("점유율"))));
 			
 		} catch (JSONException e) {

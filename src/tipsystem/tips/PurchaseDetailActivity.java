@@ -8,6 +8,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.utils.StringFormat;
+
 import android.os.Build;
 import android.os.Bundle;
 import android.annotation.TargetApi;
@@ -51,6 +53,9 @@ public class PurchaseDetailActivity extends Activity {
 				map.put("매입가", obj.getString("Pur_Pri"));
 				map.put("판매가", obj.getString("Sell_Pri"));
 				map.put("수량", obj.getString("In_Count"));
+
+				map.put("매입가", StringFormat.convertToNumberFormat(map.get("매입가")));	
+				map.put("판매가", StringFormat.convertToNumberFormat(map.get("판매가")));	
 			    fillMaps.add(map);
 			}
 			

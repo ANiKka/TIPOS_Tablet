@@ -16,6 +16,7 @@ import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
+import tipsystem.utils.StringFormat;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -448,6 +449,9 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 					try {
 						JSONObject son = results.getJSONObject(index);
 						HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+						map.put("순매출", StringFormat.convertToNumberFormat(map.get("순매출")));
+						map.put("전일순매출", StringFormat.convertToNumberFormat(map.get("전일순매출")));
+						map.put("전일대비차액", StringFormat.convertToNumberFormat(map.get("전일대비차액")));
 						mfillMaps1.add(map);	
 					} catch (JSONException e) {
 						e.printStackTrace();
@@ -523,11 +527,9 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 				JSONObject son = results.getJSONObject(index);
 				HashMap<String, String> map = JsonHelper.toStringHashMap(son);
 
-				float rsale = Float.valueOf(map.get("순매출"));
-				float profit = Float.valueOf(map.get("이익금"));		
-	            map.put("순매출", m_numberFormat.format((int)rsale) );
-	            map.put("이익금", m_numberFormat.format((int)profit));
-				
+				map.put("순매출", StringFormat.convertToNumberFormat(map.get("순매출")));
+				map.put("이익금", StringFormat.convertToNumberFormat(map.get("이익금")));
+
 				mfillMaps2.add(map);	
 			} catch (JSONException e) {
 				e.printStackTrace();

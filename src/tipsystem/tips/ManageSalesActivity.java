@@ -19,6 +19,7 @@ import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
+import tipsystem.utils.StringFormat;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -444,6 +445,8 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 			try {
 				JSONObject son = results.getJSONObject(index);
 				HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+				map.put("순매출", StringFormat.convertToNumberFormat(map.get("순매출")));
+				map.put("이익금", StringFormat.convertToNumberFormat(map.get("이익금")));
 				mfillMaps1.add(map);	
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -536,6 +539,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 			try {
 				JSONObject son = results.getJSONObject(index);
 				HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+				map.put("순매출", StringFormat.convertToNumberFormat(map.get("순매출")));
 				mfillMaps2.add(map);	
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -631,6 +635,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 			try {
 				JSONObject son = results.getJSONObject(index);
 				HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+				map.put("순매출", StringFormat.convertToNumberFormat(map.get("순매출")));
 				mfillMaps3.add(map);	
 			} catch (JSONException e) {
 				e.printStackTrace();

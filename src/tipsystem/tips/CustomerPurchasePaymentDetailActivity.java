@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.StringFormat;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -182,6 +183,8 @@ public class CustomerPurchasePaymentDetailActivity extends Activity {
 
 					JSONObject son = results.getJSONObject(i);
 					HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+					map.put("순매입", StringFormat.convertToNumberFormat(map.get("순매입")));	
+					map.put("순매출", StringFormat.convertToNumberFormat(map.get("순매출")));	
 					fillMaps.add(map);
 				}
 			
