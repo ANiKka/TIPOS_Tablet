@@ -167,6 +167,14 @@
                 android:value="tipsystem.tips.MainMenuActivity" />
         </activity>
         <activity
+            android:screenOrientation="portrait"
+            android:name="tipsystem.tips.ManageSalesCalendarActivity"
+            android:parentActivityName="tipsystem.tips.MainMenuActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tipsystem.tips.ManageSalesActivity" />
+        </activity>
+        <activity
             android:name="tipsystem.tips.CustomerProductDetailViewActivity"
             android:parentActivityName="tipsystem.tips.ManageSalesActivity" android:screenOrientation="portrait">
             <meta-data

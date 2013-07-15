@@ -214,6 +214,14 @@
 	        android:background="@drawable/replace_btn"
 	        android:onClick="OnClickRenew" />
 			
+       <Button
+	        android:id="@+id/buttonCalendar"
+	        style="?android:attr/buttonStyleSmall"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="30dip"
+	        android:text="달력매출보기"
+	        android:onClick="OnClickCalendar" />
     </LinearLayout>
     
         
@@ -450,40 +458,6 @@
 				        android:layout_height="fill_parent"
 				        >
 				        <ListView android:id="@+id/listviewSalesListTab3"
-				            android:layout_height="fill_parent"
-				            android:layout_width="fill_parent">
-				        </ListView>
-				    </LinearLayout> 
-				    
-                </LinearLayout>
-                
-                <LinearLayout
-                    android:id="@+id/tab4"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                     >
-
-                    <!-- 3.0 이상 지원 -->
-                    <CalendarView android:id="@+id/calendarView1"
-				            android:layout_height="180dip"
-				            android:layout_width="match_parent"
-				            android:showWeekNumber="false"		            
-				             >
-                    </CalendarView>
-                    
-				    <!-- List Divider -->
-				    <View android:layout_width="fill_parent"
-				        android:layout_height="1dip"
-				        android:background="?android:attr/listDivider" />
-				 
-				    <!-- ListView (grid_items) -->
-				    <LinearLayout android:id="@+id/layout4"
-				        android:layout_marginTop="10dp"
-				        android:layout_width="match_parent"
-				        android:layout_height="fill_parent"
-				        >
-				        <ListView android:id="@+id/listviewSalesListTab4"
 				            android:layout_height="fill_parent"
 				            android:layout_width="fill_parent">
 				        </ListView>

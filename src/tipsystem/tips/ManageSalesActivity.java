@@ -19,11 +19,6 @@ import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
-//import tipsystem.utils.CalendarView;
-//import tipsystem.utils.CalendarView.OnCellTouchListener;
-//import tipsystem.utils.Cell;
-import android.widget.CalendarView;
-import android.widget.CalendarView.OnDateChangeListener;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -90,7 +85,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	TextView m_customerName;
 	
 	String m_CalendarDay;
-	CalendarView m_calendar;
 
 	DatePicker m_datePicker;
 	
@@ -186,32 +180,17 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         spec.setIndicator("수수료매장");
         m_tabHost.addTab(spec);
         
+        /*.
         spec = m_tabHost.newTabSpec("tag4");
         spec.setContent(R.id.tab4);
         spec.setIndicator("달력매출");
         m_tabHost.addTab(spec);        
         m_tabHost.setOnTabChangedListener(this);     
         m_tabHost.setCurrentTab(0);
-
-        /*
-        m_calendar = (CalendarView)findViewById(R.id.calendarView1);
-
-        m_calendar.setOnCellTouchListener(new OnCellTouchListener() {
-        	
-        	@Override
-        	public void onTouch(Cell cell) {
-
-    			int year  = m_calendar.getYear();
-    			int month = m_calendar.getMonth();
-    			int day   = cell.getDayOfMonth();
-        		m_CalendarDay = String.format("%04d-%02d-%02d", year, month, day);
-
-         		doQuery();
-        	}
-        });*/
+        */
         
         /* 3.0 이상 지원
-        */
+        
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
 	        m_calendar = (CalendarView)findViewById(R.id.calendarView1);
 	        m_calendar.setOnDateChangeListener(new OnDateChangeListener() {
@@ -225,7 +204,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	            }
 	        });
         }
-       
+       */
         m_listSalesTab1.setOnItemClickListener(this);
         m_listSalesTab3.setOnItemClickListener(this);
         
@@ -308,6 +287,14 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		m_productName.setText("");
 	}
 	
+	public void OnClickCalendar(View v) {
+
+		Intent intent = new Intent(this, ManageSalesCalendarActivity.class);			
+    	intent.putExtra("PERIOD1", m_period1.getText().toString());
+    	intent.putExtra("PERIOD2", m_period2.getText().toString());
+    	startActivity(intent);	
+	}
+	
 	@Override
 	public void onTabChanged(String tabId) {
 	
@@ -329,9 +316,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	 			queryListForTab2(); break;
 	 		case 2:
 	 			queryListForTab3(); break;
-	 		case 3: {	 	        
-	 			queryListForTab4(m_CalendarDay); break;
-	 		}
  		}
 	}
 
@@ -654,121 +638,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		}
 	}
 	
-	private void queryListForTab4(String period)
-	{
-		String query = "";
-	    
-		int year1 = Integer.parseInt(period.substring(0, 4));
-		int month1 = Integer.parseInt(period.substring(5, 7));
-		
-		String tableName = null;
-
-		tableName = String.format("DF_%04d%02d", year1, month1);
-		
-		query = "select TSell_Pri, Sale_Num, Sale_Pri, TPur_Pri from " + tableName;
-		query = query + " where Sale_Date = '" + period + "'";
-
-		query = "SELECT "
-				+ " '일자'=CASE WHEN G.SALE_DATE IS NULL THEN IN_DATE ELSE G.SALE_DATE END, "
-				+ " ISNULL(순매출,0) '순매출', "
-				+ " ISNULL(객수,0) '객수', "
-				+ " '객단가' = CASE WHEN ISNULL(순매출,0)=0 Then 0 ELSE ISNULL(순매출,0)/ISNULL(객수,0) END, "
-				+ " ISNULL(IN_Pri,0) '매입금액' "
-				+ " FROM ( "
-				+ "  Select Sale_DATE,  "
-				+ "  IsNull(Sum(TSell_Pri-TSell_RePri), 0) '순매출', "
-				+ "  Count (Distinct(Sale_Num)) '객수' "
-				+ "  From SaD_201305 "
-				+ "  WHERE Card_YN = '0' "
-				+ "  Group By Sale_DATE "
-				+ " ) G FULL JOIN  ( "
-				+ "      Select In_Date,Sum(In_Pri) IN_Pri "
-				+ "      From InT_201305 "
-				+ "      GRoup By In_Date  "
-				+ " ) B ON G.SALE_DATE=B.IN_DATE "
-				+ " Order by G.일자 ";
-		
-		// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.show();
- 		
-		new MSSQL(new MSSQL.MSSQLCallbackInterface() {
-
-			@Override
-			public void onRequestCompleted(JSONArray results) {
-
-				dialog.dismiss();
-				dialog.cancel();
-				updateListForTab4(results);
-			}
-	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
-	}
-		
-	private void updateListForTab4(JSONArray results)
-	{
-		String[] from = new String[] {"content"};
-	    int[] to = new int[] { R.id.textView1};
-        
-		try {
-			if ( results.length() > 0 )
-			{
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-		        
-				for(int index = 0; index < results.length() ; index++)
-				{
-					JSONObject son = results.getJSONObject(index);
-					
-					String rSale = String.format("순매출 : %s원", m_numberFormat.format(son.getInt("TSell_Pri")));
-					String saleNum = String.format("객 수 : %s명", m_numberFormat.format(son.getInt("Sale_Num")));
-					String salePri = String.format("객단가 : %s원", m_numberFormat.format(son.getInt("Sale_Pri")));
-					String tPurPri = String.format("매입금액 : %s원", m_numberFormat.format(son.getInt("TPur_Pri")));
-					
-					// prepare the list of all records
-		            HashMap<String, String> map1 = new HashMap<String, String>();
-		            HashMap<String, String> map2 = new HashMap<String, String>();
-		            HashMap<String, String> map3 = new HashMap<String, String>();
-		            HashMap<String, String> map4 = new HashMap<String, String>();
-					
-		            map1.put("content", rSale);
-		            fillMaps.add(map1);
-		            
-		            map2.put("content", saleNum);
-		            fillMaps.add(map2);
-		            
-		            map3.put("content", salePri);
-		            fillMaps.add(map3);
-		            
-		            map4.put("content", tPurPri);
-		            fillMaps.add(map4);
-				}	
-				
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_text, from, to);
-				m_listSalesTab4.setAdapter(adapter);
-				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
-			}
-			else {
-				List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_text, from, to);
-				
-				m_listSalesTab4.setAdapter(adapter);
-				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
-			}
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-	}
-	
-    private String setConstraint(String str, String field, String op, String value)
-    {
-    	if ( str.equals("") != true ) {
-    		str = str + " and ";
-    	}
-    	
-    	return str + field + " " + op + " '" + value + "'";
-    }
-	
- 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{    
