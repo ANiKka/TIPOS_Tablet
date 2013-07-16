@@ -1,8 +1,11 @@
 package tipsystem.tips;
 
 import java.text.NumberFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -13,6 +16,7 @@ import org.json.JSONObject;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.CalendarView;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.StringFormat;
 import tipsystem.utils.CalendarView.OnCellTouchListener;
 import tipsystem.utils.Cell;
 
@@ -31,7 +35,10 @@ public class ManageSalesCalendarActivity extends Activity {
 	JSONObject m_userProfile;
 	String m_ip = "122.49.118.102";
 	String m_port = "18971";
+	String m_APP_USER_GRADE;
+	String m_OFFICE_CODE ="";	// 수수료매장일때 고정될 오피스코드
 
+	
 	Button m_buttonSetDate;
 	CalendarView m_calendar;
 	String m_CalendarDay;
@@ -50,9 +57,18 @@ public class ManageSalesCalendarActivity extends Activity {
         try {
 			m_ip = m_shop.getString("SHOP_IP");
 	        m_port = m_shop.getString("SHOP_PORT");
+			m_APP_USER_GRADE =m_userProfile.getString("APP_USER_GRADE");
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
+        //수수료매장의 경우 
+        if (m_APP_USER_GRADE.equals("2")) {
+			try {
+				m_OFFICE_CODE = m_userProfile.getString("OFFICE_CODE");
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}   	      	
+        }
         m_buttonSetDate = (Button)findViewById(R.id.buttonSetDate);
 		m_numberFormat = NumberFormat.getInstance();
 
@@ -67,9 +83,8 @@ public class ManageSalesCalendarActivity extends Activity {
     			int day   = cell.getDayOfMonth();
         		m_CalendarDay = String.format("%04d-%02d-%02d", year, month, day);
 
-
         		updateDate();
-        		didUpdate(day-1);
+        		didUpdate(day);
         	}
         });
 		query();
@@ -114,7 +129,7 @@ public class ManageSalesCalendarActivity extends Activity {
 				+ "  IsNull(Sum(TSell_Pri-TSell_RePri), 0) '순매출', "
 				+ "  Count (Distinct(Sale_Num)) '객수' "
 				+ "  From SaD_"+tableName+" "
-				+ "  WHERE Card_YN = '0' "
+				+ "  WHERE Card_YN = '0' AND Office_Code like '%"+m_OFFICE_CODE+"%' "
 				+ "  Group By Sale_DATE "
 				+ " ) G FULL JOIN  ( "
 				+ "      Select In_Date,Sum(In_Pri) IN_Pri "
@@ -141,13 +156,61 @@ public class ManageSalesCalendarActivity extends Activity {
     			int day   = c.getDayOfMonth();
     			
     			if (day>0)
-    				didUpdate(day-1);
+    				didUpdate(day);
+    			
+    			didUpdateTotal();
 				Log.i("date", String.format("%02d", day));
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
 	
-	private void didUpdate (int index)
+	private void didUpdateTotal ()
+	{
+		int year  = m_calendar.getYear();
+		int month = m_calendar.getMonth()+1;
+		String s = String.format("%04d-%02d-%02d", year, month, 1);
+		Date date = null;
+		try {
+			date = new SimpleDateFormat("yyyy-MM-dd").parse(s);
+		} catch (ParseException e1) {
+			e1.printStackTrace();
+		}
+		
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(date);
+		int days = cal.getActualMaximum(Calendar.DAY_OF_MONTH); // 해당월의 총 일수
+		
+		try {
+			double a=0, b=0, c=0, d=0; 
+		
+			for(int i = 0; i < m_results.length() ; i++) {				
+				JSONObject son = m_results.getJSONObject(i);
+				a += son.getInt("순매출");
+				b += son.getInt("객수");
+				c += son.getInt("객단가");
+				d += son.getInt("매입금액");
+			}		
+
+			TextView tv1 = (TextView)findViewById(R.id.textViewTop1);
+			tv1.setText( StringFormat.convertToNumberFormat(a));
+
+			TextView tv2 = (TextView)findViewById(R.id.textViewTop2);
+			tv2.setText( StringFormat.convertToNumberFormat(a/days));
+
+			TextView tv3 = (TextView)findViewById(R.id.textViewTop3);
+			tv3.setText( StringFormat.convertToNumberFormat(c/days));
+
+			TextView tv4 = (TextView)findViewById(R.id.textViewTop4);
+			tv4.setText( StringFormat.convertToNumberFormat(b/days));
+
+			TextView tv5 = (TextView)findViewById(R.id.textViewTop5);
+			tv5.setText( StringFormat.convertToNumberFormat(d));
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+		
+	private void didUpdate (int day)
 	{
 		TextView tv1 = (TextView)findViewById(R.id.textView1);
 		TextView tv2 = (TextView)findViewById(R.id.textView2);
@@ -158,8 +221,17 @@ public class ManageSalesCalendarActivity extends Activity {
 		tv3.setText("객단가 : 데이터가 없습니다");
 		tv4.setText("매입금액 : 데이터가 없습니다");
 		
+		int year  = m_calendar.getYear();
+		int month = m_calendar.getMonth()+1;
+		String currentDay = String.format("%04d-%02d-%02d", year, month, day);
+		
 		try {
-			JSONObject son = m_results.getJSONObject(index);
+			JSONObject son = null;
+			for(int i = 0; i < m_results.length() ; i++) {				
+				son = m_results.getJSONObject(i);
+				String date = son.getString("일자");
+				if (date.equals(currentDay)) break;
+			}
 					
 			String rSale = String.format("순매출 : %s원", m_numberFormat.format(son.getInt("순매출")));
 			String saleNum = String.format("객 수 : %s명", m_numberFormat.format(son.getInt("객수")));

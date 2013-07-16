@@ -12,10 +12,15 @@ public class StringFormat {
 	}
 	
 	public static String convertToNumberFormat(String number ) {
-		NumberFormat numberFormat = NumberFormat.getInstance();
-		
+
 		double n = Double.valueOf(number);
 		
-		return String.format("%s", numberFormat.format(n));
+		return convertToNumberFormat(n);
+	}
+	
+	public static String convertToNumberFormat(Double number ) {
+		NumberFormat numberFormat = NumberFormat.getInstance();
+		
+		return String.format("%s", numberFormat.format(number));
 	}
 }

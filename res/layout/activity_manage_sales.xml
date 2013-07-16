@@ -59,6 +59,15 @@
             android:textSize="14sp"
             android:text="2013-05-19"
             android:onClick="onClickSetDate2" />
+                
+        <CheckBox
+            android:id="@+id/checkBox1Day"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="하루씩"
+            android:checked="false"
+            android:textSize="14sp"
+        	/>
     
     </LinearLayout>
 
@@ -322,14 +331,99 @@
 				        </ListView>
 				    </LinearLayout> 
                 </LinearLayout>
-
+                
                 <LinearLayout
                     android:id="@+id/tab2"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:orientation="vertical" >
+                    
+                    <LinearLayout android:id="@+id/header2"
+				        android:layout_height="wrap_content"
+				        android:layout_width="fill_parent"
+				        >
+                    
+	                    <TextView android:id="@+id/item1"
+				            android:layout_height="fill_parent"
+            				android:layout_width="0dip"
+            				android:layout_weight="1"
+            				android:textColor="#d7d7d7"
+				            android:textStyle="bold"
+				            android:textSize="14sp"
+				            android:gravity="center"
+				            android:background="@drawable/gray_bar_bg"
+				            android:text="코드"
+				        />
+				        <TextView android:id="@+id/item2"
+				            android:layout_height="fill_parent"
+            				android:layout_width="0dip"
+            				android:layout_weight="1"
+            				android:textColor="#d7d7d7"
+				            android:textStyle="bold"
+				            android:textSize="14sp"
+				            android:gravity="center"
+				            android:background="@drawable/gray_bar_bg"
+				            android:text="거래처명"
+				        />
+				        <TextView android:id="@+id/item3"
+				            android:layout_height="fill_parent"
+            				android:layout_width="0dip"
+            				android:layout_weight="1"
+            				android:textColor="#d7d7d7"
+				            android:textStyle="bold"
+				            android:textSize="14sp"
+				            android:gravity="center"
+				            android:background="@drawable/gray_bar_bg"
+				            android:text="일자"
+				        />
+				        <TextView android:id="@+id/item4"
+				            android:layout_height="fill_parent"
+            				android:layout_width="0dip"
+            				android:layout_weight="1"
+            				android:textColor="#d7d7d7"
+				            android:textStyle="bold"
+				            android:textSize="14sp"
+				            android:gravity="center"
+				            android:background="@drawable/gray_bar_bg"
+				            android:text="순매출"
+				        />
+				        <TextView android:id="@+id/item5"
+				            android:layout_height="fill_parent"
+            				android:layout_width="0dip"
+            				android:layout_weight="1"
+            				android:textColor="#d7d7d7"
+				            android:textStyle="bold"
+				            android:textSize="14sp"
+				            android:gravity="center"
+				            android:background="@drawable/gray_bar_bg"
+				            android:text="이익금"
+				        />
+					</LinearLayout>
+				
+				    <!-- List Divider -->
+				    <View android:layout_width="fill_parent"
+				        android:layout_height="1dip"
+				        android:background="?android:attr/listDivider" />
+				 
+				    <!-- ListView (grid_items) -->
+				    <LinearLayout android:id="@+id/layout2"
+				        android:layout_width="match_parent"
+				        android:layout_height="fill_parent"
+				        >
+				        <ListView android:id="@+id/listviewSalesListTab2"
+				            android:layout_height="fill_parent"
+				            android:layout_width="fill_parent">
+				        </ListView>
+				    </LinearLayout> 
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tab3"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:orientation="vertical"  >
 				    
-                    <LinearLayout android:id="@+id/header2"
+                    <LinearLayout android:id="@+id/header3"
 				        android:layout_height="wrap_content"
 				        android:layout_width="fill_parent"
 				        >
@@ -387,11 +481,11 @@
 				        android:background="?android:attr/listDivider" />
 				 
 				    <!-- ListView (grid_items) -->
-				    <LinearLayout android:id="@+id/layout2"
+				    <LinearLayout android:id="@+id/layout3"
 				        android:layout_width="match_parent"
 				        android:layout_height="fill_parent"
 				        >
-				        <ListView android:id="@+id/listviewSalesListTab2"
+				        <ListView android:id="@+id/listviewSalesListTab3"
 				            android:layout_height="fill_parent"
 				            android:layout_width="fill_parent">
 				        </ListView>
@@ -400,13 +494,13 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/tab3"
+                    android:id="@+id/tab4"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical"
                      >
 				    
-                    <LinearLayout android:id="@+id/header3"
+                    <LinearLayout android:id="@+id/header4"
 				        android:layout_height="wrap_content"
 				        android:layout_width="fill_parent"
 				        >
@@ -453,11 +547,11 @@
 				        android:background="?android:attr/listDivider" />
 				 
 				    <!-- ListView (grid_items) -->
-				    <LinearLayout android:id="@+id/layout3"
+				    <LinearLayout android:id="@+id/layout4"
 				        android:layout_width="match_parent"
 				        android:layout_height="fill_parent"
 				        >
-				        <ListView android:id="@+id/listviewSalesListTab3"
+				        <ListView android:id="@+id/listviewSalesListTab4"
 				            android:layout_height="fill_parent"
 				            android:layout_width="fill_parent">
 				        </ListView>

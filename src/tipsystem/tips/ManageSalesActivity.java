@@ -39,10 +39,13 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.TabHost.OnTabChangeListener;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TabHost;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.support.v4.app.NavUtils;
@@ -63,8 +66,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	String m_OFFICE_CODE;	// 수수료매장일때 고정될 오피스코드
 	String m_OFFICE_NAME;	// 수수료매장일때 고정될 오피스코드
 	
-	TabHost m_tabHost;
-	
+	TabHost m_tabHost;	
 	ListView m_listSalesTab1;
 	ListView m_listSalesTab2;
 	ListView m_listSalesTab3;
@@ -73,10 +75,12 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	SimpleAdapter adapter1;
 	SimpleAdapter adapter2;
 	SimpleAdapter adapter3;
+	SimpleAdapter adapter4;
 
 	List<HashMap<String, String>> mfillMaps1 = new ArrayList<HashMap<String, String>>();
 	List<HashMap<String, String>> mfillMaps2 = new ArrayList<HashMap<String, String>>();
 	List<HashMap<String, String>> mfillMaps3 = new ArrayList<HashMap<String, String>>();
+	List<HashMap<String, String>> mfillMaps4 = new ArrayList<HashMap<String, String>>();
 	
 	Button m_period1;
 	Button m_period2;
@@ -84,6 +88,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	TextView m_productName;
 	TextView m_customerCode;
 	TextView m_customerName;
+	CheckBox m_checkBox1Day;
 	
 	String m_CalendarDay;
 
@@ -150,17 +155,23 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		adapter1 = new SimpleAdapter(this, mfillMaps1, R.layout.activity_listview_item4_2, from1, to1);		
 		m_listSalesTab1.setAdapter(adapter1);	
 		
-		String[] from2 = new String[] {"Barcode", "G_Name", "수량", "순매출"};
-        int[] to2 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
+		String[] from2 = new String[] {"Office_Code", "Office_Name", "Sale_Date", "순매출", "이익금"};
+        int[] to2 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5 };
         
-		adapter2 = new SimpleAdapter(this, mfillMaps2, R.layout.activity_listview_item4_2, from2, to2);		
-		m_listSalesTab2.setAdapter(adapter2);	
+		adapter2 = new SimpleAdapter(this, mfillMaps2, R.layout.activity_listview_item5_2, from2, to2);		
+		m_listSalesTab2.setAdapter(adapter2);
 
-		String[] from3 = new String[] {"Office_Code", "Office_Name", "순매출"};
-	    int[] to3 = new int[] { R.id.item1, R.id.item2, R.id.item3 };
+		String[] from3 = new String[] {"Barcode", "G_Name", "수량", "순매출"};
+        int[] to3 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
         
-		adapter3 = new SimpleAdapter(this, mfillMaps3, R.layout.activity_listview_item3, from3, to3);		
+		adapter3 = new SimpleAdapter(this, mfillMaps3, R.layout.activity_listview_item4_2, from3, to3);		
 		m_listSalesTab3.setAdapter(adapter3);
+
+		String[] from4 = new String[] {"Office_Code", "Office_Name", "순매출"};
+	    int[] to4 = new int[] { R.id.item1, R.id.item2, R.id.item3 };
+        
+		adapter4 = new SimpleAdapter(this, mfillMaps4, R.layout.activity_listview_item3, from4, to4);		
+		m_listSalesTab4.setAdapter(adapter4);
 		
 		m_tabHost = (TabHost) findViewById(R.id.tabhostManageSales);
         m_tabHost.setup();        
@@ -170,44 +181,24 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
         spec.setContent(R.id.tab1);
         spec.setIndicator("거래처별");
         m_tabHost.addTab(spec);
-        
+
         spec = m_tabHost.newTabSpec("tag2");
         spec.setContent(R.id.tab2);
-        spec.setIndicator("상품명");
+        spec.setIndicator("거래처일자별");
         m_tabHost.addTab(spec);
         
         spec = m_tabHost.newTabSpec("tag3");
         spec.setContent(R.id.tab3);
+        spec.setIndicator("상품명");
+        m_tabHost.addTab(spec);
+        
+        spec = m_tabHost.newTabSpec("tag4");
+        spec.setContent(R.id.tab4);
         spec.setIndicator("수수료매장");
         m_tabHost.addTab(spec);
         
-        /*.
-        spec = m_tabHost.newTabSpec("tag4");
-        spec.setContent(R.id.tab4);
-        spec.setIndicator("달력매출");
-        m_tabHost.addTab(spec);        
-        m_tabHost.setOnTabChangedListener(this);     
-        m_tabHost.setCurrentTab(0);
-        */
-        
-        /* 3.0 이상 지원
-        
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-	        m_calendar = (CalendarView)findViewById(R.id.calendarView1);
-	        m_calendar.setOnDateChangeListener(new OnDateChangeListener() {
-	
-	            @Override
-	            public void onSelectedDayChange(CalendarView view, int year, int month, int dayOfMonth) {
-	
-	        		m_CalendarDay = String.format("%04d-%02d-%02d", year, month+1, dayOfMonth);
-	
-	         		doQuery();
-	            }
-	        });
-        }
-       */
         m_listSalesTab1.setOnItemClickListener(this);
-        m_listSalesTab3.setOnItemClickListener(this);
+        m_listSalesTab4.setOnItemClickListener(this);
         
         // 바코드 입력 후 포커스 딴 곳을 옮길 경우
         m_barCode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -235,6 +226,21 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
  			}
  		});	
         
+    	m_checkBox1Day =(CheckBox)findViewById(R.id.checkBox1Day);
+    	m_checkBox1Day.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+			@Override
+			public void onCheckedChanged(CompoundButton arg0, boolean isChecked) {
+				if (isChecked) {
+					m_period2.setEnabled(false);
+					m_period2.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
+				}
+				else {
+					m_period2.setEnabled(true);
+				}
+			}
+		});
+        
         //수수료매장의 경우 오피스코드 고정
         if (m_APP_USER_GRADE.equals("2")) {
         	Button buttonCustomer = (Button) findViewById(R.id.buttonCustomer);
@@ -260,7 +266,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	    	intent.putExtra("OFFICE_NAME", name);	    	
 	    	startActivity(intent);	
 		}
-		else if ( m_listSalesTab3.getId() == arg0.getId() )
+		else if ( m_listSalesTab4.getId() == arg0.getId() )
 		{
 			String code = ((TextView) arg1.findViewById(R.id.item1)).getText().toString();
 			String name = ((TextView) arg1.findViewById(R.id.item2)).getText().toString();
@@ -317,6 +323,8 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	 			queryListForTab2(); break;
 	 		case 2:
 	 			queryListForTab3(); break;
+	 		case 3:
+	 			queryListForTab4(); break;
  		}
 	}
 
@@ -348,11 +356,16 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		
 		if ( m_dateMode == 1 ) {
 			m_dateCalender1.set(year, monthOfYear, dayOfMonth);
-			m_period1.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
+			m_period1.setText(m_dateFormatter.format(m_dateCalender1.getTime()));			
 		}
 		else if ( m_dateMode == 2 ) {
 			m_dateCalender2.set(year, monthOfYear, dayOfMonth);
 			m_period2.setText(m_dateFormatter.format(m_dateCalender2.getTime()));
+		}
+
+		// 체크되어 있으면 날짜 2개를 똑같이 바꾸어줌
+		if (m_checkBox1Day.isChecked()) {
+			m_period2.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
 		}
 		
 		m_dateMode = 0;
@@ -473,6 +486,102 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		int year2 = Integer.parseInt(period2.substring(0, 4));
 		int month2 = Integer.parseInt(period2.substring(5, 7));
 		
+		query = "Select G.Office_Code,G.Office_Name, G.Sale_Date, G.순매출, G.이익금, G.이익률 "
+				+ " From ( "
+				+ " Select G.Office_Code,G.Office_Name, G.Sale_Date, Sum (G.순매출) '순매출', Sum (G.이익금) '이익금', "
+				+ " '이익률'=Case When Sum(G.이익금)=0 Or Sum(G.순매출)=0 Then 0 Else (Sum(G.이익금)/Sum(G.순매출))*100 End "
+				+ " From ( ";
+		
+		for ( int y = year1; y <= year2; y++ ) {
+			int m1 = 1, m2 = 12;
+			if (y == year1) m1 = month1;
+			if (y == year2) m2 = month2;
+			for ( int m = m1; m <= m2; m++ ) {
+				
+				String tableName = String.format("%04d%02d", y, m);
+						
+				query += " Select A.Office_Code, A.Office_Name, A.Sale_Date, Sum (a.TSell_Pri - a.TSell_RePri) '순매출', Sum (a.Profit_Pri) '이익금' "
+						+ " From SaD_"+tableName+" A LEFT JOIN  SaT_"+tableName+" C "
+						+ " ON A.Sale_Num=C.Sale_Num "
+						+ " Where A.Office_Code Like '%"+ customerCode +"%' And A.Office_Name Like '%"+ customerName +"%' " 
+						+ " AND A.Sale_Date >= '" + period1 + "' AND A.Sale_Date <= '" + period2 + "' "
+						+ " AND A.BARCODE LIKE '%"+ barCode +"%' AND A.G_NAME LIKE '%"+ productName +"%' "
+						+ " And A.Card_YN = '0' " 
+						+ " Group By A.Office_Code, A.Office_Name, A.Sale_Date ";
+
+				query += " union all ";
+			}
+		}
+		query = query.substring(0, query.length()-11);		
+		query += " ) G "
+				+ " Group By G.Office_Code,G.Office_Name, G.Sale_Date "
+				+ " ) G " 
+				+ " ORDER BY G.Office_Code ";
+		
+		// 로딩 다이알로그 
+    	dialog = new ProgressDialog(this);
+ 		dialog.setMessage("Loading....");
+ 		dialog.setCancelable(false);
+ 		dialog.show();
+
+		new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
+
+			@Override
+			public void onRequestCompleted(JSONArray results) {
+
+				dialog.dismiss();
+				dialog.cancel();
+				if ( results.length() > 0 ) 
+					updateListForTab2(results);
+				adapter2.notifyDataSetChanged();	
+				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();	
+			}
+
+			@Override
+			public void onRequestFailed(int code, String msg) {
+				dialog.dismiss();
+				dialog.cancel();
+				adapter2.notifyDataSetChanged();
+				Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
+			}
+	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);	
+	}
+	
+	private void updateListForTab2(JSONArray results)
+	{		
+		for(int index = 0; index < results.length() ; index++) {
+			
+			try {
+				JSONObject son = results.getJSONObject(index);
+				HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+				map.put("순매출", StringFormat.convertToNumberFormat(map.get("순매출")));
+				map.put("이익금", StringFormat.convertToNumberFormat(map.get("이익금")));
+				mfillMaps2.add(map);	
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private void queryListForTab3()
+	{
+		mfillMaps3.removeAll(mfillMaps3);
+		
+		String period1 = m_period1.getText().toString();
+		String period2 = m_period2.getText().toString();
+		String barCode = m_barCode.getText().toString();
+		String productName = m_productName.getText().toString();
+		String customerCode = m_customerCode.getText().toString();
+		String customerName = m_customerName.getText().toString();
+		
+		String query = "";
+	    
+		int year1 = Integer.parseInt(period1.substring(0, 4));
+		int month1 = Integer.parseInt(period1.substring(5, 7));
+		
+		int year2 = Integer.parseInt(period2.substring(0, 4));
+		int month2 = Integer.parseInt(period2.substring(5, 7));
+		
 		query = "Select G.Barcode, G.G_Name, G.수량, G.순매출"  
 				+ " From ( "
 				+ " Select G.Barcode, G.G_Name, Sum (G.순매출) '순매출', Sum(G.순판매수량) '수량' "
@@ -517,8 +626,8 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 				dialog.dismiss();
 				dialog.cancel();
 				if ( results.length() > 0 ) 
-					updateListForTab2(results);
-				adapter2.notifyDataSetChanged();
+					updateListForTab3(results);
+				adapter3.notifyDataSetChanged();
 				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();
 			}
 
@@ -526,13 +635,13 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 			public void onRequestFailed(int code, String msg) {
 				dialog.dismiss();
 				dialog.cancel();
-				adapter2.notifyDataSetChanged();
+				adapter3.notifyDataSetChanged();
 				Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
 	}
 		
-	private void updateListForTab2(JSONArray results)
+	private void updateListForTab3(JSONArray results)
 	{		
 		for(int index = 0; index < results.length() ; index++) {
 			
@@ -540,16 +649,16 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 				JSONObject son = results.getJSONObject(index);
 				HashMap<String, String> map = JsonHelper.toStringHashMap(son);
 				map.put("순매출", StringFormat.convertToNumberFormat(map.get("순매출")));
-				mfillMaps2.add(map);	
+				mfillMaps3.add(map);	
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 		}
 	}
 	
-	private void queryListForTab3()
+	private void queryListForTab4()
 	{
-		mfillMaps3.removeAll(mfillMaps3);
+		mfillMaps4.removeAll(mfillMaps4);
 		
 		String period1 = m_period1.getText().toString();
 		String period2 = m_period2.getText().toString();
@@ -612,8 +721,8 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 				dialog.dismiss();
 				dialog.cancel();
 				if (results.length()>0)
-					updateListForTab3(results);
-				adapter3.notifyDataSetChanged();
+					updateListForTab4(results);
+				adapter4.notifyDataSetChanged();
 				Toast.makeText(getApplicationContext(), "조회 완료: " + results.length(), Toast.LENGTH_SHORT).show();	
 			}
 
@@ -621,14 +730,14 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 			public void onRequestFailed(int code, String msg) {
 				dialog.dismiss();
 				dialog.cancel();
-				adapter3.notifyDataSetChanged();
+				adapter4.notifyDataSetChanged();
 				Toast.makeText(getApplicationContext(), "조회 실패", Toast.LENGTH_SHORT).show();
 				
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);
 	}
 		
-	private void updateListForTab3(JSONArray results)
+	private void updateListForTab4(JSONArray results)
 	{
 		for(int index = 0; index < results.length() ; index++) {
 			
@@ -636,7 +745,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 				JSONObject son = results.getJSONObject(index);
 				HashMap<String, String> map = JsonHelper.toStringHashMap(son);
 				map.put("순매출", StringFormat.convertToNumberFormat(map.get("순매출")));
-				mfillMaps3.add(map);	
+				mfillMaps4.add(map);	
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
