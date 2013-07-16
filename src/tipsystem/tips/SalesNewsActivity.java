@@ -485,7 +485,8 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 		
 		query = "Select A.Office_Code, A.Office_Name, " 
 				+ " IsNull(Sum(A.TSell_Pri-A.TSell_RePri), 0) '순매출', "
-				+ " '이익금'=Case When Sum(A.ProFit_Pri) = 0 Or Sum(A.TSell_Pri-A.TSell_RePri) = 0 Then 0 Else (Sum(A.ProFit_Pri)/Sum(A.TSell_Pri-A.TSell_RePri))*100 End"
+				+ " IsNull(Sum(A.ProFit_Pri), 0) '이익금' " 
+				//+ " '이익금'=Case When Sum(A.ProFit_Pri) = 0 Or Sum(A.TSell_Pri-A.TSell_RePri) = 0 Then 0 Else (Sum(A.ProFit_Pri)/Sum(A.TSell_Pri-A.TSell_RePri))*100 End"
 				+ " From "+ tableName+" A " 
 				+ " Where A.Sale_Date='" + period1 + "' And A.Card_YN = '0' " 
 				+ " Group By A.Office_Code, Office_Name " 

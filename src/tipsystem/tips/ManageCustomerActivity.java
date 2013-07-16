@@ -228,23 +228,22 @@ public class ManageCustomerActivity extends Activity{
     	String customerCode = m_customerCode.getText().toString();
 	    String customerName = m_customerName.getText().toString();
 	    String customerSection = String.valueOf(m_customerSection.getSelectedItemPosition());
-
+ 
+        if(customerSection.equals("0")) customerSection = "";
+        
 	    String query =  "";
     	String index = String.valueOf(mfillMaps.size());
     	query = "select TOP 50 * from Office_Manage "
     			+ " WHERE "
     			+ " Office_Code like '%"+customerCode+"%' AND"
     			+ " Office_Name like '%" + customerName  + "%' AND"
+    	    	+ " Office_Sec like '%" + customerSection  + "%' AND "
     			+ " Office_Code NOT IN (SELECT TOP "+ index + " Office_Code FROM Office_Manage "
     	    			+ " WHERE Office_Code like '%"+customerCode+"%'"
     	    			+ " AND Office_Name like '%" + customerName  + "%'"
-    			+ " Order By Office_Code ASC) Order By Office_Code ASC";
+    	    			+ " AND Office_Sec like '%" + customerSection  + "%'"
+    			+ " Order By Office_Code ASC) Order By Office_Code ASC;";
 	    	    
-	    if (!customerSection.equals("0")) {
-	    	query += " AND Office_Sec = '" + customerSection  + "'";
-	    }
-	    query += ";";
-    	
     	// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");

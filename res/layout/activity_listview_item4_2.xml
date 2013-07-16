@@ -21,12 +21,12 @@
     <TextView android:id="@+id/item3"
         android:layout_width="60dp"
         android:layout_height="fill_parent"
-        android:gravity="center"
+        android:gravity="right"
     />
     <!-- 4 -->
     <TextView android:id="@+id/item4"
         android:layout_width="80dp"
         android:layout_height="fill_parent"
-        android:gravity="center"
+        android:gravity="right"
     />
 </LinearLayout>

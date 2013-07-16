@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.StringFormat;
 
 import android.os.AsyncTask;
 import android.os.Build;
@@ -116,7 +117,8 @@ public class CustomerProductDetailInNewsActivity extends Activity {
 						for(int i = 0; i < results.length() ; i++) {
 							JSONObject son = results.getJSONObject(i);
 							HashMap<String, String> map = JsonHelper.toStringHashMap(son);
-							
+
+							map.put("순매출", StringFormat.convertToNumberFormat(map.get("순매출")));
 							fillMaps.add(map);
 						}	
 						

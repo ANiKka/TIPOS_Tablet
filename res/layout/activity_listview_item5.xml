@@ -23,21 +23,21 @@
 	    android:layout_height="fill_parent"
 	    android:layout_width="0dip"
         android:layout_weight="1"
-        android:gravity="center"
+        android:gravity="right"
 	/>
 	<TextView android:id="@+id/item4"
 	    android:text="item4"
 	    android:layout_height="fill_parent"
 	    android:layout_width="0dip"
         android:layout_weight="1"
-        android:gravity="center"
+        android:gravity="right"
 	/>
 	<TextView android:id="@+id/item5"
 	    android:text="item5"
 	    android:layout_height="fill_parent"
 	    android:layout_width="0dip"
         android:layout_weight="1"
-        android:gravity="center"
+        android:gravity="right"
 	/>
   
 </LinearLayout>
