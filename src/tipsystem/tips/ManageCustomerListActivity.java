@@ -120,8 +120,8 @@ public class ManageCustomerListActivity extends Activity{
             	HashMap<String, String> map = JsonHelper.toStringHashMap(json);
 	            String section = map.get("Office_Sec");	            
 	            if(section.equals("1")) section = "매입거래처";
-	            else if(section.equals("2")) section = "매출거래처";
-	            else if(section.equals("3")) section = "수수료거래처";
+	            else if(section.equals("2")) section = "수수료거래처";
+	            else if(section.equals("3")) section = "매출거래처";
 	            map.put("Office_Sec", section);
 	            
 	            mfillMaps.add(map);

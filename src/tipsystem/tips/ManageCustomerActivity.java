@@ -175,8 +175,9 @@ public class ManageCustomerActivity extends Activity{
 		m_customerCode.setText(code);
 		m_customerName.setText(name);
 		if(StringSection.equals("매입거래처")) section = 1;
-		else if(StringSection.equals("매출거래처")) section = 2;
-		else section = 3;
+		else if(StringSection.equals("수수료거래처")) section = 2;
+		else if(StringSection.equals("매출거래처")) section = 3;
+		else section = 0;
 		m_customerSection.setSelection(section);
 	}
 	
@@ -209,8 +210,8 @@ public class ManageCustomerActivity extends Activity{
             	
 	            String section = map.get("Office_Sec");	            
 	            if(section.equals("1")) section = "매입거래처";
-	            else if(section.equals("2")) section = "매출거래처";
-	            else if(section.equals("3")) section = "수수료거래처";
+	            else if(section.equals("2")) section = "수수료거래처";
+	            else if(section.equals("3")) section = "매출거래처";
 	            map.put("Office_Sec", section);
 	            
 	            mfillMaps.add(map);

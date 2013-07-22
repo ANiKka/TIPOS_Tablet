@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 
@@ -85,7 +86,6 @@ public class MainMenuActivity extends Activity {
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}
-            	
             }
         });
         
@@ -133,7 +133,7 @@ public class MainMenuActivity extends Activity {
         // 부관리자인경우
         if (m_APP_USER_GRADE.equals("1")) {
     		Toast.makeText(getApplicationContext(), "부관리자는 사용할수 없습니다", Toast.LENGTH_SHORT).show(); 
-        	//return;
+        	return;
         }
         
 		Intent intent = new Intent(this, SalesNewsActivity.class);
@@ -145,7 +145,7 @@ public class MainMenuActivity extends Activity {
 		// 부관리자인경우
         if (m_APP_USER_GRADE.equals("1")) {
     		Toast.makeText(getApplicationContext(), "부관리자는 사용할수 없습니다", Toast.LENGTH_SHORT).show(); 
-        	//return;
+        	return;
         }
         
 		Intent intent = new Intent(this, ManageSalesActivity.class);
@@ -209,18 +209,35 @@ public class MainMenuActivity extends Activity {
     		m_listBoard= (ListView)findViewById(R.id.listViewBoard);
     		
     		 // create the grid item mapping
-    		String[] from = new String[] {"content"};
+    		String[] from = new String[] {"B_Title"};
     		int[] to = new int[] { R.id.itemContent};
     		
     		// prepare the list of all records
     		List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
+    		
     		for(int i = 0; i < results.length(); i++){
     			try {
 					JSONObject notice = results.getJSONObject(i);
-
-	    		    HashMap<String, String> map = new HashMap<String, String>();
-	    		    map.put("content", notice.getString("B_Title"));
-	    		    fillMaps.add(map);
+					HashMap<String, String> map = JsonHelper.toStringHashMap(notice);
+	    		    
+	    		    String B_GUBUN = map.get("B_Gubun");
+	    		    if (B_GUBUN.equals("0")) {
+		    		    fillMaps.add(map);
+	    		    }
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+    		}
+    		
+    		for(int i = 0; i < results.length(); i++){
+    			try {
+					JSONObject notice = results.getJSONObject(i);
+					HashMap<String, String> map = JsonHelper.toStringHashMap(notice);
+	    		    
+	    		    String B_GUBUN = map.get("B_Gubun");
+	    		    if (B_GUBUN.equals("3")) {
+		    		    fillMaps.add(map);
+	    		    }
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}    			

@@ -21,7 +21,7 @@
     <TextView android:id="@+id/item3"
         android:layout_width="70dp"
         android:layout_height="fill_parent"
-        android:gravity="center"
+        android:gravity="right"
 	        />
 
     <ImageView
@@ -34,7 +34,7 @@
     <TextView android:id="@+id/item4"
         android:layout_width="70dp"
         android:layout_height="fill_parent"
-        android:gravity="center"
+        android:gravity="right"
     />
    
     <ImageView

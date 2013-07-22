@@ -74,11 +74,8 @@
     </string-array>
 
     <string name="choose_taxation_type">과세구분 선택</string>
-
-
-    <string name="choose_default_group_type">거래처구분</string>
+	<string name="choose_default_group_type">거래처구분</string>
     <string-array name="group_type">
-        <item> </item>
         <item>A</item>
         <item>B</item>
         <item>C</item>

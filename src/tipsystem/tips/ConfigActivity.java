@@ -47,8 +47,7 @@ public class ConfigActivity extends Activity {
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		
-		
+				
 		boolean isAutoLogin = LocalStorage.getBoolean(ConfigActivity.this, "AutoLogin:"+OFFICE_CODE);		
 		String id = LocalStorage.getString(ConfigActivity.this, "LoginID:"+OFFICE_CODE);
 		String pw = LocalStorage.getString(ConfigActivity.this, "LoginPW:"+OFFICE_CODE);

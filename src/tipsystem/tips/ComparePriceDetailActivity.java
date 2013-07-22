@@ -10,6 +10,7 @@ import org.json.JSONObject;
 
 import tipsystem.utils.JsonHelper;
 import tipsystem.utils.MSSQL;
+import tipsystem.utils.StringFormat;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -61,8 +62,7 @@ public class ComparePriceDetailActivity extends Activity {
 		m_customer_code = intent.getStringExtra("OFFICE_CODE");
 		m_Pur_Pri = (double)Double.valueOf(Pur_Pri);
 		m_Sell_Pri = (double)Double.valueOf(Sell_Pri);
-		Log.i("", hashMap.toString());
-		
+				
 		m_listPriceDetail= (ListView)findViewById(R.id.listviewPriceDetailList);
 
 		Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
@@ -81,11 +81,11 @@ public class ComparePriceDetailActivity extends Activity {
 		
 		m_purPriTxt = (TextView) findViewById(R.id.textView6);
 		m_purPriTxt.setTypeface(typeface);
-		m_purPriTxt.setText(Pur_Pri);
+		m_purPriTxt.setText(StringFormat.convertToNumberFormat(Pur_Pri));
 		
 		m_sellPriTxt = (TextView) findViewById(R.id.textView8);
 		m_sellPriTxt.setTypeface(typeface);
-		m_sellPriTxt.setText(Sell_Pri);
+		m_sellPriTxt.setText(StringFormat.convertToNumberFormat(Sell_Pri));
 		
 		comparePrice(BarCode, G_Name);
 	}
@@ -171,6 +171,7 @@ public class ComparePriceDetailActivity extends Activity {
 	            map.put("BarCode", json.getString("Shop_Area"));
 	            map.put("G_Name", json.getString("Shop_Size"));
 	            
+	            
 	            mfillMaps.add(map);
 		 
 			} catch (JSONException e) {
@@ -183,10 +184,6 @@ public class ComparePriceDetailActivity extends Activity {
         
         m_adapter = new CompareListAdapter(this,  R.layout. activity_listview_compare_list, mfillMaps);
         m_listPriceDetail.setAdapter(m_adapter);
-        
-        // fill in the grid_item layout
-        //SimpleAdapter adapter = new SimpleAdapter(ComparePriceDetailActivity.this, mfillMaps, R.layout. activity_listview_compare_detail_list, from, to);
-       // m_listPriceDetail.setAdapter(adapter);
     }
 
 	/**
