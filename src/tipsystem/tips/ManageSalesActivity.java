@@ -164,7 +164,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		String[] from3 = new String[] {"Barcode", "G_Name", "수량", "순매출"};
         int[] to3 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
         
-		adapter3 = new SimpleAdapter(this, mfillMaps3, R.layout.activity_listview_item4_2, from3, to3);		
+		adapter3 = new SimpleAdapter(this, mfillMaps3, R.layout.activity_listview_item4_6, from3, to3);		
 		m_listSalesTab3.setAdapter(adapter3);
 
 		String[] from4 = new String[] {"Office_Code", "Office_Name", "순매출"};

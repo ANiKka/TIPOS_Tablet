@@ -107,9 +107,8 @@ public class PurchaseListDetailViewActivity extends Activity {
 				}	
 			
 				// fill in the grid_item layout
-				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item5_2, from, to);
-				m_listPurchaseDetail.setAdapter(adapter);
-								
+				SimpleAdapter adapter = new SimpleAdapter(this, fillMaps, R.layout.activity_listview_item5_4, from, to);
+				m_listPurchaseDetail.setAdapter(adapter);								
 			}
 			
 			Toast.makeText(getApplicationContext(), "조회 완료 : " + results.length(), Toast.LENGTH_SHORT).show();

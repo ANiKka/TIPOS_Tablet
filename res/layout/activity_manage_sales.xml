@@ -271,8 +271,7 @@
                     
 	                    <TextView android:id="@+id/item1"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="60dp"
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"
@@ -282,7 +281,7 @@
 				        />
 				        <TextView android:id="@+id/item2"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
+            				android:layout_width="0dp"
             				android:layout_weight="1"
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
@@ -293,8 +292,7 @@
 				        />
 				        <TextView android:id="@+id/item3"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="80dp"
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"
@@ -304,8 +302,7 @@
 				        />
 				        <TextView android:id="@+id/item4"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="80dp"
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"
@@ -345,8 +342,7 @@
                     
 	                    <TextView android:id="@+id/item1"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="60dp"
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"
@@ -367,8 +363,7 @@
 				        />
 				        <TextView android:id="@+id/item3"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="80dp"
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"
@@ -378,8 +373,7 @@
 				        />
 				        <TextView android:id="@+id/item4"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="80dp"
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"
@@ -389,8 +383,7 @@
 				        />
 				        <TextView android:id="@+id/item5"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="60dp"
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"
@@ -430,8 +423,7 @@
                     
 	                    <TextView android:id="@+id/item5"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="110dp"
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"
@@ -441,7 +433,7 @@
 				        />
 				        <TextView android:id="@+id/item6"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
+            				android:layout_width="0dp"
             				android:layout_weight="1"
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
@@ -452,8 +444,7 @@
 				        />
 				        <TextView android:id="@+id/item7"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="60dp"
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"
@@ -463,8 +454,7 @@
 				        />
 				        <TextView android:id="@+id/item8"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="80dp"
             				android:textColor="#d7d7d7"
 				            android:textStyle="bold"
 				            android:textSize="14sp"

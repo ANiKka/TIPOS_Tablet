@@ -1,7 +1,5 @@
 package tipsystem.tips;
 
-
-import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -335,15 +333,34 @@ public class MainActivity extends Activity {
 						int idx = (Integer) v.getTag();
 
 						JSONArray shopsData = LocalStorage.getJSONArray(MainActivity.this, "shopsData");	
-						
+					
 						try {
 							JSONObject shop = shopsData.getJSONObject(idx);
 				    		LocalStorage.setJSONObject(MainActivity.this, "currentShopData", shop);
-							Intent intent = new Intent(MainActivity.this, ConfigActivity.class);
-					    	startActivity(intent);
+				    		
+				    		final EditText input = new EditText(MainActivity.this);
+
+					    	new AlertDialog.Builder(MainActivity.this)
+					        .setTitle("암호를 입력하세요")
+					        .setMessage("문의:1600-1833")
+					        .setView(input)
+					        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+					            public void onClick(DialogInterface dialog, int whichButton) {
+					                String value = input.getText().toString();
+					                
+					                if (value.equals("1883")) {
+										Intent intent = new Intent(MainActivity.this, ConfigActivity.class);
+								    	startActivity(intent);
+					                }
+					            }
+					        }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+					            public void onClick(DialogInterface dialog, int whichButton) {
+					                // Do nothing.
+					            }
+					        }).show();
 						} catch (JSONException e) {
 							e.printStackTrace();
-						}
+						}				    	
 					}
 				});
 

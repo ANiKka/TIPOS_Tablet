@@ -61,8 +61,8 @@
     <string-array name="customer_code_type">
         <item>전체</item>
         <item>매입거래처</item>
-        <item>매출거래처</item>
         <item>수수료거래처</item>
+        <item>매출거래처</item>
     </string-array>
 
     <string name="choose_customer_code_type">거래처구분</string>

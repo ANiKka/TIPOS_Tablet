@@ -79,7 +79,7 @@ public class ChargeCustomerDetailActivity extends Activity {
 		m_customerName = (TextView)findViewById(R.id.textViewCustomerName);
 		
 		m_numberFormat = NumberFormat.getInstance();
-		
+
 		m_contents = new TextView[24];
 		
 		m_contents[0] = (TextView)findViewById(R.id.content1);

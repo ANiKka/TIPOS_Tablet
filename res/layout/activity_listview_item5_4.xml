@@ -8,7 +8,7 @@
     <TextView android:id="@+id/item1"
 	    android:text="item1"
 	    android:layout_height="fill_parent"
-	    android:layout_width="60dp"
+	    android:layout_width="110dp"
         android:gravity="center"
 	/>
 	<TextView android:id="@+id/item2"
@@ -33,7 +33,7 @@
 	<TextView android:id="@+id/item5"
 	    android:text="item5"
 	    android:layout_height="fill_parent"
-	    android:layout_width="60dp"
+	    android:layout_width="40dp"
         android:gravity="right|center_vertical"
 	/>
   

@@ -131,7 +131,7 @@ public class PurchasePaymentStatusActivity extends Activity implements OnItemCli
 		String[] from1 = new String[] {"In_Num", "In_Date", "Office_Name", "In_Pri"};
 		int[] to1 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4};
 			
-		adapter1 = new SimpleAdapter(this, mfillMaps1, R.layout.activity_listview_item4_2, from1, to1);		
+		adapter1 = new SimpleAdapter(this, mfillMaps1, R.layout.activity_listview_item4_7, from1, to1);		
 		m_listPurchaseTab1.setAdapter(adapter1);	
 		
 		String[] from2= new String[] {"Office_Code", "Office_Name", "이월", "지급금액", "미지급금액"};

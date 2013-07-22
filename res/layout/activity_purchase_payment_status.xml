@@ -249,8 +249,7 @@
                     
 	                    <TextView android:id="@+id/item1"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="80dp"
 				            android:text="전표번호"
 				            android:textColor="#d7d7d7"
 				            android:textStyle="bold"
@@ -260,8 +259,7 @@
 				        />
 				        <TextView android:id="@+id/item2"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="80dp"
 				            android:text="매입일"
 				            android:textColor="#d7d7d7"
 				            android:textStyle="bold"
@@ -271,7 +269,7 @@
 				        />
 				        <TextView android:id="@+id/item3"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
+            				android:layout_width="0dp"
             				android:layout_weight="1"
 				            android:text="거래처명"
 				            android:textColor="#d7d7d7"
@@ -282,8 +280,7 @@
 				        />
 				        <TextView android:id="@+id/item4"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="80dp"
 				            android:text="총매입가"
 				            android:textColor="#d7d7d7"
 				            android:textStyle="bold"
@@ -323,8 +320,7 @@
                     
 	                    <TextView android:id="@+id/item5"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="60dp"
 				            android:text="코드"
 				            android:textColor="#d7d7d7"
 				            android:textStyle="bold"
@@ -334,7 +330,7 @@
 				        />
 				        <TextView android:id="@+id/item6"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
+            				android:layout_width="0dp"
             				android:layout_weight="1"
 				            android:text="거래처명"
 				            android:textColor="#d7d7d7"
@@ -345,8 +341,7 @@
 				        />
 				        <TextView android:id="@+id/item7"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="80dp"
 				            android:text="이월"
 				            android:textColor="#d7d7d7"
 				            android:textStyle="bold"
@@ -356,8 +351,7 @@
 				        />
 				        <TextView android:id="@+id/item8"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="80dp"
 				            android:text="지급금액"
 				            android:textColor="#d7d7d7"
 				            android:textStyle="bold"
@@ -367,8 +361,7 @@
 				        />
 				        <TextView android:id="@+id/item9"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="80dp"
 				            android:text="미지급금액"
 				            android:textColor="#d7d7d7"
 				            android:textStyle="bold"
@@ -410,8 +403,7 @@
                     
 	                    <TextView android:id="@+id/item10"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="60dp"
 				            android:text="코드"
 				            android:textColor="#d7d7d7"
 				            android:textStyle="bold"
@@ -421,7 +413,7 @@
 				        />
 				        <TextView android:id="@+id/item11"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
+            				android:layout_width="0dp"
             				android:layout_weight="1"
 				            android:text="거래처명"
 				            android:textColor="#d7d7d7"
@@ -432,8 +424,7 @@
 				        />
 				        <TextView android:id="@+id/item12"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="80dp"
 				            android:text="순매입"
 				            android:textColor="#d7d7d7"
 				            android:textStyle="bold"
@@ -443,8 +434,7 @@
 				        />
 				        <TextView android:id="@+id/item13"
 				            android:layout_height="fill_parent"
-            				android:layout_width="0dip"
-            				android:layout_weight="1"
+            				android:layout_width="80dp"
 				            android:text="순매출"
 				            android:textColor="#d7d7d7"
 				            android:textStyle="bold"
