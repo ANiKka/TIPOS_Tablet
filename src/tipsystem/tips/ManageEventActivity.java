@@ -21,6 +21,7 @@ import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
+import tipsystem.utils.StringFormat;
 
 import android.annotation.TargetApi;
 import android.app.ActionBar;
@@ -747,6 +748,9 @@ public class ManageEventActivity extends Activity implements OnItemSelectedListe
 			            	m_period2.setText(Edate);
 			            	m_eventName.setText(map.get("Evt_Name"));
 
+							map.put("Sale_Pur", StringFormat.convertToNumberFormat(map.get("Sale_Pur")));
+							map.put("Sale_Sell", StringFormat.convertToNumberFormat(map.get("Sale_Sell")));
+							
 			            	if (Evt_Gubun.equals("1")) m_spinEvent.setSelection(0);
 			            	else m_spinEvent.setSelection(1);
 			            	

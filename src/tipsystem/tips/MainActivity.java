@@ -54,19 +54,20 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
+        /*
         Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
         TextView textView = (TextView) findViewById(R.id.textViewShopCode);
         textView.setTypeface(typeface);
-
+*/
         m_rgShop = new RadioGroup(this);
         
+        fetchOffices();
+        /*
         String officeCode = LocalStorage.getString(this, "officeCode"); 
 		if (!officeCode.equals("")) {
 			fetchOffices();
-		}
+		}*/
     }
-
 
 	public void showSelectShop() {
 		m_alert = new AlertDialog.Builder(this)
@@ -200,7 +201,7 @@ public class MainActivity extends Activity {
 				dialog.dismiss();
 				dialog.cancel();
 				if (results.length()>0) {
-					didAuthentication(results);
+					didFetchOffices(results);
 				}
 				else {
 		            showDialog("등록된 매장정보가 없습니다");
@@ -216,6 +217,32 @@ public class MainActivity extends Activity {
 	    }).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query);
     }
     
+    // DB에 접속후 호출되는 함수
+    public void didFetchOffices(JSONArray results) {
+    	
+		Toast.makeText(getApplicationContext(), "검색 완료", Toast.LENGTH_SHORT).show();
+
+		LocalStorage.setJSONArray(MainActivity.this, "shopsData", results);
+    	showSelectShop();
+    }
+    
+    public void showDialog(String msg) {
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("알림");
+        builder.setMessage(msg);
+        builder.setNeutralButton("확인", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+        builder.show();
+    }
+
+    public void onAuthentication(View view) {
+    	fetchOffices();
+    }
+    /*
     // 인증관련 실행 함수 
     public void onAuthentication(View view) {
 
@@ -233,7 +260,8 @@ public class MainActivity extends Activity {
 
     	// 쿼리 작성하기
 	    String query =  "";
-	    query = "select OFFICE_CODE, APP_HP, APP_USERNAME from APP_USER where OFFICE_CODE =" + code + " and APP_HP='"+phoneNumber +"';";
+	    query = "select OFFICE_CODE, APP_HP, APP_USERNAME from APP_USER "
+	    		+ " where OFFICE_CODE =" + code + " and APP_HP='"+phoneNumber +"';";
 	    
 	    // 콜백함수와 함께 실행
 	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
@@ -264,28 +292,8 @@ public class MainActivity extends Activity {
 	    }).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query);
     }
     
-    // DB에 접속후 호출되는 함수
-    public void didAuthentication(JSONArray results) {
-    	
-		Toast.makeText(getApplicationContext(), "인증 완료", Toast.LENGTH_SHORT).show();
-
-		LocalStorage.setJSONArray(MainActivity.this, "shopsData", results);
-    	showSelectShop();
-    }
+   */
     
-    public void showDialog(String msg) {
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("알림");
-        builder.setMessage(msg);
-        builder.setNeutralButton("확인", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-            }
-        });
-        builder.show();
-    }
-
 	class ShopListAdapter extends BaseAdapter 
 	{
 		Context ctx;
@@ -349,9 +357,10 @@ public class MainActivity extends Activity {
 					                String value = input.getText().toString();
 					                
 					                if (value.equals("1883")) {
-										Intent intent = new Intent(MainActivity.this, ConfigActivity.class);
-								    	startActivity(intent);
+										
 					                }
+					                Intent intent = new Intent(MainActivity.this, ConfigActivity.class);
+							    	startActivity(intent);
 					            }
 					        }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 					            public void onClick(DialogInterface dialog, int whichButton) {

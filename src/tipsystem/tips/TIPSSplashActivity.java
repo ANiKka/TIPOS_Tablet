@@ -3,7 +3,6 @@ package tipsystem.tips;
 import org.json.JSONArray;
 
 import tipsystem.utils.LocalStorage;
-import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
 import tipsystem.utils.Reachability;
 import android.app.Activity;
@@ -95,7 +94,6 @@ public class TIPSSplashActivity extends Activity {
 		String query =  "";
 	    query += " select * from " + tableName + " ;";
 
-		
 	    // 콜백함수와 함께 실행
 	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
 
@@ -108,7 +106,6 @@ public class TIPSSplashActivity extends Activity {
 			}
 			
 	    //}).execute("122.49.118.102:18971", "TIPS", "sa", "tips", query);
-		}).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query);
-	
+		}).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query);	
 	}
 }

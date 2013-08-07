@@ -13,6 +13,7 @@ import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
+import tipsystem.utils.StringFormat;
 import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -336,7 +337,9 @@ public class ManageProductActivity extends Activity {
         	try {
             	JSONObject json = results.getJSONObject(i);
             	HashMap<String, String> map = JsonHelper.toStringHashMap(json);
-            	
+
+				map.put("Pur_Pri", StringFormat.convertToNumberFormat(map.get("Pur_Pri")));
+				map.put("Sell_Pri", StringFormat.convertToNumberFormat(map.get("Sell_Pri")));
 	            mfillMaps.add(map);
 		 
 			} catch (JSONException e) {

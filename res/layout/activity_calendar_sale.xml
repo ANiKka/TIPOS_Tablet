@@ -65,6 +65,7 @@
 					android:layout_width="match_parent"
 					android:layout_height="wrap_content"
 					android:layout_weight="1"
+					android:textSize="16sp"
 					android:text="순매출 합계 : " />
 		        
 		        <TextView 
@@ -73,6 +74,7 @@
 					android:layout_height="wrap_content"
 					android:layout_marginRight="10dp"
 					android:gravity="right"
+					android:textSize="16sp"
 					android:text="0" />
             </LinearLayout>
 	        
@@ -84,6 +86,7 @@
 					android:layout_width="0dp"
 					android:layout_height="wrap_content"
 					android:layout_weight="1"
+					android:textSize="16sp"
 					android:text="일평균매출 합계 : " />
 		        
 		        <TextView 
@@ -92,6 +95,7 @@
 					android:layout_height="wrap_content"
 					android:layout_marginRight="10dp"
 					android:gravity="right"
+					android:textSize="16sp"
 					android:text="0" />
 		        </LinearLayout>
 		        
@@ -103,6 +107,7 @@
 					android:layout_width="0dp"
 					android:layout_height="wrap_content"
 					android:layout_weight="1"
+					android:textSize="16sp"
 					android:text="일평균 객단가 : " />	        
 		        
 		        <TextView 
@@ -111,6 +116,7 @@
 					android:layout_height="wrap_content"
 					android:layout_marginRight="10dp"
 					android:gravity="right"
+					android:textSize="16sp"
 					android:text="0" />
 		        </LinearLayout>
 	        </LinearLayout>
@@ -129,6 +135,7 @@
 					android:layout_width="0dp"
 					android:layout_height="wrap_content"
 					android:layout_weight="1"
+					android:textSize="16sp"
 					android:text="일평균 객수 : " />	        
 		        
 		        <TextView 
@@ -137,6 +144,7 @@
 					android:layout_height="wrap_content"
 					android:layout_marginRight="10dp"
 					android:gravity="right"
+					android:textSize="16sp"
 					android:text="0" />
 	        
 	        </LinearLayout>
@@ -150,6 +158,7 @@
 					android:layout_width="0dp"
 					android:layout_height="wrap_content"
 					android:layout_weight="1"
+					android:textSize="16sp"
 					android:text="순매입액 합계 : " />
 		        
 		        <TextView 
@@ -158,6 +167,7 @@
 					android:layout_height="wrap_content"
 					android:layout_marginRight="10dp"
 					android:gravity="right"
+					android:textSize="16sp"
 					android:text="0" />
 		        </LinearLayout>
         </LinearLayout>

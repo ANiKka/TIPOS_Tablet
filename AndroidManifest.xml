@@ -236,6 +236,8 @@
             android:name="tipsystem.tips.ManageProductListActivity"
             android:parentActivityName="tipsystem.tips.ManageSalesActivity" android:screenOrientation="portrait">
         </activity>
+        
+         <activity android:name="tipsystem.tips.TIPSPreferences" android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>

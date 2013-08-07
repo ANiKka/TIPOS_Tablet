@@ -58,11 +58,7 @@
             android:background="@drawable/white_text_box_small"
 	        android:textSize="14sp"
 	        android:inputType="text"
-	        android:singleLine="true" 
-	        android:clickable="false" 
-		    android:cursorVisible="false" 
-		    android:focusable="false" 
-		    android:focusableInTouchMode="false" />
+	        android:singleLine="true"  />
 	        
     </LinearLayout>
     
@@ -126,11 +122,7 @@
 	        android:inputType="text"
             android:background="@drawable/white_text_box_small"
 	        android:textSize="14sp"
-	        android:singleLine="true" 
-	        android:clickable="false" 
-		    android:cursorVisible="false" 
-		    android:focusable="false" 
-		    android:focusableInTouchMode="false" />
+	        android:singleLine="true"  />
 	        
     </LinearLayout>
     

@@ -272,9 +272,11 @@ public class ComparePriceActivity extends Activity{
     	String index = String.valueOf(mfillMaps.size());    	
     	String customer = m_customerCode.getText().toString();
 	    String barcode = m_barcode.getText().toString();
+    	String customerName = m_customerName.getText().toString();
+	    String productionName = m_productionName.getText().toString();
 	    String local = m_local.getSelectedItem().toString();
 	    
-	    if (customer.equals("") && barcode.equals("") && local.equals("전체") ){
+	    if (customer.equals("") && barcode.equals("") && productionName.equals("") && customerName.equals("") && local.equals("전체") ){
 
 			Toast.makeText(getApplicationContext(), "한가지이상 입력하여야 합니다", Toast.LENGTH_SHORT).show();
 			return;
@@ -284,11 +286,15 @@ public class ComparePriceActivity extends Activity{
 	    
 		query = "SELECT TOP 25 BarCode, G_Name, Pur_Pri, Sell_Pri FROM Goods "
 				+ " WHERE Goods_Use='1' AND Pur_Use='1' AND "
-				+ " Bus_Code like '%" + customer + "%' AND "
 				+ " BarCode like '%" + barcode + "%' AND "
+				+ " G_Name like '%" + productionName + "%' AND "
+				+ " Bus_Code like '%" + customer + "%' AND "
+				+ " Bus_Name like '%" + customerName + "%' AND "
 				+ " BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods WHERE Goods_Use='1' AND Pur_Use='1' "
 				+ " AND Bus_Code like '%" + customer + "%' "
 				+ " AND BarCode like '%" + barcode + "%' "
+				+ " AND G_Name like '%" + productionName + "%' "
+				+ " AND Bus_Name like '%" + customerName + "%' "
 				+ " Order By BarCode ASC) Order By BarCode ASC;";
 		
 		// 로딩 다이알로그 

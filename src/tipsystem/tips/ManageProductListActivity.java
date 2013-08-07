@@ -1,7 +1,7 @@
 package tipsystem.tips;
 
 /*
- * 기본관리 -> 상품관리 -> 검색버튼
+ * 기본관리 -> 상품관리 -> 검색버튼 (상품목록)
  * */
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL2;
+import tipsystem.utils.StringFormat;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -111,7 +112,7 @@ public class ManageProductListActivity extends Activity {
 	private void returnResultData(int position) {
 
 		Intent intent = new Intent();
-		intent.putExtra("fillmaps", mfillMaps.get(position)); //HashMap<String, String> hashMap = (HashMap<String, String>)intent.getSerializableExtra("fillmaps");
+		intent.putExtra("fillmaps", mfillMaps.get(position)); 
 		this.setResult(RESULT_OK, intent);
 		finish();
 	}
@@ -123,6 +124,8 @@ public class ManageProductListActivity extends Activity {
         	try {
             	JSONObject json = results.getJSONObject(i);
             	HashMap<String, String> map = JsonHelper.toStringHashMap(json);
+				map.put("Pur_Pri", StringFormat.convertToNumberFormat(map.get("Pur_Pri")));
+				map.put("Sell_Pri", StringFormat.convertToNumberFormat(map.get("Sell_Pri")));
 	            mfillMaps.add(map);
 		 
 			} catch (JSONException e) {

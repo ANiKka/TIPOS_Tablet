@@ -23,6 +23,7 @@ import tipsystem.utils.StringFormat;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -31,6 +32,8 @@ import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -803,29 +806,47 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	
 	public void onBarcodeSearch(View view)
 	{
-		// 바코드 검색 버튼 클릭시 나오는 목록 셋팅
-		final String[] option = new String[] { "목록", "카메라"};
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, option);
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("Select Option");
-		
-		// 목록 선택시 이벤트 처리
-		builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int which) {
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        String list_value = pref.getString("prefSearchMethod", "");
+        if (list_value.equals("camera")) {
+			startCameraSearch();
+        }
+        else if (list_value.equals("list")) {
+        	startProductList();
+        }
+        else {
+        	// 바코드 검색 버튼 클릭시 나오는 목록 셋팅
+    		final String[] option = new String[] { "목록", "카메라"};
+    		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, option);
+    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    		builder.setTitle("Select Option");
+    		
+    		// 목록 선택시 이벤트 처리
+    		builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
+    			public void onClick(DialogInterface dialog, int which) {
 
-				if(which == 0){ // 목록으로 조회할 경우
-					String barcode = m_barCode.getText().toString();
-					Intent intent = new Intent(ManageSalesActivity.this, ManageProductListActivity.class);
-					intent.putExtra("barcode", barcode);
-			    	startActivityForResult(intent, BARCODE_MANAGER_REQUEST);
-				} else { // 스캔할 경우
-					Intent intent = new Intent(ManageSalesActivity.this, ZBarScannerActivity.class);
-			    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);				
-				}
-			}
-		}); 
-		builder.show();
+    				if(which == 0){ // 목록으로 조회할 경우
+    					startProductList();
+    				} else { // 스캔할 경우	
+    					startCameraSearch();
+    				}
+    			}
+    		}); 
+    		builder.show();
+        }
 	}
+	
+	private void startProductList() {
+		String barcode = m_barCode.getText().toString();
+		Intent intent = new Intent(ManageSalesActivity.this, ManageProductListActivity.class);
+		intent.putExtra("barcode", barcode);
+    	startActivityForResult(intent, BARCODE_MANAGER_REQUEST);
+	}
+	
+	private void startCameraSearch() {
+		Intent intent = new Intent(ManageSalesActivity.this, ZBarScannerActivity.class);
+    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
+	} 
 	
 	// MSSQL
 	// SQL QUERY 실행

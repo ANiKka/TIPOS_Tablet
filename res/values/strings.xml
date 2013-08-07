@@ -159,4 +159,17 @@
     <string name="title_activity_manage_stock">ManageStockActivity</string>
     <string name="title_activity_charge_customer_detail">ChargeCustomerDetailActivity</string>
 
+    
+    <string-array name="searchMethods">
+        <item>미지정</item>
+        <item>카메라</item>
+        <item>목록</item>
+    </string-array>
+    <string-array name="searchMethodValues">
+        <item>noselection</item>
+        <item>camera</item>
+        <item>list</item>
+    </string-array>
+    <string name="summary_search_method">검색방식을 지정합니다</string>
+    <string name="title_search_method">검색방식 지정</string>
 </resources>
