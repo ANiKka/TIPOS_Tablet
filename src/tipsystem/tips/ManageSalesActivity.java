@@ -406,7 +406,7 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 			for ( int m = m1; m <= m2; m++ ) {
 				
 				String tableName = String.format("%04d%02d", y, m);
-						
+
 				query += " Select A.Office_Code, A.Office_Name, Sum (a.TSell_Pri - a.TSell_RePri) '순매출', Sum (a.Profit_Pri) '이익금' "
 						+ " From SaD_"+tableName+" A LEFT JOIN  SaT_"+tableName+" C "
 						+ " ON A.Sale_Num=C.Sale_Num "
