@@ -190,6 +190,10 @@ public class PaymentDetailViewActivity extends Activity {
 			//
 			NavUtils.navigateUpFromSameTask(this);
 			return true;
+
+		case R.id.action_settings: 
+			startActivity(new Intent(this, TIPSPreferences.class));
+			return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}

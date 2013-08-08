@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -128,6 +129,10 @@ public class PurchaseDetailActivity extends Activity {
 			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
 			//
 			NavUtils.navigateUpFromSameTask(this);
+			return true;
+
+		case R.id.action_settings: 
+			startActivity(new Intent(this, TIPSPreferences.class));
 			return true;
 		}
 		return super.onOptionsItemSelected(item);

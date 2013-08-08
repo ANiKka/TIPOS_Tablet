@@ -1029,47 +1029,6 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 			}
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
 	}
-
-	/**
-	 * Set up the {@link android.app.ActionBar}.
-	 */
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	public void setupActionBar() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-		
-			ActionBar actionbar = getActionBar();
-			actionbar.setDisplayShowHomeEnabled(false);
-			actionbar.setDisplayShowTitleEnabled(true);
-			actionbar.setDisplayShowCustomEnabled(true);
-			actionbar.setTitle("매입등록");
-			
-			getActionBar().setDisplayHomeAsUpEnabled(false);
-		}
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.purchase_regist, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case android.R.id.home:
-			// This ID represents the Home or Up button. In the case of this
-			// activity, the Up button is shown. Use NavUtils to allow users
-			// to navigate up one level in the application structure. For
-			// more details, see the Navigation pattern on Android Design:
-			//
-			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
-			//
-			NavUtils.navigateUpFromSameTask(this);
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
 	
 	@Override
 	public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) 
@@ -1121,5 +1080,50 @@ public class PurchaseRegistActivity extends Activity implements OnItemClickListe
 		m_dateCalender1.set(year, monthOfYear, dayOfMonth);
 		m_period.setText(m_dateFormatter.format(m_dateCalender1.getTime()));
 
+	}
+
+	/**
+	 * Set up the {@link android.app.ActionBar}.
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void setupActionBar() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+		
+			ActionBar actionbar = getActionBar();
+			actionbar.setDisplayShowHomeEnabled(false);
+			actionbar.setDisplayShowTitleEnabled(true);
+			actionbar.setDisplayShowCustomEnabled(true);
+			actionbar.setTitle("매입등록");
+			
+			getActionBar().setDisplayHomeAsUpEnabled(false);
+		}
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.purchase_regist, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			// This ID represents the Home or Up button. In the case of this
+			// activity, the Up button is shown. Use NavUtils to allow users
+			// to navigate up one level in the application structure. For
+			// more details, see the Navigation pattern on Android Design:
+			//
+			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
+			//
+			NavUtils.navigateUpFromSameTask(this);
+			return true;
+
+		case R.id.action_settings: 
+			startActivity(new Intent(this, TIPSPreferences.class));
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 }

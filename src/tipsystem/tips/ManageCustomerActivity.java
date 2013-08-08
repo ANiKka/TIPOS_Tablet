@@ -21,6 +21,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -365,6 +366,10 @@ public class ManageCustomerActivity extends Activity{
 			//
 			NavUtils.navigateUpFromSameTask(this);
 			return true;
+
+			case R.id.action_settings: 
+				startActivity(new Intent(this, TIPSPreferences.class));
+				return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}
