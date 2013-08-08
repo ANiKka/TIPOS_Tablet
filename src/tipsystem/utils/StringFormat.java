@@ -23,4 +23,5 @@ public class StringFormat {
 		
 		return String.format("%s", numberFormat.format(number));
 	}
+	
 }

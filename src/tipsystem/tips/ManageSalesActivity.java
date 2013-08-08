@@ -152,10 +152,10 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 		m_listSalesTab3= (ListView)findViewById(R.id.listviewSalesListTab3);
 		m_listSalesTab4= (ListView)findViewById(R.id.listviewSalesListTab4);
 		
-		String[] from1 = new String[] {"Office_Code", "Office_Name", "순매출", "이익금"};
-        int[] to1 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4 };
+		String[] from1 = new String[] {"Office_Code", "Office_Name", "순매출", "이익금", "이익률", "점유율"};
+        int[] to1 = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5, R.id.item6 };
         
-		adapter1 = new SimpleAdapter(this, mfillMaps1, R.layout.activity_listview_item4_2, from1, to1);		
+		adapter1 = new SimpleAdapter(this, mfillMaps1, R.layout.activity_listview_item4_8, from1, to1);		
 		m_listSalesTab1.setAdapter(adapter1);	
 		
 		String[] from2 = new String[] {"Office_Code", "Office_Name", "Sale_Date", "순매출", "이익금"};
@@ -456,13 +456,30 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 
 	private void updateListForTab1(JSONArray results)
 	{		
+		//순매출 합계 계산
+		double totalSale=0;
 		for(int index = 0; index < results.length() ; index++) {
 			
 			try {
 				JSONObject son = results.getJSONObject(index);
 				HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+				totalSale += Double.parseDouble(map.get("순매출"));	
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+
+		for(int index = 0; index < results.length() ; index++) {
+			
+			try {
+				JSONObject son = results.getJSONObject(index);
+				HashMap<String, String> map = JsonHelper.toStringHashMap(son);
+
+				double sale = Double.parseDouble(map.get("순매출"));	
 				map.put("순매출", StringFormat.convertToNumberFormat(map.get("순매출")));
 				map.put("이익금", StringFormat.convertToNumberFormat(map.get("이익금")));
+				map.put("이익률", StringFormat.convertToNumberFormat(String.format("%.2f",Double.parseDouble(map.get("이익률")))) +"%");				
+				map.put("점유율",  StringFormat.convertToNumberFormat(String.format("%.2f",sale/totalSale*100)) +"%");
 				mfillMaps1.add(map);	
 			} catch (JSONException e) {
 				e.printStackTrace();
