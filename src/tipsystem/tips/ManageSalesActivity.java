@@ -838,13 +838,13 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	
 	private void startProductList() {
 		String barcode = m_barCode.getText().toString();
-		Intent intent = new Intent(ManageSalesActivity.this, ManageProductListActivity.class);
+		Intent intent = new Intent(this, ManageProductListActivity.class);
 		intent.putExtra("barcode", barcode);
     	startActivityForResult(intent, BARCODE_MANAGER_REQUEST);
 	}
 	
 	private void startCameraSearch() {
-		Intent intent = new Intent(ManageSalesActivity.this, ZBarScannerActivity.class);
+		Intent intent = new Intent(this, ZBarScannerActivity.class);
     	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
 	} 
 	
@@ -882,7 +882,6 @@ public class ManageSalesActivity extends Activity implements OnItemClickListener
 	private void fillBusNameFromBusCode(String customerCode) {
 		
 		String query = "";
-		
 		query = "SELECT Office_Name From Office_Manage WHERE Office_Code = '" + customerCode + "';";
 	    new MSSQL(new MSSQL.MSSQLCallbackInterface() {
 

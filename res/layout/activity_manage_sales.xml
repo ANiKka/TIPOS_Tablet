@@ -217,7 +217,7 @@
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:layout_marginLeft="30dip"
-	        android:text="달력매출보기"
+	        android:text="달력매출"
 	        android:onClick="OnClickCalendar" />
     </LinearLayout>
     

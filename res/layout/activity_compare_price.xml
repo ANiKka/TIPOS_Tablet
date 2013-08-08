@@ -32,8 +32,6 @@
              android:layout_height="wrap_content"
              android:layout_weight="1"
              android:ems="10"
-             android:textColor="#000000"
-             android:background="@drawable/white_text_box_small"
              android:textSize="14sp"
              android:inputType="number"/>
          
@@ -54,8 +52,6 @@
             android:layout_weight="1"
             android:layout_marginLeft="5dp"
 	        android:ems="10"
-	        android:textColor="#000000"
-            android:background="@drawable/white_text_box_small"
 	        android:textSize="14sp"
 	        android:inputType="text"
 	        android:singleLine="true"  />
@@ -86,9 +82,7 @@
              android:layout_weight="1"
              android:ems="10"
              android:textSize="14sp"
-             android:textColor="#000000"
-             android:inputType="number"
-             android:background="@drawable/white_text_box_small" />
+             android:inputType="number" />
         
          <requestFocus />
          
@@ -118,9 +112,7 @@
 	        android:layout_height="wrap_content"
 	        android:layout_weight="1"
 	        android:ems="10"
-	        android:textColor="#000000"
 	        android:inputType="text"
-            android:background="@drawable/white_text_box_small"
 	        android:textSize="14sp"
 	        android:singleLine="true"  />
 	        

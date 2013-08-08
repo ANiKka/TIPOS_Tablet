@@ -23,6 +23,7 @@ import tipsystem.utils.MSSQL2;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -32,6 +33,7 @@ import android.app.ProgressDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -52,7 +54,7 @@ import android.support.v4.app.NavUtils;
 public class ManageStockActivity extends Activity implements OnItemSelectedListener, OnDateSetListener{
 
 	private static final int ZBAR_SCANNER_REQUEST = 0;
-	private static final int ZBAR_QR_SCANNER_REQUEST = 1;
+	private static final int BARCODE_MANAGER_REQUEST = 2;
 	
 	JSONObject m_shop;
 	String m_ip = "122.49.118.102";
@@ -675,32 +677,6 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 	    }).execute(m_ip+":"+m_port, "TIPS", "sa", "tips", query);		
 	}
 
-	public void onBarcodeSearch(View view)
-	{
-		// 바코드 검색 버튼 클릭시 나오는 목록 셋팅
-		final String[] option = new String[] { "목록", "카메라"};
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, option);
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("Select Option");
-		
-		// 목록 선택시 이벤트 처리
-		builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int which) {
-
-				if(which == 0){ // 목록으로 조회할 경우
-					String barcode = m_textBarcode.getText().toString();
-					Intent intent = new Intent(ManageStockActivity.this, ManageProductListActivity.class);
-					intent.putExtra("barcode", barcode);
-			    	startActivityForResult(intent, 1);
-				} else { // 스캔할 경우
-					Intent intent = new Intent(ManageStockActivity.this, ZBarScannerActivity.class);
-			    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);				
-				}
-          }
-		}); 
-		builder.show();
-	}
-	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{    
@@ -708,7 +684,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 		
 		switch(requestCode){
 			// 카메라 스캔을 통한 바코드 검색
-			case 0 :
+			case ZBAR_SCANNER_REQUEST:
 				if (resultCode == RESULT_OK) {
 			        // Scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT)
 			        // Type of the scan result is available by making a call to data.getStringExtra(ZBarConstants.SCAN_RESULT_TYPE)
@@ -725,7 +701,7 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 			    }
 				break;
 			// 목록 검색을 통한 바코드 검색				
-			case 1 :
+			case BARCODE_MANAGER_REQUEST:
 				if(resultCode == RESULT_OK && data != null) {
 					
 					HashMap<String, String> hashMap = (HashMap<String, String>)data.getSerializableExtra("fillmaps");        	
@@ -735,6 +711,50 @@ public class ManageStockActivity extends Activity implements OnItemSelectedListe
 				break;
 			}
 	}
+
+	public void onBarcodeSearch(View view)
+	{
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        String list_value = pref.getString("prefSearchMethod", "");
+        if (list_value.equals("camera")) {
+			startCameraSearch();
+        }
+        else if (list_value.equals("list")) {
+        	startProductList();
+        }
+        else {
+        	// 바코드 검색 버튼 클릭시 나오는 목록 셋팅
+    		final String[] option = new String[] { "목록", "카메라"};
+    		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, option);
+    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    		builder.setTitle("Select Option");
+    		
+    		// 목록 선택시 이벤트 처리
+    		builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
+    			public void onClick(DialogInterface dialog, int which) {
+
+    				if(which == 0){ // 목록으로 조회할 경우
+    					startProductList();
+    				} else { // 스캔할 경우	
+    					startCameraSearch();
+    				}
+    			}
+    		}); 
+    		builder.show();
+        }
+	}
+	
+	private void startProductList() {
+		String barcode = m_textBarcode.getText().toString();
+		Intent intent = new Intent(this, ManageProductListActivity.class);
+		intent.putExtra("barcode", barcode);
+    	startActivityForResult(intent, BARCODE_MANAGER_REQUEST);
+	}
+	
+	private void startCameraSearch() {
+		Intent intent = new Intent(this, ZBarScannerActivity.class);
+    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
+	} 
 	
 	public void OnClickModify(View v)
 	{
