@@ -21,8 +21,10 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NavUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -217,43 +219,44 @@ public class ManageProductActivity extends Activity {
 			}
 		});
 		
-		// 매입원가 + 이익률로 판매가
-		m_textDifferentRatio.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+		// 매입원가 변경시 -> 매입가 + 이익률로 판매가
+		m_textPurchasePriceOriginal.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 			@Override
 			public void onFocusChange(View v, boolean hasFocus) {
 			    if(!hasFocus){
-			    	String ratio = m_textDifferentRatio.getText().toString();
-			    	String purchasePrice = m_textPurchasePrice.getText().toString();
-			    	if(!ratio.equals("") && !purchasePrice.equals("")) {
-			    		float f_ratio =  Float.valueOf(ratio).floatValue();
-			    		float f_purchasePrice =  Float.valueOf(purchasePrice).floatValue();
-			    		fillSalePriceFromRatioAndPurchasePrice(f_ratio, f_purchasePrice);
+			    	String purchasePriceOriginal = m_textPurchasePriceOriginal.getText().toString();
+			    	if(!purchasePriceOriginal.equals("")) {
+			    		
+			    		float f_purchasePriceOriginal =  Float.valueOf(purchasePriceOriginal).floatValue();			    		
+			    		m_textPurchasePrice.setText(String.format("%.2f",f_purchasePriceOriginal+f_purchasePriceOriginal/10));
 			    	}
 			    }
 			}
 		});
-		// 매입원가 + 판매가로 이익률
+		
+		// 매입가 변경시 -> 매입가 + 판매가로 이익률
 		m_textPurchasePrice.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 			//@Override
 			public void onFocusChange(View v, boolean hasFocus) {
 			    if(!hasFocus){
 			    	String salesPrice = m_textSalesPrice.getText().toString();
 			    	String purchasePrice = m_textPurchasePrice.getText().toString();
-			    	String ratio = m_textDifferentRatio.getText().toString();
 			    	if(!salesPrice.equals("") && !purchasePrice.equals("")) {
+			    		
 			    		float f_salesPrice =  Float.valueOf(salesPrice).floatValue();
 			    		float f_purchasePrice =  Float.valueOf(purchasePrice).floatValue();
-			    		fillRatioFromSalePriceAndPurchasePrice(f_salesPrice, f_purchasePrice);
-			    	} else if(!ratio.equals("") && !purchasePrice.equals("")){
-			    		float f_ratio =  Float.valueOf(ratio).floatValue();
-			    		float f_purchasePrice =  Float.valueOf(purchasePrice).floatValue();
-			    		fillSalePriceFromRatioAndPurchasePrice(f_ratio, f_purchasePrice);
 			    		
-			    	}
+			    		float f_ratio = (f_salesPrice - f_purchasePrice) / f_purchasePrice * 100;
+			    		m_textDifferentRatio.setText(String.format("%.2f", f_ratio));	
+			    		
+			    		// 매입원가 변경
+			    		m_textPurchasePriceOriginal.setText(String.format("%.2f",f_purchasePrice/1.1));
+			    	} 
 			    }
 			}
 		});
-		// 매입원가 + 판매가로 이익률		
+		
+		// 판매가 변경시 -> 매입가 + 판매가로 이익률		
 		m_textSalesPrice.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 			//@Override
 			public void onFocusChange(View v, boolean hasFocus) {
@@ -261,9 +264,30 @@ public class ManageProductActivity extends Activity {
 			    	String salesPrice = m_textSalesPrice.getText().toString();
 			    	String purchasePrice = m_textPurchasePrice.getText().toString();
 			    	if(!salesPrice.equals("") && !purchasePrice.equals("")) {
+			    		
 			    		float f_salesPrice =  Float.valueOf(salesPrice).floatValue();
 			    		float f_purchasePrice =  Float.valueOf(purchasePrice).floatValue();
-			    		fillRatioFromSalePriceAndPurchasePrice(f_salesPrice, f_purchasePrice);
+			    		
+			    		float f_ratio = (f_salesPrice - f_purchasePrice) / f_purchasePrice * 100;
+			    		m_textDifferentRatio.setText(String.format("%.2f", f_ratio));
+			    	}
+			    }
+			}
+		});
+		
+		// 이익률 변경시 -> 매입가 + 이익률로 판매가
+		m_textDifferentRatio.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+			    if(!hasFocus) {
+			    	String ratio = m_textDifferentRatio.getText().toString();
+			    	String purchasePrice = m_textPurchasePrice.getText().toString();
+			    	if(!ratio.equals("") && !purchasePrice.equals("")) {
+			    		float f_ratio =  Float.valueOf(ratio).floatValue()/100;
+			    		float f_purchasePrice =  Float.valueOf(purchasePrice).floatValue();
+			    		float f_salesPrice = (f_purchasePrice * f_ratio) + f_purchasePrice;
+			    		
+			    		m_textSalesPrice.setText(Float.toString(f_salesPrice));
 			    	}
 			    }
 			}
@@ -276,8 +300,8 @@ public class ManageProductActivity extends Activity {
 	}
 
 	private void fillRatioFromSalePriceAndPurchasePrice(float salesPrice, float purchasePrice) {
-		float f_ratio = (salesPrice - purchasePrice) / purchasePrice;
-		String ratio = Float.toString(f_ratio);
+		float f_ratio = (salesPrice - purchasePrice) / purchasePrice * 100;
+		String ratio = String.format("%.2f", f_ratio);
 		m_textDifferentRatio.setText(ratio);
     }
 	
@@ -296,8 +320,9 @@ public class ManageProductActivity extends Activity {
             	JSONObject json = results.getJSONObject(i);
             	HashMap<String, String> map = JsonHelper.toStringHashMap(json);
 
-				map.put("Pur_Pri", StringFormat.convertToNumberFormat(map.get("Pur_Pri")));
-				map.put("Sell_Pri", StringFormat.convertToNumberFormat(map.get("Sell_Pri")));
+				//map.put("Pur_Pri", StringFormat.convertToNumberFormat(map.get("Pur_Pri")));
+				//map.put("Sell_Pri", StringFormat.convertToNumberFormat(map.get("Sell_Pri")));
+				map.put("Sell_Pri", String.format("%.0f", Double.parseDouble(map.get("Sell_Pri"))));
 	            mfillMaps.add(map);
 		 
 			} catch (JSONException e) {
@@ -346,8 +371,8 @@ public class ManageProductActivity extends Activity {
 	    String mcode = getCodeFromListByName(m_Mtype, mname);
 	    String scode = getCodeFromListByName(m_Stype, sname);
 	    String taxation = m_spinTaxation.getSelectedItem().toString();
-		String standard = m_textStandard.getText().toString();
-		String acquire = m_textAcquire.getText().toString();
+		String Std_Size = m_textStandard.getText().toString();
+		String Obtain = m_textAcquire.getText().toString();
 		String purchasePrice = m_textPurchasePrice.getText().toString();
 		String purchasePriceOriginal = m_textPurchasePriceOriginal.getText().toString();
 		String salesPrice = m_textSalesPrice.getText().toString();
@@ -365,16 +390,19 @@ public class ManageProductActivity extends Activity {
 		else
 			taxation = "1";
 		
+		if(Obtain.equals("")) Obtain = "0";
+		
 		if (barcode.equals("") || productName.equals("") || customerCode.equals("") || customerName.equals("") ||
-			standard.equals("") || acquire.equals("") || lname.equals("") || mname.equals("") || sname.equals("") ||
+			//Std_Size.equals("") || Obtain.equals("") ||
+			lname.equals("") || mname.equals("") || sname.equals("") ||
 			purchasePrice.equals("") || purchasePriceOriginal.equals("") || salesPrice.equals("") || ratio.equals("")) {
 			Toast.makeText(getApplicationContext(), "비어있는 필드가 있습니다", Toast.LENGTH_SHORT).show();
 			return;
     	}
 		
     	query += "insert into Goods(BarCode, G_Name, Bus_Code, Bus_Name, Tax_YN, Std_Size, Obtain, Pur_Pri, Pur_Cost," +
-    			" Sell_Pri, Profit_Rate, L_Code, L_Name, M_Code, M_Name, S_Code, S_Name, VAT_CHK, good_use) values('" + barcode + "', '" + productName + "'," +
-    			"'"+ customerCode + "', '" + customerName + "', '" + taxation + "', '" + standard + "', '" + acquire + "'," +
+    			" Sell_Pri, Profit_Rate, L_Code, L_Name, M_Code, M_Name, S_Code, S_Name, VAT_CHK, Goods_Use) values('" + barcode + "', '" + productName + "'," +
+    			"'"+ customerCode + "', '" + customerName + "', '" + taxation + "', '" + Std_Size + "', '" + Obtain + "'," +
     			"'" + purchasePrice + "', '" + purchasePriceOriginal + "', '" + salesPrice + "', '" + ratio + "'," +
     			"'" + lcode + "', '" + lname + "', '" + mcode + "', '" + mname + "', '" + scode + "', '" + sname + 
     			"', '" + surtax + "', " + "'" + good_use + "');";
@@ -397,7 +425,7 @@ public class ManageProductActivity extends Activity {
 				if (results.length() > 0) {
 					updateListView(results);
 					
-					AlertDialog.Builder alertDialog = new AlertDialog.Builder(getApplicationContext());
+					AlertDialog.Builder alertDialog = new AlertDialog.Builder(ManageProductActivity.this);
 					alertDialog.setMessage("정상적으로 등록되었습니다..");
 					alertDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
@@ -449,8 +477,8 @@ public class ManageProductActivity extends Activity {
 	    String scode = getCodeFromListByName(m_Stype, sname);
 	    
 	    String taxation = m_spinTaxation.getSelectedItem().toString();
-		String standard = m_textStandard.getText().toString();
-		String acquire = m_textAcquire.getText().toString();
+		String Std_Size = m_textStandard.getText().toString();
+		String Obtain = m_textAcquire.getText().toString();
 		String purchasePrice = m_textPurchasePrice.getText().toString();
 		String purchasePriceOriginal = m_textPurchasePriceOriginal.getText().toString();
 		String salesPrice = m_textSalesPrice.getText().toString();
@@ -468,19 +496,22 @@ public class ManageProductActivity extends Activity {
 		else
 			taxation = "1";
 		
+		if (Obtain.equals("")) Obtain = "0";
+		
 		if (barcode.equals("") || productName.equals("") || customerCode.equals("") || customerName.equals("") ||
-				standard.equals("") || acquire.equals("") || lname.equals("") || mname.equals("") || sname.equals("") ||
+			//	Std_Size.equals("") || Obtain.equals("") || 
+			lname.equals("") || mname.equals("") || sname.equals("") ||
 			purchasePrice.equals("") || purchasePriceOriginal.equals("") || salesPrice.equals("") || ratio.equals("")) {
 			Toast.makeText(getApplicationContext(), "비어있는 필드가 있습니다", Toast.LENGTH_SHORT).show();
 			return;
     	}
 		
     	query += "Update Goods Set BarCode = '" + barcode + "', G_Name = '" + productName + "', Bus_Code = '" + customerCode + "', " +
-    			  "Bus_Name = '" + customerName + "', Tax_YN = '" + taxation + "', Std_Size = '" + standard + "', Obtain = '" + acquire + "', " +
+    			  "Bus_Name = '" + customerName + "', Tax_YN = '" + taxation + "', Std_Size = '" + Std_Size + "', Obtain = '" + Obtain + "', " +
     			  "Pur_Pri = '" + purchasePrice + "', Pur_Cost = '" + purchasePriceOriginal + "', Sell_Pri = '" + salesPrice + "', " + "Profit_Rate = '" + ratio +
     			   "', L_Code = '" + lcode + "', M_Code = '" + mcode + "', S_Code = '" + scode +
     			   "', L_Name = '" + lname + "', M_Name = '" + mname + "', S_Name = '" + sname +
-    			  "', VAT_CHK = '" + surtax + "', good_use='"+ good_use+"' WHERE BarCode = '" + barcode + "';"; 
+    			  "', VAT_CHK = '" + surtax + "', Goods_Use='"+ good_use+"' WHERE BarCode = '" + barcode + "';"; 
     	//query += "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods) A JOIN (SELECT TOP 50 * FROM Goods WHERE BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods)) B ON A.BarCode = B.BarCode;";
     	query += "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods WHERE BarCode = '" +
   			  barcode + "') A JOIN (SELECT * FROM Goods WHERE BarCode = '" + barcode + "') B ON A.BarCode = B.BarCode;";
@@ -500,7 +531,7 @@ public class ManageProductActivity extends Activity {
 				if (results.length() > 0) {
 					updateListView(results);
 					
-					AlertDialog.Builder alertDialog = new AlertDialog.Builder(getApplicationContext());
+					AlertDialog.Builder alertDialog = new AlertDialog.Builder(ManageProductActivity.this);
 					alertDialog.setMessage("정상적으로 수정되었습니다..");
 					alertDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
@@ -535,27 +566,10 @@ public class ManageProductActivity extends Activity {
 	    
 	    if (!barcode.equals("") || !customerCode.equals("")|| !productName.equals("")|| !customerName.equals("")){
 	    	
-		    boolean added = false;
-		    if (!barcode.equals("")){
-		    	query += " AND Barcode = '" + barcode + "'";
-		    	added = true;
-		    }
-		    if (!productName.equals("")){
-		    	query += " AND G_Name = '" + productName + "'";
-		    	added = true;
-		    }
-		    if (!customerName.equals("")){
-		    	query += " AND Bus_Name = '" + customerName + "'";
-		    	added = true;
-		    }
-		    				    
-		    if (!customerCode.equals("")){
-		    	if (added) query += " AND ";
-		    	
-		    	query += " Bus_Code = '" + customerCode  + "'";
-		    	added = true;
-		    }
-		    query += ";";
+	    	query += " AND Barcode like '%" + barcode + "%'";
+	    	query += " AND G_Name like '%" + productName + "%'";
+	    	query += " AND Bus_Name like '%" + customerName + "%'";
+	    	query += " AND Bus_Code like '%" + customerCode  + "%'";
 	    } else {
 	    	query = "SELECT A.G_grade, B.* FROM (SELECT isNull(G_grade, 0) AS G_Grade, BarCode FROM Goods) A "
 	    			+ " JOIN (SELECT TOP 50 * FROM Goods WHERE BarCode NOT IN(SELECT TOP " + index + " BarCode FROM Goods)) B ON A.BarCode = B.BarCode;";
@@ -598,33 +612,50 @@ public class ManageProductActivity extends Activity {
 		intent.putExtra("customer", customer);
     	startActivityForResult(intent, CUSTOMER_MANAGER_REQUEST);
 	}
-	
+
 	public void onBarcodeSearch(View view)
 	{
-		// 바코드 검색 버튼 클릭시 나오는 목록 셋팅
-		final String[] option = new String[] { "목록", "카메라"};
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, option);
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("Select Option");
-		
-		// 목록 선택시 이벤트 처리
-		builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int which) {
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        String list_value = pref.getString("prefSearchMethod", "");
+        if (list_value.equals("camera")) {
+			startCameraSearch();
+        }
+        else if (list_value.equals("list")) {
+        	startProductList();
+        }
+        else {
+        	// 바코드 검색 버튼 클릭시 나오는 목록 셋팅
+    		final String[] option = new String[] { "목록", "카메라"};
+    		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_item, option);
+    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    		builder.setTitle("Select Option");
+    		
+    		// 목록 선택시 이벤트 처리
+    		builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
+    			public void onClick(DialogInterface dialog, int which) {
 
-				if(which == 0){ // 목록으로 조회할 경우
-					String barcode = m_textBarcode.getText().toString();
-					Intent intent = new Intent(ManageProductActivity.this, ManageProductListActivity.class);
-					intent.putExtra("barcode", barcode);
-					intent.putExtra("good_use", "no");
-			    	startActivityForResult(intent, BARCODE_MANAGER_REQUEST);
-				} else { // 스캔할 경우
-					Intent intent = new Intent(ManageProductActivity.this, ZBarScannerActivity.class);
-			    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);				
-				}
-			}
-		}); 
-		builder.show();
+    				if(which == 0){ // 목록으로 조회할 경우
+    					startProductList();
+    				} else { // 스캔할 경우	
+    					startCameraSearch();
+    				}
+    			}
+    		}); 
+    		builder.show();
+        }
 	}
+	
+	private void startProductList() {
+		String barcode = m_textBarcode.getText().toString();
+		Intent intent = new Intent(this, ManageProductListActivity.class);
+		intent.putExtra("barcode", barcode);
+    	startActivityForResult(intent, BARCODE_MANAGER_REQUEST);
+	}
+	
+	private void startCameraSearch() {
+		Intent intent = new Intent(this, ZBarScannerActivity.class);
+    	startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
+	} 
 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
@@ -749,10 +780,10 @@ public class ManageProductActivity extends Activity {
 		m_textStandard.setText(object.get("Std_Size"));
 		m_textAcquire.setText(object.get("Obtain"));
 		m_textPurchasePrice.setText(object.get("Pur_Pri"));
-		m_textSalesPrice.setText(object.get("Sell_Pri"));
+		m_textSalesPrice.setText(String.format("%.0f", Double.parseDouble(object.get("Sell_Pri"))));
 		m_textPurchasePriceOriginal.setText(object.get("Pur_Cost"));
 		m_textDifferentRatio.setText(object.get("Profit_Rate"));
-		
+			
 		m_buttonCustomerClassification1.setText(object.get("L_Name"));
 		m_buttonCustomerClassification2.setText(object.get("M_Name"));
 		m_buttonCustomerClassification3.setText(object.get("S_Name"));
@@ -762,7 +793,7 @@ public class ManageProductActivity extends Activity {
 		} else {
 			m_spinTaxation.setSelection(0);
 		}
-		if(object.get("Add_Tax").equals("0")){
+		if(object.get("VAT_CHK").equals("0")){
 			m_checkSurtax.setChecked(false);
 		} else {
 			m_checkSurtax.setChecked(true);

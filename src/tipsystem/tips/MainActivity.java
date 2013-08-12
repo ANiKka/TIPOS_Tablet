@@ -23,6 +23,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -355,12 +356,12 @@ public class MainActivity extends Activity {
 					        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 					            public void onClick(DialogInterface dialog, int whichButton) {
 					                String value = input.getText().toString();
-					                
+					                Log.i("passwd", value);
 					                if (value.equals("1883")) {
-										
+
+						                Intent intent = new Intent(MainActivity.this, ConfigActivity.class);
+								    	startActivity(intent);	
 					                }
-					                Intent intent = new Intent(MainActivity.this, ConfigActivity.class);
-							    	startActivity(intent);
 					            }
 					        }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 					            public void onClick(DialogInterface dialog, int whichButton) {

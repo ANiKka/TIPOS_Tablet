@@ -415,7 +415,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="이익율"
+            android:text="이익율(%)"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="#ffffff"
             android:textSize="14sp" />
