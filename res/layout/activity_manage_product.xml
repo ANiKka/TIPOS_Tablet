@@ -38,9 +38,7 @@
 		     android:lines="1"
              android:ems="10"
              android:textSize="12sp"
-             android:textColor="#000000"
-             android:inputType="number"
-             android:background="@drawable/white_text_box_small" />
+             android:inputType="number" />
          
          <requestFocus />
          
@@ -68,11 +66,10 @@
 	        android:layout_width="0dip"
 	        android:layout_height="wrap_content"
 	        android:layout_weight="1"
+		    android:singleLine="true"
+		    android:lines="1"
 	        android:ems="10"
-	        android:textColor="#000000"
-            android:background="@drawable/white_text_box_small"
-	        android:textSize="14sp"
-	        android:singleLine="true" />
+	        android:textSize="14sp" />
              
 
     </LinearLayout>
@@ -100,11 +97,10 @@
              android:layout_height="wrap_content"
              android:layout_weight="1"
              android:ems="10"
-             android:textColor="#000000"
              android:inputType="number"
-             android:background="@drawable/white_text_box_small"
              android:textSize="14sp"
-             android:singleLine="true" />
+		    android:singleLine="true"
+		    android:lines="1" />
 	        
          <Button
 	        android:id="@+id/buttonCustomer"
@@ -121,10 +117,9 @@
             android:layout_weight="1"
             android:layout_marginLeft="5dp"
 	        android:ems="10"
-	        android:textColor="#000000"
-            android:background="@drawable/white_text_box_small"
 	        android:textSize="14sp"
-	        android:singleLine="true" />
+		    android:singleLine="true"
+		    android:lines="1" />
     
     </LinearLayout>
     
@@ -166,65 +161,7 @@
 	        android:layout_height="wrap_content"
 	        android:layout_marginLeft="5dp"
             android:onClick="onClassification3" />
-         
-					    <!-- 
-					    <Spinner
-				            android:id="@+id/spinnerClassificationType1"
-				            android:layout_width="wrap_content"
-				            android:layout_height="wrap_content"
-				            android:prompt="@string/choose_classification_type"
-				            android:textSize="14sp" />
-					    
-					    <Spinner
-				            android:id="@+id/spinnerClassificationType2"
-				            android:layout_width="wrap_content"
-				            android:layout_height="wrap_content"
-				            android:prompt="@string/choose_classification_type"
-				            android:textSize="14sp" />
-					    
-					    <Spinner
-				            android:id="@+id/spinnerClassificationType3"
-				            android:layout_width="wrap_content"
-				            android:layout_height="wrap_content"
-				            android:prompt="@string/choose_classification_type"
-				            android:textSize="14sp" />
-				     -->
-        <!-- 
-         <EditText
-             android:id="@+id/editTextCustomerClassification1"
-             android:layout_width="0dip"
-             android:layout_height="wrap_content"
-             android:layout_weight="1"
-             android:ems="10"             
-	         android:singleLine="true"             
-             android:textColor="#000000"
-             android:background="@drawable/white_text_box_small"
-	         android:textSize="14sp"/>
-	        
-         <EditText
-             android:id="@+id/editTextCustomerClassification2"
-             android:layout_width="0dip"
-             android:layout_height="wrap_content"
-             android:layout_weight="1"
-             android:layout_marginLeft="5dp"
-             android:ems="10"
-             android:singleLine="true" 
-             android:textColor="#000000"
-             android:background="@drawable/white_text_box_small"
-	         android:textSize="14sp"/>
-         
-         <EditText
-	        android:id="@+id/editTextCustomerClassification3"
-	        android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginLeft="5dp"
-	        android:ems="10"
-	        android:singleLine="true" 
-	        android:textColor="#000000"
-            android:background="@drawable/white_text_box_small"
-	        android:textSize="14sp"/>
-    -->
+
     </LinearLayout>
 
 	<LinearLayout
@@ -302,10 +239,11 @@
             android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1.2"
+            android:inputType="number"
             android:ems="10"
             android:textSize="14sp"
-            android:textColor="#000000"
-            android:background="@drawable/white_text_box_small" />
+		    android:singleLine="true"
+		    android:lines="1" />
         
         <TextView
             android:id="@+id/textView9"
@@ -323,10 +261,15 @@
 	        android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1.2"
+            android:inputType="number"
 	        android:ems="10"
 	        android:textSize="14sp" 
-	        android:textColor="#000000"
-            android:background="@drawable/white_text_box_small"
+		    android:singleLine="true"
+		    android:lines="1"
+	        android:clickable="false" 
+		    android:cursorVisible="false" 
+		    android:focusable="false" 
+		    android:focusableInTouchMode="false"
 	     />       
     
     </LinearLayout>
@@ -350,13 +293,14 @@
         
         <EditText
             android:id="@+id/editTextPurchasePrice"
-            android:layout_width="0dip"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1.2"
+            android:inputType="number"
             android:ems="10"
             android:textSize="14sp"
-            android:textColor="#000000"
-            android:background="@drawable/white_text_box_small"/>
+		    android:singleLine="true"
+		    android:lines="1" />
         
         <TextView
             android:id="@+id/textView11"
@@ -371,13 +315,14 @@
 
          <EditText
 	        android:id="@+id/editTextPurchasePriceOriginal"
-	        android:layout_width="0dip"
+	        android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1.2"
+            android:inputType="number"
 	        android:ems="10"
 	        android:textSize="14sp" 
-	        android:textColor="#000000"
-            android:background="@drawable/white_text_box_small"
+		    android:singleLine="true"
+		    android:lines="1"
 	     />       
     
     </LinearLayout>
@@ -404,9 +349,10 @@
             android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1.2"
-            android:background="@drawable/white_text_box_small"
+            android:inputType="number"
             android:ems="10"
-            android:textColor="#000000"
+		    android:singleLine="true"
+		    android:lines="1"
             android:textSize="14sp" />
 
         <TextView
@@ -425,9 +371,10 @@
             android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1.2"
-            android:background="@drawable/white_text_box_small"
-            android:ems="10"
-            android:textColor="#000000"
+            android:inputType="number"
+            android:ems="10"            
+		    android:singleLine="true"
+		    android:lines="1"
             android:textSize="14sp" />
     </LinearLayout>
     

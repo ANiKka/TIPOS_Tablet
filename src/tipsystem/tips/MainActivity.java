@@ -55,19 +55,10 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        /*
-        Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
-        TextView textView = (TextView) findViewById(R.id.textViewShopCode);
-        textView.setTypeface(typeface);
-*/
+
         m_rgShop = new RadioGroup(this);
         
         fetchOffices();
-        /*
-        String officeCode = LocalStorage.getString(this, "officeCode"); 
-		if (!officeCode.equals("")) {
-			fetchOffices();
-		}*/
     }
 
 	public void showSelectShop() {
@@ -186,7 +177,7 @@ public class MainActivity extends Activity {
 	    		+"  from APP_USER as A inner join V_OFFICE_USER as B " 
 	    		+ " on A.OFFICE_CODE = B.Sto_CD "
 	    		+ " JOIN APP_SETTLEMENT as C on A.OFFICE_CODE = C.OFFICE_CODE " 
-	    		+ " where A.APP_HP =" + phoneNumber + "AND C.DEL_YN = '0' "
+	    		+ " where A.APP_HP ='" + phoneNumber + "' AND C.DEL_YN = '0' "
 	    		+ " AND C.APP_SDATE<='"+today+"' AND C.APP_EDATE>='"+today+"'";
 
     	// 로딩 다이알로그 
@@ -243,57 +234,6 @@ public class MainActivity extends Activity {
     public void onAuthentication(View view) {
     	fetchOffices();
     }
-    /*
-    // 인증관련 실행 함수 
-    public void onAuthentication(View view) {
-
- 		// 입력된 코드 가져오기
-    	EditText textView = (EditText) findViewById(R.id.editTextShopCode);
-    	String code = textView.getText().toString();
-    	if (code.equals("")) return;
-    	
-    	// 로딩 다이알로그 
-    	dialog = new ProgressDialog(this);
- 		dialog.setMessage("Loading....");
- 		dialog.show();
- 		
-    	String phoneNumber = LocalStorage.getString(MainActivity.this, "phoneNumber");
-
-    	// 쿼리 작성하기
-	    String query =  "";
-	    query = "select OFFICE_CODE, APP_HP, APP_USERNAME from APP_USER "
-	    		+ " where OFFICE_CODE =" + code + " and APP_HP='"+phoneNumber +"';";
-	    
-	    // 콜백함수와 함께 실행
-	    new MSSQL2(new MSSQL2.MSSQL2CallbackInterface() {
-
-			@Override
-			public void onRequestCompleted(JSONArray results) {
-				dialog.dismiss();
-				dialog.cancel();
-				if (results.length()>0) {
-			    	EditText textView = (EditText) findViewById(R.id.editTextShopCode);
-			    	String code = textView.getText().toString();
-			        LocalStorage.setString(getApplicationContext(), "officeCode", code); 
-
-			    	Toast.makeText(getApplicationContext(), "인증에 성공하였습니다. 매장목록을 불러옵니다", Toast.LENGTH_SHORT).show();
-			        fetchOffices();
-				}
-				else {
-		            showDialog("오피스코드가 없거나 등록되지 않은 휴대폰 번호입니다");
-				}
-			}
-
-			@Override
-			public void onRequestFailed(int code, String msg) {
-				dialog.dismiss();
-				dialog.cancel();
-		    	Toast.makeText(getApplicationContext(), "인증에 실패하였습니다", Toast.LENGTH_SHORT).show();
-			}
-	    }).execute("122.49.118.102:18971", "Trans", "app_tips", "app_tips", query);
-    }
-    
-   */
     
 	class ShopListAdapter extends BaseAdapter 
 	{
@@ -357,10 +297,13 @@ public class MainActivity extends Activity {
 					            public void onClick(DialogInterface dialog, int whichButton) {
 					                String value = input.getText().toString();
 					                Log.i("passwd", value);
-					                if (value.equals("1883")) {
+					                if (value.equals("1833")) {
 
 						                Intent intent = new Intent(MainActivity.this, ConfigActivity.class);
 								    	startActivity(intent);	
+					                }
+					                else {
+							            Toast.makeText(MainActivity.this, "비밀번호가 틀렸습니다", Toast.LENGTH_SHORT).show();
 					                }
 					            }
 					        }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

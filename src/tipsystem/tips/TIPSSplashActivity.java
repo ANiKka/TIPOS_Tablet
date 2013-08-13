@@ -22,9 +22,7 @@ public class TIPSSplashActivity extends Activity {
         
         checkNetwork();
         
-        savePhoneNumber(this);
-        
-        startMainActivity();
+        if (savePhoneNumber(this)) startMainActivity();
         
         //testQuery();
     }
@@ -45,17 +43,14 @@ public class TIPSSplashActivity extends Activity {
 		}
     }
     
-	private void savePhoneNumber(Context ctx)
+	private boolean savePhoneNumber(Context ctx)
     {
 		//check phone number
     	TelephonyManager phoneManager = (TelephonyManager) 
     	getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
     	String phoneNumber = phoneManager.getLine1Number();
     	    	
-    	String prefix = phoneNumber.substring(0, 3);
-    	if (prefix.equals("+82")) phoneNumber = "0" + phoneNumber.substring(3, phoneNumber.length());
-    	
-    	if (phoneNumber == null || phoneNumber.isEmpty()) {
+    	if (phoneNumber == null || phoneNumber.equals("")) {
         	AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
             builder.setTitle("알림");
             builder.setMessage("기기에 등록된 전화번호가 없습니다. 어플이용이 불가능합니다!");
@@ -66,12 +61,15 @@ public class TIPSSplashActivity extends Activity {
                 }
             });
             builder.show();
-            return ;
+            return false;
         }
-    	else {
-    		LocalStorage.setString(ctx, "phoneNumber", phoneNumber);
-    		//LocalStorage.setString(ctx, "phoneNumber", "01023733901");
-    	}
+    	
+    	String prefix = phoneNumber.substring(0, 3);
+    	if (prefix.equals("+82")) phoneNumber = "0" + phoneNumber.substring(3, phoneNumber.length());
+    	
+    	LocalStorage.setString(ctx, "phoneNumber", phoneNumber);
+    	//LocalStorage.setString(ctx, "phoneNumber", "01023733901");    	
+    	return true;
     }
 
 	private void startMainActivity() {
