@@ -28,7 +28,7 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="#ffffff"
             android:textSize="14sp" />
-        
+
          <EditText
              android:id="@+id/editTextBarcode"
              android:layout_width="0dip"

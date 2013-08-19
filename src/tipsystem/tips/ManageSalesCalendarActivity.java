@@ -226,7 +226,10 @@ public class ManageSalesCalendarActivity extends Activity {
 		String currentDay = String.format("%04d-%02d-%02d", year, month, day);
 		
 		try {
+			if (m_results.length()==0) return;
+			
 			JSONObject son = null;
+					
 			for(int i = 0; i < m_results.length() ; i++) {				
 				son = m_results.getJSONObject(i);
 				String date = son.getString("일자");

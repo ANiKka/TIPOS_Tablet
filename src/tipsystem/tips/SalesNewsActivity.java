@@ -382,7 +382,7 @@ public class SalesNewsActivity extends Activity implements OnItemClickListener,
 				m_viewCard.setText(m_numberFormat.format(0));
 				m_viewCredit.setText(m_numberFormat.format(0));
 				m_viewOther.setText(m_numberFormat.format(0));			
-				m_viewRealSalesYesterday.setText(0);	
+				m_viewRealSalesYesterday.setText(m_numberFormat.format(0));	
 			}			
 			
 		} catch (JSONException e) {

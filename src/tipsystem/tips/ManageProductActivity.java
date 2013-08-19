@@ -28,6 +28,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NavUtils;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -36,9 +39,12 @@ import android.widget.AdapterView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AbsListView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -61,19 +67,19 @@ public class ManageProductActivity extends Activity {
 	String m_ip = "122.49.118.102";
 	String m_port = "18971";
 
-	TextView m_textBarcode;
-	TextView m_textProductName;
-	TextView m_textCustomerCode;
-	TextView m_textCustomerName;
+	EditText m_textBarcode;
+	EditText m_textProductName;
+	EditText m_textCustomerCode;
+	EditText m_textCustomerName;
 	Button m_buttonCustomerClassification1;
 	Button m_buttonCustomerClassification2;
 	Button m_buttonCustomerClassification3;
-	TextView m_textStandard;
-	TextView m_textAcquire;
-	TextView m_textPurchasePrice;
-	TextView m_textPurchasePriceOriginal;
-	TextView m_textSalesPrice;
-	TextView m_textDifferentRatio;
+	EditText m_textStandard;
+	EditText m_textAcquire;
+	EditText m_textPurchasePrice;
+	EditText m_textPurchasePriceOriginal;
+	EditText m_textSalesPrice;
+	EditText m_textDifferentRatio;
 	Spinner m_spinTaxation;
 	CheckBox m_checkSurtax;
 	Spinner m_spinGroup;
@@ -128,21 +134,51 @@ public class ManageProductActivity extends Activity {
 		}
 
 		m_textBarcode = (EditText)findViewById(R.id.editTextBarcode);
-		m_textProductName = (TextView)findViewById(R.id.editTextProductName);
-		m_textCustomerCode = (TextView)findViewById(R.id.editTextCustomerCode);
-		m_textCustomerName = (TextView)findViewById(R.id.editTextCustomerName);
+		m_textProductName = (EditText)findViewById(R.id.editTextProductName);
+		m_textCustomerCode = (EditText)findViewById(R.id.editTextCustomerCode);
+		m_textCustomerName = (EditText)findViewById(R.id.editTextCustomerName);
 		m_buttonCustomerClassification1 = (Button)findViewById(R.id.buttonClassificationType1);
 		m_buttonCustomerClassification2 = (Button)findViewById(R.id.buttonClassificationType2);
 		m_buttonCustomerClassification3 = (Button)findViewById(R.id.buttonClassificationType3);
 		m_spinTaxation = (Spinner)findViewById(R.id.spinnerTaxationType);
+		m_spinTaxation.setOnItemSelectedListener(new OnItemSelectedListener() {
+		    @Override
+		    public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+		    	m_tempProduct.put("Tax_YN", position+""); 
+		    }
+
+		    @Override
+		    public void onNothingSelected(AdapterView<?> parentView) {
+		    }
+		});
 		m_checkSurtax = (CheckBox)findViewById(R.id.checkBoxSurtax);
+		m_checkSurtax.setOnCheckedChangeListener(new OnCheckedChangeListener()
+		{
+		    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
+		    {
+				if(isChecked)
+			    	m_tempProduct.put("VAT_CHK", "1"); 
+				else
+			    	m_tempProduct.put("VAT_CHK", "0"); 
+		    }
+		});
 		m_spinGroup = (Spinner)findViewById(R.id.spinnerGroupType);
-		m_textStandard = (TextView)findViewById(R.id.editTextStandard);
-		m_textAcquire = (TextView)findViewById(R.id.editTextAcquire);
-		m_textPurchasePrice = (TextView)findViewById(R.id.editTextPurchasePrice);
-		m_textPurchasePriceOriginal = (TextView)findViewById(R.id.editTextPurchasePriceOriginal);
-		m_textSalesPrice = (TextView)findViewById(R.id.editTextSalesPrice);
-		m_textDifferentRatio = (TextView)findViewById(R.id.editTextDifferentRatio);
+		m_spinGroup.setOnItemSelectedListener(new OnItemSelectedListener() {
+		    @Override
+		    public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+		    	m_tempProduct.put("Goods_Use", position+""); 
+		    }
+
+		    @Override
+		    public void onNothingSelected(AdapterView<?> parentView) {
+		    }
+		});
+		m_textStandard = (EditText)findViewById(R.id.editTextStandard);
+		m_textAcquire = (EditText)findViewById(R.id.editTextAcquire);
+		m_textPurchasePrice = (EditText)findViewById(R.id.editTextPurchasePrice);
+		m_textPurchasePriceOriginal = (EditText)findViewById(R.id.editTextPurchasePriceOriginal);
+		m_textSalesPrice = (EditText)findViewById(R.id.editTextSalesPrice);
+		m_textDifferentRatio = (EditText)findViewById(R.id.editTextDifferentRatio);
 		m_listProduct = (ListView)findViewById(R.id.listviewProductList);
 		m_listProduct.setOnItemClickListener(new OnItemClickListener() {
             @Override
@@ -201,8 +237,9 @@ public class ManageProductActivity extends Activity {
 			@Override
 			public void onFocusChange(View v, boolean hasFocus) {
 			    if(!hasFocus){
-			    	String barcode = null; 
-			    	barcode = m_textBarcode.getText().toString();
+			    	String barcode = m_textBarcode.getText().toString();
+		    		m_tempProduct.put("BarCode", barcode); 
+			    	
 			    	if(!barcode.equals("")) // 입력한 Barcode가 값이 있을 경우만
 			    		doQueryWithBarcode();	    	
 			    }
@@ -215,11 +252,50 @@ public class ManageProductActivity extends Activity {
 			public void onFocusChange(View v, boolean hasFocus) {
 			    if(!hasFocus){
 			    	String customerCode = m_textCustomerCode.getText().toString();
+		    		m_tempProduct.put("Bus_Code", customerCode); 
+		    		
 			    	if(!customerCode.equals("")) // 입력한 customerCode가 값이 있을 경우만
 			    		fillBusNameFromBusCode(customerCode);	    	
 			    }
 			}
 		});
+		
+		m_textProductName.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+			    if(!hasFocus){
+		    		m_tempProduct.put("G_Name", m_textProductName.getText().toString()); 
+			    }
+			}
+		});
+
+		m_textCustomerName.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+			    if(!hasFocus){
+		    		m_tempProduct.put("Bus_Name", m_textCustomerName.getText().toString()); 
+			    }
+			}
+		});
+		
+		m_textStandard.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+			    if(!hasFocus){
+		    		m_tempProduct.put("Std_Size", m_textStandard.getText().toString()); 
+			    }
+			}
+		});
+
+		m_textAcquire.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+			    if(!hasFocus){
+		    		m_tempProduct.put("Obtain", m_textAcquire.getText().toString()); 
+			    }
+			}
+		});
+		
 		
 		// 매입원가 변경시 -> 매입가 + 이익률로 판매가
 		m_textPurchasePriceOriginal.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -228,6 +304,12 @@ public class ManageProductActivity extends Activity {
 			    if(!hasFocus){
 			    	String purchasePriceOriginal = m_textPurchasePriceOriginal.getText().toString();
 			    	String Sell_Pri = m_tempProduct.get("Sell_Pri");
+			    	
+			    	if(!purchasePriceOriginal.equals("")) {
+			    		float f_purchasePriceOriginal =  Float.parseFloat(purchasePriceOriginal); 
+			    		m_tempProduct.put("Pur_Cost", String.format("%.2f", f_purchasePriceOriginal)); // 매입원가 
+			    	}
+			    	
 			    	if(!purchasePriceOriginal.equals("")&&Sell_Pri!= null) {
 
 			    		float f_salesPrice =  Float.parseFloat(Sell_Pri);
@@ -235,15 +317,49 @@ public class ManageProductActivity extends Activity {
 			    		float f_purchasePrice =  f_purchasePriceOriginal+f_purchasePriceOriginal/10;	    		
 			    		float f_ratio = (f_salesPrice - f_purchasePrice) / f_salesPrice ;	
 			    		m_tempProduct.put("Pur_Pri", String.format("%.2f", f_purchasePrice)); // 매입가 
-			    		m_tempProduct.put("Pur_Cost", String.format("%.2f", f_purchasePriceOriginal)); // 매입원가 
 			    		m_tempProduct.put("Profit_Rate", String.format("%.2f", f_ratio*100)); // 이익률 
-		            	updateFormView(m_tempProduct);
 			    	}
+	            	updateFormView(m_tempProduct);
 			    }
 			}
 		});
 		
 		// 매입가 변경시 -> 매입가 + 판매가로 이익률
+		/*
+		m_textPurchasePrice.addTextChangedListener(new TextWatcher() {
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				Log.i("onTextChanged", s.toString());
+				String purchasePrice = s.toString();
+				
+		    	m_tempProduct.put("Pur_Pri", purchasePrice); // 매입가 
+		    	String Sell_Pri = m_tempProduct.get("Sell_Pri");
+		    	
+		    	if (purchasePrice.equals("")) purchasePrice ="0";
+		    	if (Sell_Pri == null ) return;
+
+	    		float f_salesPrice =  Float.parseFloat(Sell_Pri);
+	    		float f_purchasePrice =  Float.parseFloat(purchasePrice);			    		
+	    		float f_ratio = (f_salesPrice - f_purchasePrice) / f_salesPrice ;
+	    		
+		    	m_tempProduct.put("Pur_Pri", String.format("%.2f", f_purchasePrice)); // 매입가 
+	    		m_tempProduct.put("Pur_Cost", String.format("%.2f", f_purchasePrice/1.1)); // 매입원가 
+	    		m_tempProduct.put("Profit_Rate", String.format("%.2f", f_ratio*100)); // 이익률 
+	    		
+            	updateFormView(m_tempProduct);
+			}
+			
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {	
+			}
+			
+			@Override
+			public void afterTextChanged(Editable arg0) {
+			}
+		});
+		*/
 		m_textPurchasePrice.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 			//@Override
 			public void onFocusChange(View v, boolean hasFocus) {
@@ -251,41 +367,84 @@ public class ManageProductActivity extends Activity {
 			    	String purchasePrice = m_textPurchasePrice.getText().toString();
 			    	String Sell_Pri = m_tempProduct.get("Sell_Pri");
 			    	
-			    	if(Sell_Pri != null && !purchasePrice.equals("")) {
-			    		
+			    	if(!purchasePrice.equals("")) {
+			    		float f_purchasePrice =  Float.parseFloat(purchasePrice);
+				    	m_tempProduct.put("Pur_Pri", String.format("%.2f", f_purchasePrice)); // 매입가 
+			    		m_tempProduct.put("Pur_Cost", String.format("%.2f", f_purchasePrice/1.1)); // 매입원가 
+			    	}
+			    	
+			    	if(!Sell_Pri.equals("") && !purchasePrice.equals("")) {
+
 			    		float f_salesPrice =  Float.parseFloat(Sell_Pri);
 			    		float f_purchasePrice =  Float.parseFloat(purchasePrice);			    		
 			    		float f_ratio = (f_salesPrice - f_purchasePrice) / f_salesPrice ;
-
-			    		m_tempProduct.put("Pur_Pri", String.format("%.2f", f_purchasePrice)); // 매입가 
-			    		m_tempProduct.put("Pur_Cost", String.format("%.2f", f_purchasePrice/1.1)); // 매입원가 
+			    		
 			    		m_tempProduct.put("Profit_Rate", String.format("%.2f", f_ratio*100)); // 이익률 
 			    		
-		            	updateFormView(m_tempProduct);
 			    	} 
+	            	updateFormView(m_tempProduct);
 			    }
 			}
 		});
 		
-		// 판매가 변경시 -> 매입가 + 판매가로 이익률		
+		
+		// 판매가 변경시 -> 매입가 + 판매가로 이익률
+		/*
+		m_textSalesPrice.addTextChangedListener(new TextWatcher() {
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				Log.i("onTextChanged", s.toString());
+				String salesPrice = s.toString();
+				
+		    	m_tempProduct.put("Sell_Pri", salesPrice); // 
+		    	String Pur_Pri = m_tempProduct.get("Pur_Pri");
+		    	
+		    	if (salesPrice.equals("")) return;
+		    	if (Pur_Pri == null ) return;
+		    	
+		    	float f_salesPrice =  Float.parseFloat(salesPrice);
+	    		float f_purchasePrice =  Float.parseFloat(Pur_Pri);
+	    		float f_ratio = (f_salesPrice - f_purchasePrice) / f_salesPrice;
+	    		
+	    		m_tempProduct.put("Profit_Rate", String.format("%.2f", f_ratio*100)); // 이익률 
+	    		m_tempProduct.put("Sell_Pri", String.format("%.0f", f_salesPrice)); // 판매가 
+
+            	updateFormView(m_tempProduct);
+			}
+			
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {	
+			}
+			
+			@Override
+			public void afterTextChanged(Editable arg0) {
+			}
+		});
+		/*/
 		m_textSalesPrice.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 			//@Override
 			public void onFocusChange(View v, boolean hasFocus) {
 			    if(!hasFocus){
 			    	String salesPrice = m_textSalesPrice.getText().toString();
 			    	String Pur_Pri = m_tempProduct.get("Pur_Pri");
-			    	
-			    	if(!salesPrice.equals("") && Pur_Pri!=null) {
+
+			    	if(!salesPrice.equals("")) {
+			    		float f_salesPrice =  Float.parseFloat(salesPrice);
+			    		m_tempProduct.put("Sell_Pri", String.format("%.0f", f_salesPrice)); // 판매가
+			    	}
+		    		
+			    	if(!salesPrice.equals("") && !Pur_Pri.equals("")) {
 			    		
 			    		float f_salesPrice =  Float.parseFloat(salesPrice);
 			    		float f_purchasePrice =  Float.parseFloat(Pur_Pri);
 			    		float f_ratio = (f_salesPrice - f_purchasePrice) / f_salesPrice;
 			    		
 			    		m_tempProduct.put("Profit_Rate", String.format("%.2f", f_ratio*100)); // 이익률 
-			    		m_tempProduct.put("Sell_Pri", String.format("%.0f", f_salesPrice)); // 판매가 
 
-		            	updateFormView(m_tempProduct);
 			    	}
+	            	updateFormView(m_tempProduct);
 			    }
 			}
 		});
@@ -298,7 +457,7 @@ public class ManageProductActivity extends Activity {
 			    	String ratio = m_textDifferentRatio.getText().toString();
 			    	String Pur_Pri = m_tempProduct.get("Pur_Pri");
 			    	
-			    	if(!ratio.equals("") && Pur_Pri!=null) {
+			    	if(!ratio.equals("") && !Pur_Pri.equals("")) {
 			    		float f_ratio =  Float.valueOf(ratio).floatValue()/100;
 			    		float f_purchasePrice =  Float.parseFloat(Pur_Pri);
 			    		float f_salesPrice = f_purchasePrice/(1 - f_ratio);
@@ -312,10 +471,12 @@ public class ManageProductActivity extends Activity {
 			}
 		});
 		
-		String barcode = getIntent().getStringExtra("barcode");
-		m_textBarcode.setText(barcode);
+		//String barcode = getIntent().getStringExtra("barcode");
+		//m_textBarcode.setText(barcode);
 		
 		fetchLName();
+        newTempProduct();
+    	updateFormView(m_tempProduct);
 	}
 	
 	// private methods
@@ -330,7 +491,7 @@ public class ManageProductActivity extends Activity {
 		m_textStandard.setText(object.get("Std_Size"));
 		m_textAcquire.setText(object.get("Obtain"));
 		m_textPurchasePrice.setText(object.get("Pur_Pri"));
-		m_textSalesPrice.setText(String.format("%.0f", Double.parseDouble(object.get("Sell_Pri"))));
+		m_textSalesPrice.setText(object.get("Sell_Pri"));
 		m_textPurchasePriceOriginal.setText(object.get("Pur_Cost"));
 		m_textDifferentRatio.setText(object.get("Profit_Rate"));
 			
@@ -354,6 +515,25 @@ public class ManageProductActivity extends Activity {
 			m_spinGroup.setSelection(1);
     }
     
+    public void newTempProduct () {
+    	m_tempProduct.put("BarCode", ""); 
+    	m_tempProduct.put("G_Name", ""); 
+    	m_tempProduct.put("Bus_Code", ""); 
+    	m_tempProduct.put("Bus_Name", ""); 
+    	m_tempProduct.put("Std_Size", ""); 
+    	m_tempProduct.put("Obtain", ""); 
+    	m_tempProduct.put("Pur_Pri", ""); 
+    	m_tempProduct.put("Sell_Pri", ""); 
+    	m_tempProduct.put("Pur_Cost", ""); 
+    	m_tempProduct.put("Profit_Rate", ""); 
+    	m_tempProduct.put("L_Name", ""); 
+    	m_tempProduct.put("M_Name", ""); 
+    	m_tempProduct.put("S_Name", ""); 
+    	m_tempProduct.put("Tax_YN", ""); 
+    	m_tempProduct.put("VAT_CHK", ""); 
+    	m_tempProduct.put("Goods_Use", ""); 
+    }
+    
 	public void deleteListViewAll() {
 		if (mfillMaps.isEmpty()) return;
         
@@ -363,7 +543,7 @@ public class ManageProductActivity extends Activity {
 	
     // 새로 입력
     public void doClear(){
-    	m_tempProduct = null;
+    	//m_tempProduct = null;
 		m_textBarcode.setText("");
 		m_textProductName.setText("");
 		m_textCustomerCode.setText("");
@@ -376,6 +556,7 @@ public class ManageProductActivity extends Activity {
 		m_textDifferentRatio.setText(""); // 이의율
 		m_spinTaxation.setSelection(0);
 		m_checkSurtax.setChecked(false);
+		newTempProduct ();
 	}
 	
 	public void doRegister() {
@@ -415,6 +596,8 @@ public class ManageProductActivity extends Activity {
 		String surtax = null;
 	    String good_use = String.valueOf(m_spinGroup.getSelectedItemPosition());
 
+	    if(purchasePrice.equals("")) purchasePrice = "0";
+	    if(purchasePriceOriginal.equals("")) purchasePriceOriginal = "0";
 	    String Add_Tax = String.format("%f", Float.parseFloat(purchasePrice)-Float.parseFloat(purchasePriceOriginal));
 
 		if(m_checkSurtax.isChecked())
@@ -507,14 +690,14 @@ public class ManageProductActivity extends Activity {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		String currentDate = sdf.format(new Date());
 		String writeDate = obj.get("Write_Date");
-		if (writeDate.equals("")) writeDate = currentDate;
+		if (writeDate == null) writeDate = currentDate;
 		
 		JSONObject userProfile = LocalStorage.getJSONObject(this, "userProfile"); 
 	    String userID ="", writeID ="";
         try {
         	userID = userProfile.getString("User_ID");
         	writeID = obj.get("Writer");
-        	if (writeID.equals("")) writeID =userID;
+        	if (writeID == null) writeID =userID;
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -541,7 +724,9 @@ public class ManageProductActivity extends Activity {
 		String ratio = m_textDifferentRatio.getText().toString();
 		String VAT_CHK = null;
 	    String good_use = String.valueOf(m_spinGroup.getSelectedItemPosition());
-		
+
+	    if(purchasePrice.equals("")) purchasePrice = "0";
+	    if(purchasePriceOriginal.equals("")) purchasePriceOriginal = "0";
 	    String Add_Tax = String.format("%f", Float.parseFloat(purchasePrice)-Float.parseFloat(purchasePriceOriginal));
 
 		if(m_checkSurtax.isChecked())
@@ -754,6 +939,7 @@ public class ManageProductActivity extends Activity {
 	    	public void onClick(DialogInterface dialog, int item) {
 	    		String name = charSequenceItems[item].toString();
 	    		m_buttonCustomerClassification1.setText(name);
+		    	m_tempProduct.put("L_Name", name); 
 	        }
 	    });
 	    AlertDialog alert = builder.create();
@@ -817,6 +1003,7 @@ public class ManageProductActivity extends Activity {
 				    	public void onClick(DialogInterface dialog, int item) {
 				    		String name = charSequenceItems[item].toString();
 				    		m_buttonCustomerClassification2.setText(name);
+					    	m_tempProduct.put("M_Name", name); 
 				        }
 				    });
 				    AlertDialog alert = builder.create();
@@ -886,6 +1073,7 @@ public class ManageProductActivity extends Activity {
 				    	public void onClick(DialogInterface dialog, int item) {
 				    		String name = charSequenceItems[item].toString();
 				    		m_buttonCustomerClassification3.setText(name);
+					    	m_tempProduct.put("S_Name", name); 
 				        }
 				    });
 				    AlertDialog alert = builder.create();

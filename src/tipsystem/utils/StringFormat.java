@@ -12,7 +12,8 @@ public class StringFormat {
 	}
 	
 	public static String convertToNumberFormat(String number ) {
-
+		if (number.equals("")) number = "0";
+		
 		double n = Double.valueOf(number);
 		
 		return convertToNumberFormat(n);
