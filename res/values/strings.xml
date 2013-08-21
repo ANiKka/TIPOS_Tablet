@@ -69,8 +69,8 @@
     <string name="title_activity_manage_product">ManageProductActivity</string>
 
     <string-array name="taxation_type">
-        <item>과세</item>
         <item>면세</item>
+        <item>과세</item>
     </string-array>
 
     <string name="choose_taxation_type">과세구분 선택</string>

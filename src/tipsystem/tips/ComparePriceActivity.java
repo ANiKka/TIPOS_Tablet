@@ -15,7 +15,6 @@ import tipsystem.utils.JsonHelper;
 import tipsystem.utils.LocalStorage;
 import tipsystem.utils.MSSQL;
 import tipsystem.utils.MSSQL2;
-import tipsystem.tips.models.*;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -31,11 +30,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -43,12 +40,8 @@ import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RadioButton;
-import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -57,7 +50,7 @@ import android.support.v4.app.NavUtils;
 public class ComparePriceActivity extends Activity{
 
 	private static final int ZBAR_SCANNER_REQUEST = 0;
-	private static final int ZBAR_QR_SCANNER_REQUEST = 1;
+	//private static final int ZBAR_QR_SCANNER_REQUEST = 1;
 	private static final int BARCODE_MANAGER_REQUEST = 2;
 	private static final int CUSTOMER_MANAGER_REQUEST = 3;
 	
@@ -86,7 +79,7 @@ public class ComparePriceActivity extends Activity{
             currentVisibleItemCount = visibleItemCount;
 
             if((firstVisibleItem + visibleItemCount) == totalItemCount && firstVisibleItem != 0) 
-            	isEnd = true;            
+            	isEnd = true;
             else 
             	isEnd = false;
         }

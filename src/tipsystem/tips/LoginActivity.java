@@ -12,13 +12,16 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.TextView.OnEditorActionListener;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
 import android.content.Intent;
@@ -47,6 +50,19 @@ public class LoginActivity extends Activity {
 			e.printStackTrace();
 		}
         
+        EditText editTextLoginPW = (EditText)findViewById(R.id.editTextLoginPW);
+        editTextLoginPW.setOnEditorActionListener(new OnEditorActionListener() {
+            
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                
+                if(actionId == EditorInfo.IME_ACTION_DONE){ // IME_ACTION_SEARCH , IME_ACTION_GO
+                	onClickLogin(null);
+                }
+                return false;
+            }
+        });
+
         Typeface typeface = Typeface.createFromAsset(getAssets(), "Fonts/NanumGothic.ttf");
         TextView textView = (TextView) findViewById(R.id.textViewID);
         textView.setTypeface(typeface);
@@ -129,7 +145,7 @@ public class LoginActivity extends Activity {
 	
 	// 로그인관련 실행 함수 
     public void doLogin(String ip, String port, String id, String pw) {
-
+    	
     	// 로딩 다이알로그 
     	dialog = new ProgressDialog(this);
  		dialog.setMessage("Loading....");

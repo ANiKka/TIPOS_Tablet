@@ -91,12 +91,13 @@
         <EditText
             android:id="@+id/editTextBarcode"
             android:layout_width="0dip"
-             android:layout_height="wrap_content"
-             android:layout_weight="1"
-             android:ems="10"
-             android:textSize="14sp"
-             android:inputType="number"
-             android:singleLine="true"/>
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:inputType="number"
+            android:nextFocusDown="@id/editTextProductName"
+            android:singleLine="true"
+            android:textSize="14sp" />
         
          <Button
 	        android:id="@+id/buttonBarcode"
@@ -120,12 +121,13 @@
         <EditText
             android:id="@+id/editTextProductName"
             android:layout_width="0dip"
-	        android:layout_height="wrap_content"
-	        android:layout_weight="1"
-	        android:ems="10"
-	        android:textSize="14sp"
-	        android:inputType="text"
-	        android:singleLine="true" />
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:inputType="text"
+            android:nextFocusDown="@id/editTextCustomerCode"
+            android:singleLine="true"
+            android:textSize="14sp" />
         
     </LinearLayout>
     
@@ -152,10 +154,11 @@
             android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textSize="14sp"
-            android:inputType="number"
             android:ems="10"
-            android:singleLine="true"/>
+            android:inputType="number"
+            android:nextFocusDown="@id/editTextCustomerName"
+            android:singleLine="true"
+            android:textSize="14sp" />
         
          <Button
 	        android:id="@+id/buttonCustomer"
