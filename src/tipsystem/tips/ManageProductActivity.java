@@ -1133,6 +1133,7 @@ public class ManageProductActivity extends Activity {
 			if(resultCode == RESULT_OK && data != null) {
 				HashMap<String, String> hashMap = (HashMap<String, String>)data.getSerializableExtra("fillmaps");        	
 				m_textBarcode.setText(hashMap.get("BarCode"));
+				m_tempProduct.put("BarCode", hashMap.get("BarCode")); //  
 	        	doQueryWithBarcode();
 	        }
 			break;
@@ -1141,6 +1142,9 @@ public class ManageProductActivity extends Activity {
 				HashMap<String, String> hashMap = (HashMap<String, String>)data.getSerializableExtra("fillmaps");     	
 				m_textCustomerCode.setText(hashMap.get("Office_Code"));
 				m_textCustomerName.setText(hashMap.get("Office_Name"));
+				
+				m_tempProduct.put("Bus_Code", hashMap.get("Office_Code")); //  
+				m_tempProduct.put("Bus_Name", hashMap.get("Office_Name")); //  
 	        }
 			break;
 		}
