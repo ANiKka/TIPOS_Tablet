@@ -27,19 +27,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NavUtils;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnKeyListener;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AdapterView;
-import android.widget.AbsListView.OnScrollListener;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -204,7 +201,7 @@ public class ManageProductActivity extends Activity {
 		Button renewButton = (Button) findViewById(R.id.buttonProductRenew);
 		Button modifyButton = (Button) findViewById(R.id.buttonProductModify);
 		
-		//조회 버튼 클릭
+		// 조회 버튼 클릭
 		searchButton.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) { 
 	        	deleteListViewAll();
@@ -212,7 +209,7 @@ public class ManageProductActivity extends Activity {
 	        }
 		});
 		
-		//등록 버튼 클릭		
+		// 등록 버튼 클릭		
 		registButton.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) {
 	        	deleteListViewAll();
@@ -228,12 +225,13 @@ public class ManageProductActivity extends Activity {
 	        }
 		});
 
-		//초기화 버튼 클릭		
+		// 초기화 버튼 클릭		
 		renewButton.setOnClickListener(new OnClickListener() {
 	        public void onClick(View v) { 
 	        	doClear();
 	        }
 		});
+		
 		// 바코드 입력 후 포커스 딴 곳을 옮길 경우
 		m_textBarcode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 			@Override
@@ -297,8 +295,7 @@ public class ManageProductActivity extends Activity {
 			    }
 			}
 		});
-		
-		
+			
 		// 매입원가 변경시 -> 매입가 + 이익률로 판매가
 		m_textPurchasePriceOriginal.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 			@Override
@@ -353,8 +350,7 @@ public class ManageProductActivity extends Activity {
 	            	updateFormView(m_tempProduct);
 			    }
 			}
-		});
-		
+		});		
 		
 		// 판매가 변경시 -> 매입가 + 판매가로 이익률
 		m_textSalesPrice.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -366,18 +362,23 @@ public class ManageProductActivity extends Activity {
 
 			    	if(!salesPrice.equals("")) {
 			    		float f_salesPrice =  Float.parseFloat(salesPrice);
-			    		m_tempProduct.put("Sell_Pri", String.format("%.0f", f_salesPrice)); // 판매가
+			    		
+			    		// 반올림 수행
+			    		int rest = ((int)(f_salesPrice /10.0f))*10;
+			    		int one = (int)f_salesPrice - rest;
+			    		if (one>=5) rest+=10;
+			    		
+			    		m_tempProduct.put("Sell_Pri", String.format("%d", rest)); // 판매가
+			    		
+			    		if(!Pur_Pri.equals("")) {
+				    		
+				    		float f_purchasePrice =  Float.parseFloat(Pur_Pri);
+				    		float f_ratio = (rest - f_purchasePrice) / rest;
+				    		
+				    		m_tempProduct.put("Profit_Rate", String.format("%.2f", f_ratio*100)); // 이익률 
+				    	}
 			    	}
 		    		
-			    	if(!salesPrice.equals("") && !Pur_Pri.equals("")) {
-			    		
-			    		float f_salesPrice =  Float.parseFloat(salesPrice);
-			    		float f_purchasePrice =  Float.parseFloat(Pur_Pri);
-			    		float f_ratio = (f_salesPrice - f_purchasePrice) / f_salesPrice;
-			    		
-			    		m_tempProduct.put("Profit_Rate", String.format("%.2f", f_ratio*100)); // 이익률 
-
-			    	}
 	            	updateFormView(m_tempProduct);
 			    }
 			}
